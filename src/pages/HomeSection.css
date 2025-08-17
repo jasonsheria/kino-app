@@ -1,0 +1,233 @@
+/* Animation apparition au scroll (ScrollReveal) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px) scale(0.98);
+  transition: opacity 0.7s cubic-bezier(.23,1.02,.47,.98), transform 0.7s cubic-bezier(.23,1.02,.47,.98);
+  will-change: opacity, transform;
+}
+.scroll-reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+/* Animation apparition et interactions premium pour cards et boutons */
+.animate-card {
+  animation: cardIn 0.7s cubic-bezier(.23,1.02,.47,.98);
+  transition: transform 0.18s cubic-bezier(.23,1.02,.47,.98), box-shadow 0.18s;
+  will-change: transform, box-shadow;
+}
+.animate-card:hover, .animate-card:focus-within {
+  transform: translateY(-7px) scale(1.025) rotateZ(-0.5deg);
+  box-shadow: 0 8px 32px #13c29633, 0 1.5px 8px #0001;
+  z-index: 2;
+}
+.animate-card:active {
+  transform: scale(0.98) translateY(2px);
+  box-shadow: 0 2px 8px #13c29622;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(40px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+/* Animation premium sur boutons */
+.btn, .btn:focus {
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.16s;
+}
+.btn:hover, .btn:focus-visible {
+  box-shadow: 0 2px 12px #13c29633;
+  transform: translateY(-2px) scale(1.03);
+}
+.btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px #13c29622;
+}
+/* Titres de section premium */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  font-size: 2rem;
+  box-shadow: 0 2px 12px #13c29622;
+  margin-bottom: 0.2rem;
+}
+/* HomeSection.css - styles personnalisés pour la section hero et le responsive */
+
+.hero-section {
+  min-height: 80vh;
+  background: #fff;
+  position: relative;
+}
+
+.hero-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #0a223a;
+  line-height: 1.13;
+  letter-spacing: -1px;
+}
+
+.hero-highlight {
+  color: #13c296;
+  font-weight: 800;
+}
+
+.hero-desc {
+  color: #6c757d;
+  font-size: 0.98rem;
+  font-weight: 400;
+}
+
+.hero-btn {
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 120px;
+  padding: 0.5rem 1.5rem;
+}
+
+.custom-navbar {
+  box-shadow: 0 4px 24px rgba(19,194,150,0.08);
+      min-height: 48px;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    position: absolute;
+    top: 35px;
+    width: 90%;
+    left: 5%;
+    right: 5%;
+    z-index: 1050;
+}
+
+.navbar .navbar-brand {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.navbar .btn-success {
+  background: #13c296;
+  border: none;
+}
+.navbar .btn-success:hover {
+  background: #0ea67a;
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show {
+  color: #13c296 !important;
+  font-weight: 700;
+}
+.navbar-nav .nav-link {
+  font-size: 0.80rem;
+  font-weight: 500;
+  color: #0a223a;
+  margin-right: 0.3rem;
+  transition : 2s ease-in-out;
+  transition: color 0.3s ease-in-out;
+}
+.navbar-nav .nav-link:hover {
+  color: #13c296;
+}
+
+/* Dropdown caret animation for custom controlled dropdown */
+.dropdown-caret {
+  display: inline-block;
+  transition: transform 0.25s ease;
+  margin-left: 6px;
+  font-size: 0.9rem;
+}
+.dropdown-caret.open {
+  transform: rotate(180deg);
+}
+
+/* Subpage header and reveal helpers */
+.subpage-header {
+  padding: 28px 0 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.subpage-header h1 {
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.6px;
+}
+.subpage-header p { margin: 0; color: #6c757d; }
+
+/* ensure scroll-reveal elements start hidden (if not already) */
+.scroll-reveal { opacity: 0; transform: translateY(16px); }
+.scroll-reveal-visible { opacity: 1; transform: none; transition: opacity 520ms ease, transform 520ms cubic-bezier(.23,1.02,.47,.98); }
+
+/* Breadcrumb/title decoration */
+.breadcrumb-lite {
+  display:flex; align-items:center; gap:8px; color:#6c757d; font-size:0.95rem; margin-bottom:8px;
+}
+.page-underline {
+  height:4px; width:60px; background:linear-gradient(90deg,#13c296,#d7263d); border-radius:4px; margin-top:10px;
+  transform-origin:left; transform:scaleX(0); transition: transform 520ms cubic-bezier(.23,1.02,.47,.98);
+}
+.page-underline.visible { transform:scaleX(1); }
+.navbar.sticky {
+    position: fixed;
+    background: #ffffffe5;
+    top: 0px;
+    left: 0;
+    right: 0;
+    margin: 0;
+    width: 100%;
+   
+}
+
+.carousel-section {
+  min-height: 320px;
+  background: #e3eafc;
+  display: flex;
+  align-items: stretch;
+}
+
+.carousel-box {
+  width: 100%;
+  height: 100%;
+  /* overflow: hidden; */
+  border-radius: 0 0 0 0;
+  box-shadow: 0 4px 24px rgba(19,194,150,0.08);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.text-section {
+  background: transparent;
+}
+
+@media (min-width: 768px) {
+  .hero-title { font-size: 2.2rem; }
+  .hero-section { min-height: 400px; }
+}
+@media (min-width: 1200px) {
+  .hero-title { font-size: 2.7rem; }
+  .hero-section { min-height: 480px; }
+}
+@media (max-width: 767.98px) {
+
+  .carousel-section { min-height: 220px; }
+  .hero-title { font-size: 2rem; }
+  .hero-btn { font-size: 1rem; min-width: 140px; padding: 0.75rem 1.5rem; }
+}
+
+/* Filter chips (used in PropertyFilterBar) */
+.filter-chips { display:flex; gap:8px; flex-wrap:wrap; }
+.filter-chip { display:inline-flex; align-items:center; gap:8px; background:#f1fdf8; border:1px solid #dff6ef; padding:6px 8px; border-radius:999px; font-size:0.85rem; color:#02423a; }
+.filter-chip-label { font-weight:600; }
+.filter-chip-close { background:transparent; border:0; color:#02423a; font-weight:700; padding:0 6px; cursor:pointer; }
+.filter-chip-close:hover { color:#0b6b57; }
+
+@media (max-width: 576px) {
+  .filter-chip { font-size:0.78rem; padding:5px 7px; }
+}

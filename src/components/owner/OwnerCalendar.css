@@ -1,0 +1,19 @@
+.owner-calendar{ font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+.owner-calendar .cal-header{ padding:8px 4px 12px 4px; }
+.owner-calendar .cal-title{ font-weight:700; font-size:1rem; }
+.owner-calendar .cal-grid{ border-top:1px solid #f1f4f7; padding-top:8px; }
+.owner-calendar .weekdays{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; margin-bottom:6px; }
+.owner-calendar .weekdays .wk{ text-align:center; font-size:0.78rem; color:#9aa6b2; }
+.owner-calendar .days-grid{ display:grid; grid-template-columns: repeat( 9, 0.2fr); gap:4px; }
+.owner-calendar .ocell{ border:1px solid transparent; border-radius:8px; height:56px; padding:6px; background:white; display:flex; align-items:flex-start; justify-content:flex-start; position:relative; }
+.owner-calendar .ocell.empty{ background:transparent; border:none; }
+.owner-calendar .ocell.day{ cursor:pointer; }
+.owner-calendar .ocell .date-num{ font-weight:700; color:#334155; }
+.owner-calendar .ocell .dot{ width:8px; height:8px; border-radius:50%; background:#ef4444; position:absolute; right:8px; bottom:8px; }
+.owner-calendar .ocell.occupied{ background: linear-gradient(180deg, #fff8f8, #fff1f1); border:1px solid rgba(239,68,68,0.08); }
+.owner-calendar .ocell.today{ box-shadow: 0 6px 18px rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.12); }
+.owner-calendar .ocell.selected{ outline: 2px solid #0ea5a4; }
+.owner-calendar .appts{ padding-top:8px; }
+.owner-calendar .appt-item{ padding:10px; background:#fff; border-radius:8px; border:1px solid #f1f4f7; margin-top:8px; }
+
+@media (max-width: 768px){ .owner-calendar .ocell{ height:48px; } }

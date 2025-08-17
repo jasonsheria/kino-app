@@ -1,0 +1,20 @@
+.testimonial-slider-track {
+  width: 100%;
+  overflow: hidden;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.testimonial-slider-inner {
+  display: flex;
+  gap: 32px;
+  will-change: transform;
+}
+.testimonial-slider-container {
+  background: linear-gradient(120deg, #f8f9fa 60%, #e9f7f3 100%);
+}
+.testimonial-card {
+  transition: box-shadow .3s;
+}
+.testimonial-card:hover {
+  box-shadow: 0 8px 32px #13c29633;
+}

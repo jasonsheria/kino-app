@@ -1,0 +1,47 @@
+.preloader-bg {
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(20,20,20,0.06), rgba(255,255,255,0.02));
+  backdrop-filter: blur(6px);
+}
+.preloader-card {
+  background: rgba(255,255,255,0.9);
+  border-radius: 14px;
+  padding: 26px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(17,24,39,0.08);
+  min-width: 240px;
+}
+.preloader-logo {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;
+  background: linear-gradient(135deg,#13c296,#0ea5a3);
+  color: white;
+  transform: translateZ(0);
+  animation: logoFloat 2.4s ease-in-out infinite;
+}
+@keyframes logoFloat { 0%{ transform: translateY(0);}50%{ transform: translateY(-6px);}100%{ transform: translateY(0);} }
+.preloader-spinner-ring {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 5px solid rgba(16,185,129,0.12);
+  border-top-color: #13c296;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.preloader-text { color:#0f172a; font-weight:600; font-size:0.98rem; }
+
+@media (max-width:540px){ .preloader-card{ min-width:200px; padding:18px } .preloader-logo{width:68px;height:68px} }

@@ -1,0 +1,300 @@
+.auth-page {
+    min-height: calc(100vh - 100px);
+    /* background: linear-gradient(180deg, #f7fdfc, #ffffff); */
+    padding: 18px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 720px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #fbfffe);
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.05)
+}
+
+.auth-illustration {
+    flex: 1 1 44%;
+    background: linear-gradient(135deg, #e6fcf5, #f0fff9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px
+}
+
+.auth-illustration img {
+    max-width: 88%;
+    height: auto;
+    border-radius: 10px
+}
+
+.auth-form {
+    flex: 1 1 56%;
+    padding: 24px 20px
+}
+
+.auth-form h3 {
+    color: #0f172a
+}
+
+.auth-form .form-control {
+    border-radius: 10px;
+    box-shadow: none;
+    border: 1px solid #e9f3ef;
+    padding: 10px 12px;
+    font-size: 0.95rem
+}
+
+.auth-form .btn-primary {
+    background: linear-gradient(90deg, #13c296, #0ea5a3);
+    border: 0;
+    padding: 10px 12px;
+    font-size: 0.95rem
+}
+
+.auth-small {
+    font-size: 0.88rem;
+    color: #6b7280
+}
+
+@media (max-width: 992px) {
+    .auth-card {
+        flex-direction: column;
+        max-width: 540px
+    }
+
+    .auth-illustration {
+        display: none
+    }
+
+    .auth-form {
+        padding: 20px
+    }
+}
+
+.input-with-toggle {
+    position: relative
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    transform: translateY(6px);
+    padding: 6px 8px
+}
+
+.error-text {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 6px
+}
+
+.form-control.is-invalid {
+    border-color: #dc2626;
+    box-shadow: none
+}
+
+/* Login-specific tweaks */
+.auth-logo img {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px
+}
+
+.social-row .social-btn {
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-weight: 600
+}
+
+.social-btn.google {
+    background: linear-gradient(90deg, #fff, #fff);
+    border: 1px solid #e5e7eb;
+    color: #111
+}
+
+.social-btn.github {
+    background: linear-gradient(90deg, #111, #222);
+    color: #fff;
+    border: 0
+}
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #9ca3af;
+    font-weight: 600
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e6f3ee, transparent)
+}
+
+.illustration-caption {
+    margin-top: 10px;
+    color: #0f172a;
+    text-align: center;
+    max-width: 220px
+}
+
+.illustration-caption h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem
+}
+
+/* small entrance animation */
+.fade-in {
+    animation: fadeInUp .38s ease both
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(6px)
+    }
+
+    to {
+        opacity: 1;
+        transform: none
+    }
+}
+
+/* focus states */
+.form-label {
+    font-weight: 600;
+    color: #0f172a
+}
+
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 6px rgba(14, 165, 163, 0.06);
+    border-color: #0ea5a3
+}
+
+.btn:focus {
+    box-shadow: 0 0 0 6px rgba(14, 165, 163, 0.05)
+}
+
+/* (Deprecated) small modal styles removed in favor of toast UI */
+
+/* Google sign-in toast (top-right) */
+.ndaku-toast-container {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.ndaku-toast {
+    pointer-events: auto;
+    width: 520px;
+    max-width: calc(100vw - 48px);
+    /* background: linear-gradient(180deg, #ffffff, #f8fffd); */
+    background-image: linear-gradient(135deg, #4285F4 0%, #4285F4 25%, #DB4437 34%, #DB4437 75%, #F4B400 35%, #F4B400 76%, #0F9D58 101%, #0F9D58 100%);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    transform-origin: top right;
+    border: 1px solid rgba(14,165,163,0.08);
+    color: white
+}
+.ndaku-toast .toast-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    /* background: linear-gradient(90deg,#fff,#f2fffb); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.ndaku-toast .toast-body {
+    flex: 1 1 auto;
+}
+.ndaku-toast .toast-title {
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+}
+.ndaku-toast .toast-text {
+    font-size: 0.92rem;
+    color: white;
+}
+.ndaku-toast .toast-actions {
+    display: flex;
+    gap: 2px;
+    margin-left: 4px;
+}
+.ndaku-toast .btn {
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+/* entrance/exit animations */
+.ndaku-toast-enter {
+    animation: ndakuToastIn .42s cubic-bezier(.22,.9,.26,1) both;
+}
+.ndaku-toast-exit {
+    animation: ndakuToastOut .32s ease both;
+}
+@keyframes ndakuToastIn {
+    from { opacity: 0; transform: translateY(-8px) scale(.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ndakuToastOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-8px) scale(.98); }
+}
+
+@media (max-width: 420px) {
+    .ndaku-toast { width: calc(100vw - 28px); padding: 10px; }
+}
+
+/* Dev debug button */
+.ndaku-debug-toast-btn {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 4000;
+    background: #0ea5a3;
+    color: #fff;
+    border: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.18);
+    font-weight: 700;
+}
+
+.ndaku-debug-panel {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 5000;
+    background: rgba(255,255,255,0.95);
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 28px rgba(2,6,23,0.12);
+    font-size: 0.9rem;
+    color: #042f2e;
+}
+.ndaku-debug-row { margin-bottom: 8px; }
+.ndaku-debug-actions button { margin-right: 8px; }

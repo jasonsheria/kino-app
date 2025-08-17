@@ -1,0 +1,11 @@
+.footer-pro {
+  background: linear-gradient(120deg, #232526 60%, #0f2027 100%);
+}
+.footer-pro .btn-outline-light:hover {
+  background: #13c296;
+  border-color: #13c296;
+  color: #fff;
+}
+.footer-pro a.text-white:hover {
+  color: #13c296 !important;
+}
