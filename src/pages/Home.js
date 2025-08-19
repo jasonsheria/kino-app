@@ -6,14 +6,14 @@ import InfoModal from '../components/common/InfoModal';
 import MapView from '../components/property/MapView';
 import FooterPro from '../components/common/FooterPro';
 import LandingCarousel from '../components/property/LandingCarousel';
-import Footer from '../components/common/Footer';
+import Button from '../components/common/Button';
 import { properties, agents } from '../data/fakedata';
 import { vehicles } from '../data/fakedataVehicles';
 import recService from '../services/recommendationService';
 import { promotions as promoData } from '../data/fakedataPromotions';
 import VehicleList from '../components/vehicle/VehicleList';
 import './HomeSection.css';
-import './auth.css';
+// import './auth.css';
 import Preloader from '../components/common/Preloader';
 import PropertyCard from '../components/property/PropertyCard';
 import AgentCard from '../components/agent/AgentCard';
@@ -267,6 +267,14 @@ const Home = () => {
 
     const navigate = useNavigate();
 
+    const scrollToId = (id) => {
+        try {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else window.location.hash = id;
+        } catch (e) { /* ignore */ }
+    };
+
     // Promotion unique salle de fête -30% (each promo gets a stable __key)
     const [promotions, setPromotions] = React.useState([
         {
@@ -340,7 +348,7 @@ const Home = () => {
                 style={{ background: theme.palette.background.default, color: theme.palette.text.primary }}
             >
                 <div className="row w-100 g-0 align-items-stretch">
-                    <div className="col-12 col-md-6 d-flex align-items-center justify-content-center text-section px-4 px-md-5" style={{marginTop : "20vh"}}>
+                    <div className="titr col-12 col-md-6 d-flex align-items-center justify-content-center text-section px-4 px-md-5">
                         <div className="w-100" style={{ maxWidth: 700 }}>
                             <h1 className="hero-title mb-4 display-2" style={{ fontSize: 'clamp(2.5rem, 6vw, 3.2rem)', fontWeight: 800, color: '#13c296' }}>
                                 Trouvez le bien idéal à Kinshasa
@@ -351,7 +359,7 @@ const Home = () => {
                             <p className="hero-desc mb-4" style={{ fontSize: '1.1rem', color: theme.palette.text.secondary }}>
                                 <span style={{ fontWeight: 600 }}>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
                             </p>
-                            <a href="#biens" className="btn btn-success btn-lg px-4 py-3 fw-bold shadow-sm hero-btn" style={{ fontSize: '1.1rem', minWidth: 180 }}>Voir les biens</a>
+                            <Button onClick={() => scrollToId('biens')} color="success" variant="contained" sx={{ fontWeight: 800, boxShadow: '0 6px 20px rgba(19,194,150,0.12)' }}>Voir les biens</Button>
                         </div>
                     </div>
                     <div className="col-12 col-md-6 d-flex align-items-stretch carousel-section p-0">
@@ -373,12 +381,12 @@ const Home = () => {
                         <span className="fw-bold fs-4" style={{ color: theme.palette.text.primary }}>Vous êtes agent ou propriétaire ?</span>
                     </div>
                     <div className="d-flex gap-2 mt-3 mt-md-0">
-                        <Link to="/agency/login" className="btn btn-outline-success fw-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2">
-                            <FaBuilding /> Je suis une agence
-                        </Link>
-                        <Link to="/owner/onboard" className="btn btn-success fw-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2">
-                            <FaHandshake /> Je suis propriétaire
-                        </Link>
+                                                <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
+                                                    <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'>Je suis une agence</Button>
+                                                </Link>
+                                                <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
+                                                    <Button color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Je suis propriétaire</Button>
+                                                </Link>
                     </div>
                     <div className="d-none d-md-block">
                         <FaArrowRight className="text-secondary" size={32} />
@@ -390,8 +398,8 @@ const Home = () => {
             <section className="container py-5 animate__animated animate__fadeInUp" id="agence">
                 <div className="row align-items-center">
                     <div className="col-12 col-md-5 mb-4 mb-md-0 d-flex justify-content-center">
-                        <div className="position-relative" style={{ maxWidth: 320 }}>
-                            <img src={require('../img/about.jpg')} alt="Ndaku Agence Immobilière" className="img-fluid rounded-4 shadow-lg border border-3 border-success" style={{ width: '100%', objectFit: 'cover', minHeight: 220, background: theme.palette.background.paper }} />
+                        <div className="position-relative" style={{ maxWidth: 320, width: '100%' }}>
+                            <img src={require('../img/about.jpg')} alt="Ndaku Agence Immobilière" className="img-fluid rounded-4 shadow-lg border border-3 border-success" style={{ width: '100%', objectFit: 'cover', minHeight: 160, maxHeight: 420, background: theme.palette.background.paper }} />
                             <div className="position-absolute top-0 start-0 translate-middle bg-success rounded-circle d-flex align-items-center justify-content-center" style={{ width: 64, height: 64, boxShadow: '0 2px 8px #0002' }}>
                                 <FaBuilding className="text-white" size={32} />
                             </div>
@@ -409,8 +417,8 @@ const Home = () => {
                             <li className="mb-2 d-flex align-items-center gap-2"><FaEnvelope className="text-success" /> <strong>Email :</strong> contact@ndaku.cd</li>
                         </ul>
                         <div className="d-flex gap-2 mt-3">
-                            <a href="#biens" className="btn btn-success px-4 py-2 fw-bold rounded-pill animate__animated animate__pulse animate__infinite">Découvrir nos biens</a>
-                            <a href="#agents" className="btn btn-outline-success px-4 py-2 fw-bold rounded-pill">Rencontrer nos agents</a>
+                            <Button onClick={() => scrollToId('biens')} color="success" className="animate__animated animate__pulse animate__infinite">Découvrir nos biens</Button>
+                            <Button onClick={() => scrollToId('agents')} variant="outlined" color="success">Rencontrer nos agents</Button>
                         </div>
                     </div>
                 </div>
@@ -456,14 +464,16 @@ const Home = () => {
                                     ))}
                                 </div>
                                 <div className="d-flex justify-content-center mt-3">
-                                    <Link to="/appartement" className="btn btn-outline-success px-4 py-2 rounded-pill fw-bold">Voir plus de biens</Link>
+                                    <Link to="/appartement" style={{ textDecoration: 'none' }}>
+                                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
+                                    </Link>
                                 </div>
                                 {/* Publicité pour appartements/bureaux récemment construits */}
                                 <div className="container py-4">
                                     <div className="card shadow-sm border-0 p-3" style={{borderRadius:12}}>
                                         <div className="row align-items-center g-3">
-                                            <div className="col-auto">
-                                                <img src={require('../img/property-4.jpg')} alt="Appartements neufs" style={{width:140, height:90, objectFit:'cover', borderRadius:8}} />
+                                            <div className="col-auto" style={{ maxWidth: 140, width: '100%' }}>
+                                                <img src={require('../img/property-4.jpg')} alt="Appartements neufs" style={{width:'100%', maxWidth:140, height:'auto', objectFit:'cover', borderRadius:8}} />
                                             </div>
                                             <div className="col">
                                                 <h5 className="fw-bold mb-1">Nouveaux appartements & bureaux en ville</h5>
@@ -487,19 +497,21 @@ const Home = () => {
                                 <p className="text-center text-muted mb-5 fs-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span className="text-success">Location ou achat, tout est possible sur Ndaku !</span></p>
                                                                 <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0,6) : vehicles.slice(0,6))} />
                                                                     <div className="d-flex justify-content-center mt-3">
-                                                                        <a href="/voitures" className="btn btn-outline-success px-4 py-2 rounded-pill fw-bold">Voir plus de véhicules</a>
-                                                                </div>
+                                                                        <Link to="/voitures" style={{ textDecoration: 'none' }}>
+                                                                            <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
+                                                                        </Link>
+                                                                    </div>
                         
                                                                     {/* Publicité produit voiture (ex: constructeur) */}
                                                                     <div className="container py-4">
                                                                         <div className="card shadow-sm border-0 p-3 d-flex flex-row align-items-center gap-3" style={{borderRadius:12}}>
-                                                                            <img src={require('../img/Toyota car.jpg')} alt="Annonce constructeur" style={{width:140, height:90, objectFit:'cover', borderRadius:8}} />
+                                                                            <img src={require('../img/Toyota car.jpg')} alt="Annonce constructeur" style={{width:'100%', maxWidth:140, height:'auto', objectFit:'cover', borderRadius:8}} />
                                                                             <div className="flex-grow-1">
                                                                                 <h5 className="fw-bold mb-1">Promotion constructeur: Toyota RAV4</h5>
                                                                                 <p className="mb-1 text-muted">Offre spéciale concession — facilités de financement et garanties incluses. Découvrez le nouveau RAV4 aujourd'hui.</p>
                                                                                 <div className="d-flex gap-2">
-                                                                                    <a href="/voitures" className="btn btn-primary btn-sm">Voir l'offre</a>
-                                                                                    <a href="#contact" className="btn btn-outline-secondary btn-sm">Contactez le concessionnaire</a>
+                                                                                    <Link to="/voitures" className="btn btn-primary btn-sm">Voir l'offre</Link>
+                                                                                        <a href="#contact" className="btn btn-outline-secondary btn-sm">Contactez le concessionnaire</a>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -531,7 +543,9 @@ const Home = () => {
                         ))}
                     </div>
                     <div className="d-flex justify-content-center mt-3">
-                        <a href="/agents" className="btn btn-outline-success px-4 py-2 rounded-pill fw-bold">Voir plus d'agents</a>
+                        <Link to="/agents" style={{ textDecoration: 'none' }}>
+                            <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
+                        </Link>
                     </div>
                     </div>
                 </div>
@@ -634,9 +648,9 @@ const Home = () => {
                             <div key={promoKey} id={`promo-${promoKey}`} className="col-12">
                                 <div className="card shadow-sm mb-3" style={{ borderRadius: 12 }}>
                                     <div className="row g-0 align-items-stretch">
-                                        <div className="col-auto" style={{ width: 320 }}>
+                                        <div className="col-auto" style={{ maxWidth: 320, width: '100%' }}>
                                             {/* image en avant, professionel */}
-                                            <img src={p.images?.[0] || p.image || require('../img/property-1.jpg')} alt={p.name || p.title} style={{ width: '320px', height: '320px', objectFit: 'cover', borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }} />
+                                            <img src={p.images?.[0] || p.image || require('../img/property-1.jpg')} alt={p.name || p.title} style={{ width: '100%', maxWidth: 320, height: 'auto', objectFit: 'cover', borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }} />
                                         </div>
                                         <div className="col">
                                             <div className="card-body d-flex flex-column h-100">
@@ -658,7 +672,7 @@ const Home = () => {
                                                         <button className="btn btn-sm btn-outline-danger" onClick={() => toggleLikePromo(promoKey)} aria-label="J'aime">
                                                             👍 {likes}
                                                         </button>
-                                                        <div style={{ minWidth: 300 }}>
+                                                        <div style={{ minWidth: 'min(300px, 60vw)' }}>
                                                             <CommentInput onAdd={(author, text) => addCommentPromo(promoKey, author || 'Anonyme', text)} />
                                                         </div>
                                                     </div>
@@ -671,6 +685,9 @@ const Home = () => {
                                                             } else if (navigator.clipboard) {
                                                                 navigator.clipboard.writeText(shareUrl).then(() => {
                                                                     setInfoMsg('Lien de l’offre copié dans le presse-papiers');
+                                                                    setInfoOpen(true);
+                                                                }).catch(() => {
+                                                                    setInfoMsg('Impossible de copier le lien');
                                                                     setInfoOpen(true);
                                                                 });
                                                             } else {
@@ -740,7 +757,7 @@ const Home = () => {
                 <div className="container">
                     <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
                     <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-                    <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill" style={{ fontSize: '1.2rem', minWidth: 180 }}>Devenir agent</a>
+                    <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
             </div>
 

@@ -39,6 +39,9 @@ import AgencyWallet from './pages/AgencyWallet';
 import AgencySettings from './pages/AgencySettings';
 import AgencySecurity from './pages/AgencySecurity';
 import AgencyPrivacy from './pages/AgencyPrivacy';
+import AgencyAgents from './pages/AgencyAgents';
+import AgencyMessages from './pages/AgencyMessages';
+import AgencyPay from './pages/AgencyPay';
 
 const AppRoutes = () => (
   <Routes>
@@ -75,6 +78,9 @@ const AppRoutes = () => (
   <Route path="/agency/ads" element={<AgencyAds />} />
   <Route path="/agency/products" element={<AgencyProducts />} />
   <Route path="/agency/wallet" element={<AgencyWallet />} />
+  <Route path="/agency/agents" element={<AgencyAgents />} />
+  <Route path="/agency/messages" element={<AgencyMessages />} />
+  <Route path="/agency/pay" element={<AgencyPay />} />
   <Route path="/agency/settings" element={<AgencySettings />} />
   <Route path="/agency/security" element={<AgencySecurity />} />
   <Route path="/agency/privacy" element={<AgencyPrivacy />} />

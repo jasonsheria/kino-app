@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaBullhorn, FaBoxes, FaWallet, FaCog, FaShieldAlt } from 'react-icons/fa';
+import { NavLink, Link } from 'react-router-dom';
+import { FaTachometerAlt, FaBullhorn, FaBoxes, FaWallet, FaCog, FaShieldAlt, FaUsers } from 'react-icons/fa';
 import { currentAgencySession } from '../../api/agencies';
 
 export default function AgencySidebar({ collapsed }){
@@ -8,13 +8,13 @@ export default function AgencySidebar({ collapsed }){
   const [counts, setCounts] = React.useState({ ads:0, products:0, txs:0 });
 
   React.useEffect(()=>{
-    if(!session) return;
+    // if(!session) return;
     try{
       const store = JSON.parse(localStorage.getItem('ndaku_agencies')||'{}');
       const a = store[session.id] || {};
       setCounts({ ads: (a.ads||[]).length, products: (a.products||[]).length, txs: (a.transactions||[]).length });
     }catch(e){ setCounts({ ads:0, products:0, txs:0 }); }
-  }, [session]);
+  },[]);
 
   return (
     <div className={`card owner-card ${collapsed? 'compact':''}`}>
@@ -27,6 +27,7 @@ export default function AgencySidebar({ collapsed }){
           <NavLink aria-label="settings" className="nav-link d-flex align-items-center gap-2" to="/agency/settings"><FaCog /> {!collapsed && 'Paramètres'}</NavLink>
           <NavLink aria-label="security" className="nav-link d-flex align-items-center gap-2" to="/agency/security"><FaShieldAlt /> {!collapsed && 'Sécurité'}</NavLink>
           <NavLink aria-label="privacy" className="nav-link d-flex align-items-center gap-2" to="/agency/privacy">{!collapsed && 'Confidentialité'}</NavLink>
+          <NavLink aria-label="agents" className="nav-link d-flex align-items-center gap-2" to="/agency/agents"><FaUsers /> {!collapsed && 'Agents'}{!collapsed && counts.agents>0 && <span className="badge-dot">{counts.agents}</span>}</NavLink>
         </nav>
       </div>
     </div>

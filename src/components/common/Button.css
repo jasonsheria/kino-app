@@ -1,0 +1,62 @@
+/* Ndaku shared button styles built on Bootstrap classes */
+.ndaku-btn {
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 700;
+  padding: .55rem 1.1rem;
+  transition: transform 160ms ease, box-shadow 240ms ease, background 200ms ease;
+  will-change: transform, box-shadow;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ndaku-btn:focus {
+  outline: none;
+  box-shadow: 0 6px 18px rgba(19,194,150,0.12);
+}
+
+/* subtle lift on hover for pointer devices */
+@media (hover: hover) {
+  .ndaku-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(11,83,86,0.08);
+  }
+}
+
+/* animated sweep effect */
+.ndaku-btn-animated {
+  position: relative;
+  overflow: hidden;
+}
+.ndaku-btn-animated:before {
+  content: '';
+  position: absolute;
+  left: -120%;
+  top: 0;
+  height: 100%;
+  width: 120%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+  transform: skewX(-12deg);
+  transition: left 520ms cubic-bezier(.22,.9,.3,1);
+  pointer-events: none;
+}
+.ndaku-btn-animated:hover:before {
+  left: 120%;
+}
+
+/* responsive padding and font-size overrides */
+.ndaku-btn { font-size: 1rem; }
+
+@media (max-width: 992px) {
+  .ndaku-btn { font-size: 0.95rem; padding: .5rem .9rem; }
+}
+@media (max-width: 576px) {
+  .ndaku-btn { font-size: 0.92rem; padding: .46rem .8rem; }
+}
+
+/* make buttons full-width on very small devices when requested */
+.w-100.ndaku-btn { display: block; }
+
+/* label element inside to allow truncation if necessary */
+.ndaku-btn-label { display: inline-block; }

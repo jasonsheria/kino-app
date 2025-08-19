@@ -9,3 +9,10 @@
 .footer-pro a.text-white:hover {
   color: #13c296 !important;
 }
+
+@media (max-width: 767.98px) {
+  .footer-pro .container { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .footer-pro .d-flex.align-items-center { justify-content: center; }
+  .footer-pro .text-center { text-align: center; }
+  .footer-pro .small { font-size: 0.85rem; }
+}

@@ -1,7 +1,64 @@
+/* New responsive navbar styles */
+:root{ --brand-color:#13c296; }
+html,body,#root{ width:100%; overflow-x:hidden; }
+
+.site-navbar{ background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.06); position:relative; z-index:1200; }
+.site-navbar .container{ display:flex; align-items:center; justify-content:space-between; padding:12px 20px; transition:padding .18s ease, box-shadow .18s ease, background .18s ease; }
+.site-navbar .brand{ display:flex; align-items:center; gap:10px; font-weight:700; color:var(--brand-color); font-size:1.5rem; }
+.site-navbar .brand img{ height:36px; }
+
+.site-navbar .nav-desktop{ display:flex; gap:16px; align-items:center; }
+.site-navbar .nav-desktop a{ color:#111827; text-decoration:none; padding:6px 8px; }
+.site-navbar .nav-desktop .cta{ background:var(--brand-color); color:#fff; padding:8px 14px; border-radius:6px; }
+.nav-cta, .mobile-cta{ background:var(--brand-color); color:#fff; padding:8px 12px; border-radius:8px; font-weight:600; text-decoration:none; }
+
+/* sticky state */
+.site-navbar.is-sticky{ position:fixed; left:0; right:0; top:0; z-index:1400; background:rgba(255,255,255,0.92); backdrop-filter:blur(6px); box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+.site-navbar.is-sticky .container{ padding:8px 18px; }
+
+/* Mobile toggler */
+.nav-toggle, .navbar-toggler{ display:flex; align-items:center; justify-content:center; border:none; background:transparent; font-size:20px; padding:6px; cursor:pointer; z-index:1401; }
+
+.nav-toggle svg{ width:20px; height:20px; }
+
+
+/* Off-canvas mobile menu */
+.mobile-panel{ position:fixed; left:0; top:0; bottom:0; width:84vw; max-width:360px; background:#fff; transform:translateX(-110%); transition:transform .28s ease; z-index:1400; box-shadow:2px 0 18px rgba(0,0,0,0.14); }
+.mobile-panel.open{ transform:translateX(0); }
+.mobile-panel .inner{ padding:14px; }
+.mobile-panel .inner .close-btn{ margin-left:auto; }
+.mobile-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:1240; }
+
+.mobile-panel nav a{ display:block; padding:10px 6px; color:#111827; text-decoration:none; border-bottom:1px solid #f1f5f9; }
+
+@media (min-width: 920px){
+  .navbar-toggler{ display:none; }
+  .mobile-panel, .mobile-backdrop{ display:none; }
+  .site-navbar .nav-desktop{ display:flex; }
+}
+
+@media (max-width: 919px){
+  .site-navbar .nav-desktop{ display:none; }
+}
+
+.dropdown-inline{ position:relative; }
+.dropdown-inline .dropdown-menu{ position:absolute; left:0; top:100%; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,0.08); padding:8px; display:none; min-width:200px; }
+.dropdown-inline:hover .dropdown-menu{ display:block; }
 
 .sticky {
     position: fixed;
     background: #ffffffe5;
     box-shadow: var(--navbar-box-shadow);
    
+}
+
+/* mobile collapse styles */
+.navbar-toggler{ background:transparent; border:none; font-size:20px; }
+.navbar-toggler-icon{ font-size:20px; }
+.collapse.navbar-collapse{ display:flex; }
+.collapse.navbar-collapse.show-mobile{ position:fixed; left:0; top:56px; right:0; background:#fff; z-index:1030; padding:12px 16px; box-shadow:0 4px 12px rgba(0,0,0,0.08); flex-direction:column; }
+
+@media (min-width: 992px){
+    .collapse.navbar-collapse.show-mobile{ position:static; box-shadow:none; padding:0; flex-direction:row; }
+    .navbar-toggler{ display:none; }
 }

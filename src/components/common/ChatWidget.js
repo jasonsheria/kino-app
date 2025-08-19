@@ -5,7 +5,7 @@ import InfoModal from './InfoModal';
 import { FaPhoneAlt, FaMicrophone, FaMicrophoneSlash, FaPhoneSlash } from 'react-icons/fa';
 
 // Simple WebSocket-based chat widget with basic call signaling
-export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline = false }) {
+export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline = false, user = null, additionalSendMeta = null }) {
   const [ws, setWs] = useState(null);
   const [connectedId, setConnectedId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -16,10 +16,14 @@ export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline =
   const audioRef = useRef(null);
 
   useEffect(() => {
+    // helper to determine runtime user (prop overrides localStorage)
+    const getUser = () => {
+      try { return user || JSON.parse(localStorage.getItem('ndaku_user') || '{}'); } catch (e) { return {}; }
+    };
     // load persisted messages per user
     try {
-      const user = JSON.parse(localStorage.getItem('ndaku_user') || '{}');
-      const key = user && user.id ? `ndaku_chat_messages_${user.id}` : 'ndaku_chat_messages_public';
+      const runtimeUser = getUser();
+      const key = runtimeUser && runtimeUser.id ? `ndaku_chat_messages_${runtimeUser.id}` : 'ndaku_chat_messages_public';
       const existing = JSON.parse(localStorage.getItem(key) || '[]');
       setMessages(existing);
     } catch (e) { /* ignore */ }
@@ -42,8 +46,8 @@ export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline =
         attempts = 0;
         // flush pending queue
         try {
-          const user = JSON.parse(localStorage.getItem('ndaku_user') || '{}');
-          const qk = user && user.id ? `ndaku_pending_${user.id}` : 'ndaku_pending_public';
+          const runtimeUser = (user) ? user : JSON.parse(localStorage.getItem('ndaku_user') || '{}');
+          const qk = runtimeUser && runtimeUser.id ? `ndaku_pending_${runtimeUser.id}` : 'ndaku_pending_public';
           const queued = JSON.parse(localStorage.getItem(qk) || '[]');
           queued.forEach(item => socket.send(JSON.stringify(item)));
           localStorage.removeItem(qk);
@@ -121,15 +125,15 @@ export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline =
 
   useEffect(() => { callStatusRef.current = callStatus; }, [callStatus]);
 
-  // load any previously queued (offline) messages into state for UI display
-  useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('ndaku_user') || '{}');
-      const qk = user && user.id ? `ndaku_pending_${user.id}` : 'ndaku_pending_public';
-      const queued = JSON.parse(localStorage.getItem(qk) || '[]');
-      setQueuedMessages(queued);
-    } catch (e) {}
-  }, []);
+    // load any previously queued (offline) messages into state for UI display
+    useEffect(() => {
+      try {
+        const runtimeUser = user || JSON.parse(localStorage.getItem('ndaku_user') || '{}');
+        const qk = runtimeUser && runtimeUser.id ? `ndaku_pending_${runtimeUser.id}` : 'ndaku_pending_public';
+        const queued = JSON.parse(localStorage.getItem(qk) || '[]');
+        setQueuedMessages(queued);
+      } catch (e) {}
+    }, []);
 
   // helper: create RTCPeerConnection for a peer
   const createPeer = (peerId) => {
@@ -329,14 +333,14 @@ export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline =
   };
 
   const send = (payload) => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
       // queue for later
       try {
-        const user = JSON.parse(localStorage.getItem('ndaku_user') || '{}');
-        const qk = user && user.id ? `ndaku_pending_${user.id}` : 'ndaku_pending_public';
-        const queued = JSON.parse(localStorage.getItem(qk) || '[]');
-        queued.push(payload);
-        localStorage.setItem(qk, JSON.stringify(queued));
+    const runtimeUser = user || JSON.parse(localStorage.getItem('ndaku_user') || '{}');
+    const qk = runtimeUser && runtimeUser.id ? `ndaku_pending_${runtimeUser.id}` : 'ndaku_pending_public';
+    const queued = JSON.parse(localStorage.getItem(qk) || '[]');
+    queued.push(payload);
+    localStorage.setItem(qk, JSON.stringify(queued));
     // don't show an alert; keep queued messages available in the UI
     try { setQueuedMessages(queued); } catch (e) {}
       } catch (e) { console.warn('queue failed', e); }
@@ -352,13 +356,16 @@ export default function ChatWidget({ serverUrl = 'ws://localhost:8081', inline =
     setMessages(m => {
       const next = [...m, item];
       try {
-        const user = JSON.parse(localStorage.getItem('ndaku_user') || '{}');
-        const key = user && user.id ? `ndaku_chat_messages_${user.id}` : 'ndaku_chat_messages_public';
-        localStorage.setItem(key, JSON.stringify(next));
+    const runtimeUser = user || JSON.parse(localStorage.getItem('ndaku_user') || '{}');
+    const key = runtimeUser && runtimeUser.id ? `ndaku_chat_messages_${runtimeUser.id}` : 'ndaku_chat_messages_public';
+    localStorage.setItem(key, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
-    send({ type: 'chat', text });
+  // include optional meta to help route/store messages for agencies
+  const payload = { type: 'chat', text };
+  if (additionalSendMeta) payload.meta = additionalSendMeta;
+  send(payload);
     setText('');
   };
 

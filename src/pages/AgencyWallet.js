@@ -1,54 +1,310 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AgencyLayout from '../components/agency/AgencyLayout';
 import Modal from '../components/common/Modal';
+import '../styles/owner.css';
+// Chart.js
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
 import { currentAgencySession, getTransactions, addTransaction, fetchAgency } from '../api/agencies';
+ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function AgencyWallet(){
-  const [txs, setTxs] = React.useState([]);
-  const [balance, setBalance] = React.useState(0);
-  const [open, setOpen] = React.useState(false);
-  const [amount, setAmount] = React.useState('');
-  const agencyId = currentAgencySession()?.id;
+  const session = currentAgencySession();
+  const agencyId = session?.id;
 
-  React.useEffect(()=>{ if(!agencyId) return; (async ()=>{ setTxs(await getTransactions(agencyId)); const a = await fetchAgency(agencyId); setBalance(a?.wallet||0); })(); }, [agencyId]);
+  const [balance, setBalance] = useState(0);
+  const [spendings, setSpendings] = useState([1200, 7450, 3200, 4800, 3600, 4100, 5200]);
+  const [txs, setTxs] = useState([]);
 
-  const deposit = async ()=>{
-    const amt = parseFloat(amount); if(!amt) return;
-    await addTransaction(agencyId, { amount: amt, type: 'deposit', date: new Date().toISOString() });
-    setTxs(await getTransactions(agencyId)); const a = await fetchAgency(agencyId); setBalance(a?.wallet||0); setOpen(false); setAmount('');
+  // persisted cards per agency
+  const [cards, setCards] = useState([]);
+  useEffect(()=>{ try{ const s = JSON.parse(localStorage.getItem(`agency_cards_${agencyId}`)||'[]'); setCards(Array.isArray(s)?s:[]); }catch(e){} },[agencyId]);
+  const persistCards = (next)=>{ try{ localStorage.setItem(`agency_cards_${agencyId}`, JSON.stringify(next)); }catch(e){} setCards(next); };
+
+  // invoices persisted per-agency
+  const [invoices, setInvoices] = useState([]);
+  useEffect(()=>{
+    try{
+      const key = `agency_invoices_${agencyId}`;
+      const saved = JSON.parse(localStorage.getItem(key) || '[]');
+      if(Array.isArray(saved) && saved.length) setInvoices(saved);
+      else setInvoices([{ id: '#AG-INV-001', vendor: 'Agency Vendor', due: '$744.00' }]);
+    }catch(e){ setInvoices([{ id: '#AG-INV-001', vendor: 'Agency Vendor', due: '$744.00' }]); }
+  },[agencyId]);
+
+  // modals and forms
+  const [openAdd, setOpenAdd] = useState(false);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+  const [openCardModal, setOpenCardModal] = useState(false);
+  const [cardForm, setCardForm] = useState({ id:null, name:'', number:'', exp:'', cvv:'' });
+  const [openInvoiceUpload, setOpenInvoiceUpload] = useState(false);
+
+  // load transactions & balance
+  useEffect(()=>{
+    if(!agencyId) return;
+    (async ()=>{
+      setTxs(await getTransactions(agencyId));
+      const a = await fetchAgency(agencyId);
+      setBalance(a?.wallet||0);
+    })();
+  },[agencyId]);
+
+  const deposit = async (amt)=>{
+    const amount = parseFloat(amt);
+    if(!amount) return;
+    await addTransaction(agencyId, { amount: amount, type: 'deposit', date: new Date().toISOString() });
+    setTxs(await getTransactions(agencyId)); const a = await fetchAgency(agencyId); setBalance(a?.wallet||0); setOpenAdd(false);
+  };
+
+  const withdraw = async (amt)=>{
+    const amount = parseFloat(amt);
+    if(!amount) return;
+    // represent withdrawal as negative amount
+    await addTransaction(agencyId, { amount: -Math.abs(amount), type: 'withdraw', date: new Date().toISOString() });
+    setTxs(await getTransactions(agencyId)); const a = await fetchAgency(agencyId); setBalance(a?.wallet||0); setOpenWithdraw(false);
+  };
+
+  const saveCard = (form)=>{ const next = form.id ? cards.map(c=> c.id===form.id ? form : c) : [{ ...form, id: Date.now() }, ...cards]; persistCards(next); setOpenCardModal(false); };
+
+  const saveCardWithValidation = (form)=>{
+    const f = { ...form, number: String(form.number || '').replace(/\s+/g,'') };
+    if(!f.name || !f.number || !f.exp || !f.cvv){ window.alert('Veuillez remplir tous les champs de la carte'); return; }
+    if(f.number.length < 12){ window.alert('Numéro de carte invalide'); return; }
+    if(!/^\d{2}\/\d{2}$/.test(f.exp)){ window.alert('Format d\'expiration invalide (MM/AA)'); return; }
+    if(!/^\d{3,4}$/.test(String(f.cvv))){ window.alert('CVV invalide'); return; }
+
+    let next;
+    if(f.id){
+      const existing = cards.find(c=>c.id===f.id);
+      next = cards.map(c=> c.id===f.id ? { ...c, ...f, number: f.number, verified: existing?.verified || false } : c);
+    } else {
+      const newCard = { ...f, id: Date.now(), verified: false, primary: cards.length===0 };
+      next = [newCard, ...cards];
+    }
+    persistCards(next);
+    setOpenCardModal(false);
+  };
+
+  const verifyCard = async (id)=>{
+    const inProgress = cards.map(c=> c.id===id ? { ...c, verifying:true } : c);
+    setCards(inProgress);
+    try{
+      await new Promise(r=>setTimeout(r, 1000 + Math.random()*1200));
+      const ok = true;
+      const done = inProgress.map(c=> c.id===id ? { ...c, verifying:false, verified: ok } : c);
+      persistCards(done);
+      window.alert(ok ? 'Carte vérifiée' : 'La vérification a échoué');
+    }catch(e){
+      const done = inProgress.map(c=> c.id===id ? { ...c, verifying:false } : c);
+      persistCards(done);
+      window.alert('Erreur lors de la vérification');
+    }
+  };
+
+  const setPrimaryCard = (id)=>{ const next = cards.map(c=> ({ ...c, primary: c.id===id })); persistCards(next); };
+
+  const handleInvoiceUpload = async (e) =>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () =>{
+      const dataUrl = reader.result;
+      const inv = { id: `local-${Date.now()}`, name: f.name, dataUrl, time: Date.now() };
+      const next = [inv, ...invoices];
+      setInvoices(next);
+      try{ localStorage.setItem(`agency_invoices_${agencyId}`, JSON.stringify(next)); }catch(e){}
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  };
+
+  const downloadInvoice = (inv)=>{
+    if(!inv || !inv.dataUrl) return;
+    const a = document.createElement('a'); a.href = inv.dataUrl; a.download = inv.name || 'invoice'; document.body.appendChild(a); a.click(); a.remove();
   };
 
   return (
     <AgencyLayout>
       <div>
-        <div className="d-flex align-items-center justify-content-between">
-          <h4>Wallet agence</h4>
-          <div>
-            <strong>Solde: {balance} €</strong>
-            <button className="btn owner-btn-primary ml-2" onClick={()=> setOpen(true)}>Ajouter</button>
+        <h4>Wallet</h4>
+
+        <div className="content-grid mt-3">
+          <div className="left-block">
+            <div className="card mb-3">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div className="small text-muted">Compte agence</div>
+                    <div className="h5 fw-bold">{session?.email || 'Agence Demo'}</div>
+                  </div>
+                  <div className="small text-muted">••••  3746</div>
+                </div>
+
+                <div style={{display:'flex',alignItems:'center',gap:12,marginTop:18}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:28,fontWeight:900}}>${balance.toLocaleString()}</div>
+                    <div className="small text-muted">Solde disponible</div>
+                  </div>
+                  <div className="credit-card">
+                    <div className="credit-logo">AG</div>
+                    <div className="credit-chip" />
+                    <div className="credit-number">3746 •••• ••••</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 d-flex gap-2">
+                  <button className="btn owner-btn-primary" onClick={()=> setOpenAdd(true)}>Ajouter des fonds</button>
+                  <button className="btn btn-outline-secondary" onClick={()=> setOpenWithdraw(true)}>Retirer</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-body">
+                <h6>Transactions récentes</h6>
+                <div style={{marginTop:12}}>
+                  {txs.map(t => (
+                    <div key={t.id} className="d-flex justify-content-between align-items-center mb-2">
+                      <div>
+                        <div style={{fontWeight:700}}>{t.type}</div>
+                        <div className="small text-muted">{t.date}</div>
+                      </div>
+                      <div style={{fontWeight:800}}>{t.amount} €</div>
+                    </div>
+                  ))}
+                  {txs.length===0 && <div className="small text-muted">Aucune transaction</div>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="right-block">
+            <div className="card mb-3">
+              <div className="card-body">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div className="small text-muted">Dépenses</div>
+                    <div style={{fontSize:28,fontWeight:900}}>${spendings.reduce((a,b)=>a+b,0).toLocaleString()}</div>
+                    <div className="small text-muted">USD / EUR</div>
+                  </div>
+                  <div>
+                    <select className="form-select form-select-sm">
+                      <option>Mois</option>
+                      <option>Année</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{marginTop:18}}>
+                  <Bar
+                    data={{ labels:['Jan','Feb','Mar','Apr','May','Jun','Jul'], datasets:[{ label:'Spendings', data: spendings, backgroundColor: spendings.map((_,i)=> i===1? '#2b1460' : '#6b5cf0') }] }}
+                    options={{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-body">
+                <div className="d-flex align-items-center justify-content-between">
+                  <h6>Invoices</h6>
+                  <div>
+                    <input type="file" accept="application/pdf,image/*" id="invoiceUploadAgency" style={{display:'none'}} onChange={handleInvoiceUpload} />
+                    <label htmlFor="invoiceUploadAgency" className="btn btn-sm btn-outline-secondary" style={{cursor:'pointer'}}>Upload invoice</label>
+                  </div>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:12}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <button className="btn btn-sm btn-outline-secondary" onClick={()=> setOpenAdd(true)}>Ajouter des fonds</button>
+                      <button className="btn btn-sm btn-outline-secondary ms-2" onClick={()=> setOpenWithdraw(true)}>Retirer</button>
+                    </div>
+                    <div>
+                      <label htmlFor="invoiceUploadAgency2" className="btn btn-sm btn-outline-secondary" style={{cursor:'pointer'}}>Upload invoice</label>
+                      <input id="invoiceUploadAgency2" type="file" accept="application/pdf,image/*" style={{display:'none'}} onChange={handleInvoiceUpload} />
+                    </div>
+                  </div>
+
+                  {invoices.map((inv, idx) => (
+                    <div key={inv.id || idx} style={{border:'1px solid #eef2f6',padding:12,borderRadius:10,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div>
+                        <div className="small text-muted">{inv.id || inv.name}</div>
+                        <div style={{fontWeight:800,marginTop:6}}>{inv.vendor || inv.name || 'Uploaded invoice'}</div>
+                        <div className="small text-muted">{inv.due || (inv.time ? new Date(inv.time).toLocaleString() : '')}</div>
+                      </div>
+                      <div style={{display:'flex',gap:8}}>
+                        {inv.dataUrl && <button className="btn btn-sm btn-outline-primary" onClick={()=>downloadInvoice(inv)}>Download</button>}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div style={{marginTop:12}}>
+                    <div className="fw-bold small">Cartes de paiement</div>
+                    <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:8}}>
+                      {cards.map(c=> (
+                        <div key={c.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',border:'1px solid #eef2f6',padding:8,borderRadius:8}}>
+                          <div>
+                            <div style={{fontWeight:800}}>{c.name} {c.primary && <span className="small text-primary">(Par défaut)</span>}</div>
+                            <div className="small text-muted">•••• {(c.number||'').slice(-4)} • Exp {c.exp}</div>
+                            <div className="small mt-1">
+                              {c.verifying ? <span className="text-warning">Vérification en cours…</span> : (c.verified ? <span className="text-success">Carte vérifiée</span> : <span className="text-muted">Non vérifiée</span>)}
+                            </div>
+                          </div>
+                          <div style={{display:'flex',gap:8}}>
+                            {!c.verified && !c.verifying && <button className="btn btn-sm btn-outline-success" onClick={()=> verifyCard(c.id)}>Vérifier</button>}
+                            <button className="btn btn-sm btn-outline-secondary" onClick={()=>{ setCardForm(c); setOpenCardModal(true); }}>Modifier</button>
+                            <button className="btn btn-sm btn-outline-danger" onClick={()=> { const next = cards.filter(x=> x.id!==c.id); persistCards(next); }}>Supprimer</button>
+                            {!c.primary && <button className="btn btn-sm btn-outline-primary" onClick={()=> setPrimaryCard(c.id)}>Définir par défaut</button>}
+                          </div>
+                        </div>
+                      ))}
+                      <div>
+                        <button className="btn btn-sm btn-primary" onClick={()=>{ setCardForm({ id:null, name:'', number:'', exp:'', cvv:'' }); setOpenCardModal(true); }}>Ajouter une carte</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="small text-muted mb-2">Solde, transactions et retrait.</div>
-        <div>
-          {txs.length===0 && <div className="small text-muted">Aucune transaction</div>}
-          {txs.map(t=> (
-            <div key={t.id} className="card p-2 mb-2 d-flex justify-content-between align-items-center">
-              <div>
-                <div><strong>{t.type}</strong> {t.amount} €</div>
-                <div className="small text-muted">{t.date}</div>
-              </div>
-              <div>Balance: {t.balance} €</div>
-            </div>
-          ))}
-        </div>
 
-        <Modal open={open} onClose={()=> setOpen(false)}>
+        {/* Modals */}
+        <Modal open={openAdd} onClose={()=>setOpenAdd(false)}>
           <div style={{minWidth:320}}>
-            <h5>Ajouter fonds</h5>
-            <input className="form-control" value={amount} onChange={e=> setAmount(e.target.value)} placeholder="Montant" />
-            <div style={{marginTop:12}}>
-              <button className="btn owner-btn-primary" onClick={deposit}>Ajouter</button>
-              <button className="btn btn-link" onClick={()=> setOpen(false)}>Annuler</button>
+            <h5>Ajouter des fonds</h5>
+            <div className="mb-2 small text-muted">Simulation de paiement (Stripe mock)</div>
+            <input className="form-control mb-2" placeholder="Montant en USD" id="addAmountAgency" type="number" />
+            <div className="d-flex gap-2">
+              <button className="btn owner-btn-primary" onClick={()=>{ const v = document.getElementById('addAmountAgency').value || 0; deposit(Number(v)); }}>Payer</button>
+              <button className="btn btn-outline-secondary" onClick={()=>setOpenAdd(false)}>Annuler</button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal open={openWithdraw} onClose={()=>setOpenWithdraw(false)}>
+          <div style={{minWidth:320}}>
+            <h5>Retirer des fonds</h5>
+            <div className="mb-2 small text-muted">Simulation de retrait</div>
+            <input className="form-control mb-2" placeholder="Montant en USD" id="withdrawAmountAgency" type="number" />
+            <div className="d-flex gap-2">
+              <button className="btn owner-btn-primary" onClick={()=>{ const v = document.getElementById('withdrawAmountAgency').value || 0; withdraw(Number(v)); }}>Retirer</button>
+              <button className="btn btn-outline-secondary" onClick={()=>setOpenWithdraw(false)}>Annuler</button>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal open={openCardModal} onClose={()=>setOpenCardModal(false)}>
+          <div style={{minWidth:360}}>
+            <h5>{cardForm.id ? 'Modifier la carte' : 'Ajouter une carte'}</h5>
+            <input className="form-control mb-2" placeholder="Nom sur la carte" value={cardForm.name} onChange={e=>setCardForm({...cardForm, name:e.target.value})} />
+            <input className="form-control mb-2" placeholder="Numéro de carte" value={cardForm.number} onChange={e=>setCardForm({...cardForm, number:e.target.value})} />
+            <div className="d-flex gap-2">
+              <input className="form-control mb-2" placeholder="MM/AA" value={cardForm.exp} onChange={e=>setCardForm({...cardForm, exp:e.target.value})} />
+              <input className="form-control mb-2" placeholder="CVV" value={cardForm.cvv} onChange={e=>setCardForm({...cardForm, cvv:e.target.value})} />
+            </div>
+            <div className="d-flex gap-2">
+              <button className="btn owner-btn-primary" onClick={()=>saveCardWithValidation(cardForm)}>Enregistrer</button>
+              <button className="btn btn-outline-secondary" onClick={()=>setOpenCardModal(false)}>Annuler</button>
             </div>
           </div>
         </Modal>
