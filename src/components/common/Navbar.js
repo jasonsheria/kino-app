@@ -1,154 +1,268 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
-import ChatWidget from './ChatWidget';
-
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { FaCar, FaTree, FaBuilding, FaGlassCheers, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import './Navbar.css';
 
-export default function Navbar() {
-	const [open, setOpen] = useState(false);
-	const panelRef = useRef(null);
-	const lastActiveRef = useRef(null);
-	const headerRef = useRef(null);
-	const [sticky, setSticky] = useState(false);
-	const [spacerHeight, setSpacerHeight] = useState(0);
+const Navbar = () => {
+  const location = useLocation();
+  const [isSticky, setIsSticky] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  const lastScrollY = useRef(0);
+  const headerRef = useRef(null);
+  const drawerRef = useRef(null);
 
-	useEffect(() => {
-		const onKey = (e) => {
-			if (e.key === 'Escape') setOpen(false);
-			if (e.key === 'Tab' && open && panelRef.current) {
-				// simple focus trap
-				const focusable = panelRef.current.querySelectorAll('a,button,input,textarea,select');
-				if (focusable.length === 0) return;
-				const first = focusable[0];
-				const last = focusable[focusable.length - 1];
-				if (e.shiftKey && document.activeElement === first) {
-					e.preventDefault();
-					last.focus();
-				} else if (!e.shiftKey && document.activeElement === last) {
-					e.preventDefault();
-					first.focus();
-				}
-			}
-		};
+  // Sticky navbar handler
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setIsSticky(currentScrollY > 50);
+      lastScrollY.current = currentScrollY;
+    };
 
-		const onClickOutside = (e) => {
-			if (open && panelRef.current && !panelRef.current.contains(e.target)) {
-				setOpen(false);
-			}
-		};
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-		document.addEventListener('keydown', onKey);
-		document.addEventListener('click', onClickOutside);
-		return () => {
-			document.removeEventListener('keydown', onKey);
-			document.removeEventListener('click', onClickOutside);
-		};
-	}, [open]);
+  // Drawer focus trap and keyboard navigation
+  useEffect(() => {
+    if (!isDrawerOpen) return;
 
-		// sticky on scroll
-		useEffect(() => {
-			let raf = null;
-			const threshold = 60; // px before sticking
-			const handle = () => {
-				if (raf) cancelAnimationFrame(raf);
-				raf = requestAnimationFrame(() => {
-					const y = window.scrollY || window.pageYOffset;
-					const should = y > threshold;
-					if (should !== sticky) {
-						setSticky(should);
-						// compute spacer height when becoming sticky
-						const h = headerRef.current ? headerRef.current.getBoundingClientRect().height : 0;
-						setSpacerHeight(should ? h : 0);
-					}
-				});
-			};
-			window.addEventListener('scroll', handle, { passive: true });
-			// on mount compute header height
-			const initialH = headerRef.current ? headerRef.current.getBoundingClientRect().height : 0;
-			setSpacerHeight(0);
-			return () => {
-				window.removeEventListener('scroll', handle);
-				if (raf) cancelAnimationFrame(raf);
-			};
-		}, [sticky]);
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsDrawerOpen(false);
+        return;
+      }
 
-	useEffect(() => {
-		if (open) {
-			lastActiveRef.current = document.activeElement;
-			// lock scroll
-			document.body.style.overflow = 'hidden';
-			// focus first element in panel
-			setTimeout(() => {
-				const focusable = panelRef.current?.querySelectorAll('a,button,input,textarea,select');
-				if (focusable && focusable.length) focusable[0].focus();
-			}, 0);
-		} else {
-			document.body.style.overflow = '';
-			try {
-				lastActiveRef.current?.focus();
-			} catch (e) {
-				// ignore
-			}
-		}
-	}, [open]);
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusableElements = drawerRef.current.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
 
-	return (
-			<>
-				<header ref={headerRef} className={`site-navbar ${sticky ? 'is-sticky' : ''}`} role="banner">
-					<div className="nav-inner container">
-					<div className="brand">
-						<Link to="/" className="brand-link">
-							<img src="/logo192.png" alt="logo" className="brand-logo" />
-							<span className="brand-title">Ndaku</span>
-						</Link>
-					</div>
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
 
-					<nav className="nav-desktop" aria-label="Main navigation">
-						<Link to="/" className="nav-link">Home</Link>
-						<Link to="/agents" className="nav-link">Agents</Link>
-						<Link to="/properties" className="nav-link">Properties</Link>
-						<Link to="/subscriptions" className="nav-link">Subscriptions</Link>
-						<Link to="/contact" className="nav-link">Contact</Link>
-						<Link to="/login" className="nav-cta">Connexion</Link>
-					</nav>
+    // Lock body scroll
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
 
-								<button
-									aria-label={open ? 'Close menu' : 'Open menu'}
-									className="nav-toggle"
-									onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-									onMouseDown={(e) => e.preventDefault()}
-									aria-expanded={open}
-									aria-controls="mobile-menu"
-								>
-									{open ? <FaTimes /> : <FaBars />}
-								</button>
-				</div>
-			</header>
-			{/* spacer to prevent content jump when navbar becomes fixed */}
-			{sticky && <div style={{ height: spacerHeight }} aria-hidden="true" />}
+    // Auto focus first focusable element
+    const firstFocusable = drawerRef.current?.querySelector('a[href], button:not([disabled])');
+    setTimeout(() => firstFocusable?.focus(), 100);
 
-			<aside
-				id="mobile-menu"
-				ref={panelRef}
-				className={`mobile-panel ${open ? 'open' : ''}`}
-				aria-hidden={!open}
-			>
-				<nav className="mobile-nav" aria-label="Mobile navigation">
-					<Link to="/" className="mobile-link" onClick={() => setOpen(false)}>Home</Link>
-					<Link to="/agents" className="mobile-link" onClick={() => setOpen(false)}>Agents</Link>
-					<Link to="/properties" className="mobile-link" onClick={() => setOpen(false)}>Properties</Link>
-					<Link to="/subscriptions" className="mobile-link" onClick={() => setOpen(false)}>Subscriptions</Link>
-					<Link to="/contact" className="mobile-link" onClick={() => setOpen(false)}>Contact</Link>
-					<div className="mobile-actions">
-						<Link to="/login" className="mobile-cta" onClick={() => setOpen(false)}>Connexion</Link>
-					</div>
-				</nav>
-			</aside>
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDrawerOpen]);
 
-			{/* keep chat widget mounted globally */}
-			<ChatWidget />
-		</>
-	);
-}
+  // Close drawer on route change
+  useEffect(() => {
+    setIsDrawerOpen(false);
+  }, [location]);
+
+  return (
+    <header className={`kn-header ${isSticky ? 'sticky' : ''} ${isHidden ? 'hidden' : ''}`} ref={headerRef}>
+      <nav className="kn-nav">
+        {/* Logo et marque */}
+        <Link to="/" className="kn-brand">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+            alt=""
+            className="kn-brand-logo"
+          />
+          <span className="kn-brand-text">Kino-App</span>
+        </Link>
+
+        {/* Navigation desktop */}
+        <div className="kn-menu">
+          <Link 
+            to="/"
+            className={`kn-menu-link ${location.pathname === '/' ? 'active' : ''}`}
+          >
+            Accueil
+          </Link>
+          
+          <a href="#apropos" className="kn-menu-link">
+            À propos
+          </a>
+
+          <div className="kn-dropdown">
+            <button
+              className="kn-dropdown-toggle"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
+            >
+              Immobilier
+              <FaChevronDown
+                style={{
+                  transform: `rotate(${dropdownOpen ? '180deg' : '0'})`,
+                  transition: 'transform 0.2s ease'
+                }}
+              />
+            </button>
+
+            <div className={`kn-dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
+              <Link to="/voitures" className="kn-dropdown-item">
+                <FaCar /> Voitures
+              </Link>
+              <Link to="/terrain" className="kn-dropdown-item">
+                <FaTree /> Terrain
+              </Link>
+              <Link to="/appartement" className="kn-dropdown-item">
+                <FaBuilding /> Appartement
+              </Link>
+              <Link to="/salle" className="kn-dropdown-item">
+                <FaGlassCheers /> Salle de fête
+              </Link>
+            </div>
+          </div>
+
+          <a href="#contact" className="kn-menu-link">
+            Contact
+          </a>
+        </div>
+
+        {/* Boutons d'action */}
+        <div className="kn-cta-group">
+          <Link to="/owner/onboard" className="kn-cta kn-cta-outline">
+            Devenir propriétaire
+          </Link>
+          <Link to="/login" className="kn-cta kn-cta-filled">
+            Connexion
+          </Link>
+        </div>
+
+        {/* Bouton menu mobile */}
+        <button
+          className="kn-menu-toggle"
+          onClick={() => setIsDrawerOpen(true)}
+          aria-label="Ouvrir le menu"
+          aria-expanded={isDrawerOpen}
+        >
+          <FaBars />
+        </button>
+      </nav>
+
+      {/* Drawer mobile */}
+      <div 
+        className={`kn-drawer-backdrop ${isDrawerOpen ? 'show' : ''}`}
+        onClick={() => setIsDrawerOpen(false)}
+        aria-hidden="true"
+      />
+      
+      <aside
+        ref={drawerRef}
+        className={`kn-drawer ${isDrawerOpen ? 'show' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu principal"
+      >
+        <div className="kn-drawer-header">
+          <Link to="/" className="kn-brand" onClick={() => setIsDrawerOpen(false)}>
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+              alt=""
+              className="kn-brand-logo"
+            />
+            <span className="kn-brand-text">Kino-App</span>
+          </Link>
+          <button
+            className="kn-drawer-close"
+            onClick={() => setIsDrawerOpen(false)}
+            aria-label="Fermer le menu"
+          >
+            <FaTimes />
+          </button>
+        </div>
+
+        <div className="kn-drawer-body">
+          <nav className="kn-drawer-nav">
+            <Link
+              to="/"
+              className={`kn-drawer-link ${location.pathname === '/' ? 'active' : ''}`}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Accueil
+            </Link>
+            <a
+              href="#apropos"
+              className="kn-drawer-link"
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              À propos
+            </a>
+            <Link
+              to="/voitures"
+              className={`kn-drawer-link ${location.pathname === '/voitures' ? 'active' : ''}`}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <FaCar /> Voitures
+            </Link>
+            <Link
+              to="/terrain"
+              className={`kn-drawer-link ${location.pathname === '/terrain' ? 'active' : ''}`}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <FaTree /> Terrain
+            </Link>
+            <Link
+              to="/appartement"
+              className={`kn-drawer-link ${location.pathname === '/appartement' ? 'active' : ''}`}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <FaBuilding /> Appartement
+            </Link>
+            <Link
+              to="/salle"
+              className={`kn-drawer-link ${location.pathname === '/salle' ? 'active' : ''}`}
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <FaGlassCheers /> Salle de fête
+            </Link>
+            <a
+              href="#contact"
+              className="kn-drawer-link"
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              Contact
+            </a>
+            <div className="kn-cta-group" style={{ margin: '16px 0' }}>
+              <Link
+                to="/owner/onboard"
+                className="kn-cta kn-cta-outline"
+                onClick={() => setIsDrawerOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Devenir propriétaire
+              </Link>
+              <Link
+                to="/login"
+                className="kn-cta kn-cta-filled"
+                onClick={() => setIsDrawerOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Connexion
+              </Link>
+            </div>
+          </nav>
+        </div>
+      </aside>
+    </header>
+  );
+};
+
+export default Navbar;
 
