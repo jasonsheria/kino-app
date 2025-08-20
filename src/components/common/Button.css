@@ -1,14 +1,74 @@
 /* Ndaku shared button styles built on Bootstrap classes */
-.ndaku-btn {
-  border-radius: 999px;
+/* Dribbble-inspired modern button */
+.btn {
+  border-radius: 8px;
   text-transform: none;
   font-weight: 700;
-  padding: .55rem 1.1rem;
-  transition: transform 160ms ease, box-shadow 240ms ease, background 200ms ease;
-  will-change: transform, box-shadow;
+  padding: 0.68rem 1.45rem;
+  color: #0a223a !important;
+  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px #13c29611;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  letter-spacing: 0.18px;
+  transition: transform 0.16s, box-shadow 0.18s, background 0.18s, color 0.18s;
+  outline: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.btns{
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 700;
+  padding: 0.68rem 1.45rem;
+  color: #0a223a !important;
+  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px #13c29611;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  letter-spacing: 0.18px;
+  transition: transform 0.16s, box-shadow 0.18s, background 0.18s, color 0.18s;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, var(--fc-page-bg-color) 0%, var(--fc-page-bg-color) 100%);
+}
+.ndaku-btn:before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%);
+  opacity: 0.7;
+  pointer-events: none;
+  border-radius: 8px;
+  transition: opacity 0.18s;
+}
+
+.ndaku-btn:focus {
+  outline: none;
+  box-shadow: 0 8px 28px #b2d6f655, 0 1.5px 8px #13c29622;
+}
+
+@media (hover: hover) {
+  .ndaku-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 32px #b2d6f655, 0 2px 10px #b2d6f655;
+    background: linear-gradient(90deg, #e0f7fa 0%, #f7fafc 100%);
+    color: #0a223a;
+  }
+  .ndaku-btn:hover:before {
+    opacity: 1;
+    background: linear-gradient(100deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.10) 100%);
+  }
+}
+
+.ndaku-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px #b2d6f644;
+  background: linear-gradient(90deg, #f7fafc 0%, #e0f7fa 100%);
+  color: #0a223a;
 }
 
 .ndaku-btn:focus {
@@ -24,28 +84,26 @@
   }
 }
 
-/* animated sweep effect */
-.ndaku-btn-animated {
-  position: relative;
-  overflow: hidden;
-}
-.ndaku-btn-animated:before {
+/* animated sweep effect (optionnel, compatible Dribbble style) */
+.ndaku-btn-animated:after {
   content: '';
   position: absolute;
   left: -120%;
   top: 0;
   height: 100%;
   width: 120%;
-  background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.18), rgba(255,255,255,0.05));
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.22), rgba(255,255,255,0.08));
   transform: skewX(-12deg);
   transition: left 520ms cubic-bezier(.22,.9,.3,1);
   pointer-events: none;
+  border-radius: 8px;
 }
-.ndaku-btn-animated:hover:before {
+.ndaku-btn-animated:hover:after {
   left: 120%;
 }
 
 /* responsive padding and font-size overrides */
+/* Font size */
 .ndaku-btn { font-size: 1rem; }
 
 @media (max-width: 992px) {

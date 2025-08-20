@@ -91,7 +91,7 @@ const PropertyCard = ({ property }) => {
         )}
         {/* Bouton Voir plus */}
         <div className="d-flex justify-content-end mb-2">
-          <button className="btn btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>
+          <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>
             Visiter <FaMapMarkerAlt className="ms-1"/>
           </button>
         </div>
@@ -103,20 +103,20 @@ const PropertyCard = ({ property }) => {
               <div className="fw-semibold text-success small">{agent.name}</div>
               <div className="small text-muted">{agent.phone}</div>
             </div>
-            <button className="btn btn-outline-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
+            <button className="btns btn-outline-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
   {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-            <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm ms-2" title="Facebook"><FaFacebook /></a>
-            <button className="btn btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
+            <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary btn-sm ms-2" title="Facebook"><FaFacebook /></a>
+            <button className="btns btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
           </div>
         )}
       </div>
       {/* Lightbox */}
       {showLightbox && imgs.length > 0 && (
         <div className="lightbox position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center animate__animated animate__fadeIn" style={{background:'rgba(0,0,0,0.8)',zIndex:2000}}>
-          <button className="btn btn-light position-absolute top-0 end-0 m-3" onClick={closeLightbox}>&times;</button>
-          <button className="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-3" onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
+          <button className="btns btn-light position-absolute top-0 end-0 m-3" onClick={closeLightbox}>&times;</button>
+          <button className="btns btn-light position-absolute start-0 top-50 translate-middle-y ms-3" onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
           <img src={imgs[lightboxIndex % imgs.length]} alt="" style={{maxHeight:'80vh', maxWidth:'90vw', borderRadius:8, boxShadow:'0 4px 32px #0008'}} />
-          <button className="btn btn-light position-absolute end-0 top-50 translate-middle-y me-3" onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
+          <button className="btns btn-light position-absolute end-0 top-50 translate-middle-y me-3" onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
         </div>
       )}
 

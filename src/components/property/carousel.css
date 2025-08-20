@@ -1,0 +1,8 @@
+.carousel{
+    min-height: 100vh;
+}
+@media (max-width: 968px) {
+    .carousel {
+        min-height: 34vh;
+    }
+}

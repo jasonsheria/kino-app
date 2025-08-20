@@ -345,19 +345,35 @@ const Home = () => {
             {/* Hero Section moderne Kinshasa */}
             <section
                 className="container-fluid hero-section d-flex align-items-center justify-content-center px-0"
-                style={{ background: theme.palette.background.default, color: theme.palette.text.primary }}
+                style={{ background: '#fff', color: theme.palette.text.primary, maxWidth: '100vw', overflowX: 'hidden' }}
             >
-                <div className="row w-100 g-0 align-items-stretch">
+                <div className="row w-100 g-0 align-items-stretch" style={{ maxWidth: '100%', margin: 0 }}>
                     <div className="titr col-12 col-md-6 d-flex align-items-center justify-content-center text-section px-4 px-md-5">
                         <div className="w-100" style={{ maxWidth: 700 }}>
-                            <h1 className="hero-title mb-4 display-2" style={{ fontSize: 'clamp(2.5rem, 6vw, 3.2rem)', fontWeight: 800, color: '#13c296' }}>
+                            <h1
+                                className="hero-title mb-4 display-2"
+                                style={{
+                                    fontSize: 'clamp(2.5rem, 6vw, 3.2rem)',
+                                    fontWeight: 900,
+                                    background: 'linear-gradient(90deg, #13c296 0%, #0a223a 60%, #d7263d 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text',
+                                    letterSpacing: '-1.5px',
+                                    lineHeight: 1.08,
+                                    marginBottom: '1.2rem',
+                                    textShadow: '0 2px 12px #13c29622',
+                                    textAlign: 'left',
+                                    maxWidth: '100%'
+                                }}
+                            >
                                 Trouvez le bien idéal à Kinshasa
                             </h1>
-                            <p className="hero-desc mb-3" style={{ fontSize: 'clamp(1.1rem, 2vw, 1.1rem)', color: theme.palette.text.primary }}>
-                                Bienvenue sur Ndaku, la plateforme immobilière moderne pour Kinshasa et ses environs. Découvrez, louez ou vendez maisons, appartements, terrains et plus encore, avec l’aide de nos agents de confiance.
+                            <p className="hero-desc mb-3" style={{ fontSize: 'clamp(1.1rem, 2vw, 1.1rem)', color: '#0a223a', fontWeight: 500, textShadow: '0 1px 4px #13c29611' }}>
+                                Bienvenue sur <span style={{ color: '#13c296', fontWeight: 700 }}>Ndaku</span>, la plateforme immobilière moderne pour <span style={{ color: '#d7263d', fontWeight: 700 }}>Kinshasa</span> et ses environs. Découvrez, louez ou vendez maisons, appartements, terrains et plus encore, avec l’aide de nos agents de confiance.
                             </p>
-                            <p className="hero-desc mb-4" style={{ fontSize: '1.1rem', color: theme.palette.text.secondary }}>
-                                <span style={{ fontWeight: 600 }}>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
+                            <p className="hero-desc mb-4" style={{ fontSize: '1.1rem', color: '#64748b', fontWeight: 500 }}>
+                                <span style={{ fontWeight: 700, color: '#13c296' }}>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
                             </p>
                             <Button onClick={() => scrollToId('biens')} color="success" variant="contained" sx={{ fontWeight: 800, boxShadow: '0 6px 20px rgba(19,194,150,0.12)' }}>Voir les biens</Button>
                         </div>
@@ -762,24 +778,43 @@ const Home = () => {
             </div>
 
             {/* Footer pro et interactif */}
-            {/* Google sign-in toast (appears once, top-right) */}
-            <div className="ndaku-toast-container" aria-live="polite" aria-atomic="true">
-                {showGooglePrompt && (
-                    <div className={`ndaku-toast ndaku-toast-enter`} role="status" aria-label="Google sign-in suggestion">
-                        <div className="toast-icon">
-                            {/* <img src={require('../img/logo192.png')} alt="Ndaku" style={{ width: 28, height: 28 }} /> */}
-                        </div>
-                        <div className="toast-body">
-                            <div className="toast-title">Connexion rapide</div>
-                            <div className="toast-text">Se connecter avec Google pour un accès facilité et sécurisé.</div>
-                        </div>
-                        <div className="toast-actions">
-                            <button className="btn btn-sm btn-success w-100" onClick={acceptGoogleSign}>connecter</button>
-                            <button className="btn btn-sm btn-outline-secondary w-100" onClick={dismissGooglePrompt}>Plus_tard</button>
-                        </div>
-                    </div>
-                )}
-            </div>
+                        {/* Google sign-in dialog (moderne, centré en bas) */}
+                        {showGooglePrompt && (
+                            <div style={{
+                                position: 'fixed',
+                                left: '50%',
+                                bottom: '2.5vh',
+                                transform: 'translateX(-50%)',
+                                zIndex: 3000,
+                                minWidth: 320,
+                                maxWidth: '95vw',
+                                boxShadow: '0 8px 32px rgba(19,194,150,0.13)',
+                                borderRadius: '18px',
+                                background: 'linear-gradient(90deg, #fff 60%, #e0f7fa 100%)',
+                                padding: '1.3rem 1.5rem 1.1rem 1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                border: '1.5px solid #e0f7fa',
+                                animation: 'fadeInUp 0.5s cubic-bezier(.23,1.02,.47,.98)'
+                            }}
+                                aria-modal="true"
+                                role="dialog"
+                            >
+                                <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+                                    {/* <img src={require('../img/logo192.png')} alt="Ndaku" style={{ width: 38, height: 38, borderRadius: 8, boxShadow: '0 2px 8px #13c29622' }} /> */}
+                                    <span style={{fontWeight:800,fontSize:'1.18rem',color:'#0a223a'}}>Connexion rapide</span>
+                                </div>
+                                <div style={{textAlign:'center',color:'#0a223a',fontSize:'1.05rem',marginBottom:18,maxWidth:320}}>
+                                    Connectez-vous avec Google pour un accès facilité et sécurisé à toutes les fonctionnalités Ndaku.
+                                </div>
+                                <button className="btn ndaku-btn" style={{minWidth:180,marginBottom:8}} onClick={acceptGoogleSign}>
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{width:22,height:22,marginRight:8,verticalAlign:'middle',borderRadius:4}} />
+                                    Se connecter avec Google
+                                </button>
+                                <button className="btn btn-outline-secondary" style={{minWidth:120}} onClick={dismissGooglePrompt}>Plus tard</button>
+                            </div>
+                        )}
 
             {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
            

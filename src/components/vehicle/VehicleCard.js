@@ -57,14 +57,14 @@ const VehicleCard = ({ vehicle }) => {
               <div className="fw-semibold text-success small">{agent.name}</div>
               <div className="small text-muted">{agent.phone}</div>
             </div>
-            <button className="btn btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, vehicleId: vehicle.id } } }))}><FaUserTie /></button>
-            <button className="btn btn-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
+            <button className="btns btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, vehicleId: vehicle.id } } }))}><FaUserTie /></button>
+            <button className="btns btn-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
             {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
           </div>
         )}
         {/* Bouton Visiter (comme pour les biens immobiliers) */}
         <div className="d-flex justify-content-end mt-3">
-          <button className="btn btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
+          <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
             Visiter
           </button>
         </div>

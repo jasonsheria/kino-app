@@ -34,7 +34,7 @@ const Button = ({ children, variant = 'contained', color = 'primary', size = 'md
   }
 
   return (
-    <button className={`btn ${bsVariant} ${sizeClass} rounded-pill ndaku-btn ${blockClass} ${animClass} ${className}`} {...props}>
+    <button className={`btn ${bsVariant} ${sizeClass}  ndaku-btn ${blockClass} ${animClass} ${className}`} {...props}>
       {content}
     </button>
   );
