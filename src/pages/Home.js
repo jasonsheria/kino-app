@@ -760,7 +760,7 @@ const Home = () => {
             </section>
 
             {/* Carte interactive des biens et position utilisateur */}
-            <div className="container">
+            <div className="container" style={{paddingBottom:"3vh"}}>
                 <div className="section-title text-center mb-3 animate__animated animate__fadeInDown">
                     <span className="icon-circle bg-success text-white me-3"><FaMapMarkerAlt size={28}/></span>
                     <span className="fw-bold" style={{fontSize:'2rem', color: theme.palette.text.primary}}>Carte des biens à Kinshasa</span>

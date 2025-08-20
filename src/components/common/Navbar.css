@@ -390,11 +390,15 @@
   background: var(--primary-light);
   color: var(--primary);
 }
-
+.kn-cta-group{
+  margin: 16px 0px;
+  display: flex;
+  flex-direction: column;
+}
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .kn-menu,
-  .kn-cta-group {
+  .kn-menu
+   {
     display: none;
   }
   
