@@ -1,10 +1,11 @@
 import React from 'react';
+import ChatWidget from '../components/common/ChatWidget';
 import { useTheme } from '@mui/material/styles';
 import { FaUserTie, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import MapView from '../components/property/MapView';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 import LandingCarousel from '../components/property/LandingCarousel';
 import Button from '../components/common/Button';
 import { properties, agents } from '../data/fakedata';
@@ -59,7 +60,7 @@ function startGoogleOAuth(onError) {
     const state = randomString(16);
     const codeVerifier = randomString(64);
     pkceChallengeFromVerifier(codeVerifier).then(codeChallenge => {
-        try { localStorage.setItem('ndaku_pkce_code_verifier', codeVerifier); } catch (e) {}
+        try { localStorage.setItem('ndaku_pkce_code_verifier', codeVerifier); } catch (e) { }
         const params = new URLSearchParams({
             client_id: clientId,
             redirect_uri: redirectUri,
@@ -173,7 +174,7 @@ const Home = () => {
     const [recommendedProperties, setRecommendedProperties] = React.useState([]);
     const [recommendedVehicles, setRecommendedVehicles] = React.useState([]);
     const loadRecommendations = React.useCallback(async (kind) => {
-        if(kind === 'properties'){
+        if (kind === 'properties') {
             const recs = await recService.getRecommendations(properties.slice(0, 50), { kind: 'properties', limit: 12 });
             setRecommendedProperties(recs);
         } else {
@@ -185,7 +186,7 @@ const Home = () => {
     // track loading of both recommendations; hide preloader when both done or when safety timeout fires
     const [propsLoaded, setPropsLoaded] = React.useState(false);
     const [vehLoaded, setVehLoaded] = React.useState(false);
-    React.useEffect(()=>{
+    React.useEffect(() => {
         let mounted = true;
         (async () => {
             await loadRecommendations('properties');
@@ -205,13 +206,13 @@ const Home = () => {
     }, [propsLoaded, vehLoaded]);
 
     const acceptGoogleSign = () => {
-    console.log('ndaku: acceptGoogleSign clicked');
-    setShowGooglePrompt(false);
-    // Start Google OAuth (Authorization Code + PKCE)
-    startGoogleOAuth((errMsg) => {
-        setInfoMsg(errMsg || 'Erreur inconnue lors du démarrage de Google OAuth.');
-        setInfoOpen(true);
-    });
+        console.log('ndaku: acceptGoogleSign clicked');
+        setShowGooglePrompt(false);
+        // Start Google OAuth (Authorization Code + PKCE)
+        startGoogleOAuth((errMsg) => {
+            setInfoMsg(errMsg || 'Erreur inconnue lors du démarrage de Google OAuth.');
+            setInfoOpen(true);
+        });
     };
 
     const dismissGooglePrompt = () => {
@@ -220,32 +221,32 @@ const Home = () => {
     };
 
     // Filtres intelligents
-            const commercialTypes = ["Place commerciale", "Terrain vide", "Boutique", "Magasin"];
-            // Extraire la liste unique des communes à partir des adresses
-            const communes = React.useMemo(() => {
-                const all = properties.map(p => {
-                    // Extraction simple: on prend le dernier mot de l'adresse comme commune (ex: "Gombe, Kinshasa")
-                    const parts = p.address.split(',').map(s => s.trim());
-                    if (parts.length > 1) return parts[parts.length - 2];
-                    return null;
-                }).filter(Boolean);
-                return Array.from(new Set(all));
-            }, [properties]);
+    const commercialTypes = ["Place commerciale", "Terrain vide", "Boutique", "Magasin"];
+    // Extraire la liste unique des communes à partir des adresses
+    const communes = React.useMemo(() => {
+        const all = properties.map(p => {
+            // Extraction simple: on prend le dernier mot de l'adresse comme commune (ex: "Gombe, Kinshasa")
+            const parts = p.address.split(',').map(s => s.trim());
+            if (parts.length > 1) return parts[parts.length - 2];
+            return null;
+        }).filter(Boolean);
+        return Array.from(new Set(all));
+    }, [properties]);
 
-            let filteredProperties =
-                filter === 'Tous'
-                    ? properties
-                    : filter === 'Commerciaux'
-                    ? properties.filter(p => commercialTypes.includes(p.type))
-                    : filter === 'Terrains'
+    let filteredProperties =
+        filter === 'Tous'
+            ? properties
+            : filter === 'Commerciaux'
+                ? properties.filter(p => commercialTypes.includes(p.type))
+                : filter === 'Terrains'
                     ? properties.filter(p => p.type.toLowerCase().includes('terrain'))
                     : filter === 'Salles de fêtes'
-                    ? properties.filter(p => p.type.toLowerCase().includes('salle'))
-                    : properties.filter(p => !commercialTypes.includes(p.type) && !p.type.toLowerCase().includes('terrain') && !p.type.toLowerCase().includes('salle'));
+                        ? properties.filter(p => p.type.toLowerCase().includes('salle'))
+                        : properties.filter(p => !commercialTypes.includes(p.type) && !p.type.toLowerCase().includes('terrain') && !p.type.toLowerCase().includes('salle'));
 
-            if (commune !== 'Toutes') {
-                filteredProperties = filteredProperties.filter(p => p.address.includes(commune));
-            }
+    if (commune !== 'Toutes') {
+        filteredProperties = filteredProperties.filter(p => p.address.includes(commune));
+    }
 
     // Compact testimonials slider (3 visibles, texte réduit)
     const testimonials = React.useMemo(() => ([
@@ -303,13 +304,37 @@ const Home = () => {
             return p;
         }));
     };
-    const addCommentPromo = (promoKey, author, text) => {
-        if (!text || !text.trim()) return;
+
+    // Ajout, réponse, suppression commentaire
+    const [replyTo, setReplyTo] = React.useState({}); // { [promoKey]: commentObj|null }
+    const user = getCurrentUser();
+
+    const addCommentPromo = (promoKey, text, parentId = null) => {
+        if (!text || !text.trim() || !user) return;
         setPromotions(prev => prev.map((p, i) => {
             const key = ensurePromoKey(p, i);
             if (key !== promoKey) return p;
-            const newComment = { id: Date.now().toString(), author, text };
+            const newComment = {
+                id: Date.now().toString(),
+                author: user.name,
+                userId: user.id,
+                text,
+                parentId: parentId || null,
+                createdAt: Date.now()
+            };
             return { ...p, comments: [...(p.comments || []), newComment] };
+        }));
+        setReplyTo(rt => ({ ...rt, [promoKey]: null }));
+    };
+
+    const deleteCommentPromo = (promoKey, commentId) => {
+        setPromotions(prev => prev.map((p, i) => {
+            const key = ensurePromoKey(p, i);
+            if (key !== promoKey) return p;
+            return {
+                ...p,
+                comments: (p.comments || []).filter(c => c.id !== commentId && c.parentId !== commentId)
+            };
         }));
     };
 
@@ -352,30 +377,21 @@ const Home = () => {
                         <div className="w-100" style={{ maxWidth: 700 }}>
                             <h1
                                 className="hero-title mb-4 display-2"
-                                style={{
-                                    fontSize: 'clamp(2.5rem, 6vw, 3.2rem)',
-                                    fontWeight: 900,
-                                    background: 'linear-gradient(90deg, #13c296 0%, #0a223a 60%, #d7263d 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text',
-                                    letterSpacing: '-1.5px',
-                                    lineHeight: 1.08,
-                                    marginBottom: '1.2rem',
-                                    textShadow: '0 2px 12px #13c29622',
-                                    textAlign: 'left',
-                                    maxWidth: '100%'
-                                }}
+
                             >
                                 Trouvez le bien idéal à Kinshasa
                             </h1>
-                            <p className="hero-desc mb-3" style={{ fontSize: 'clamp(1.1rem, 2vw, 1.1rem)', color: '#0a223a', fontWeight: 500, textShadow: '0 1px 4px #13c29611' }}>
-                                Bienvenue sur <span style={{ color: '#13c296', fontWeight: 700 }}>Ndaku</span>, la plateforme immobilière moderne pour <span style={{ color: '#d7263d', fontWeight: 700 }}>Kinshasa</span> et ses environs. Découvrez, louez ou vendez maisons, appartements, terrains et plus encore, avec l’aide de nos agents de confiance.
+                            <p className="hero-desc mb-3">
+                                Bienvenue sur <span>Ndaku</span>, la plateforme immobilière moderne pour <span>Kinshasa</span> et ses environs. Découvrez, louez ou vendez maisons, appartements, terrains et plus encore, avec l’aide de nos agents de confiance.
                             </p>
-                            <p className="hero-desc mb-4" style={{ fontSize: '1.1rem', color: '#64748b', fontWeight: 500 }}>
-                                <span style={{ fontWeight: 700, color: '#13c296' }}>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
+                            <p className="hero-desc mb-4">
+                                <span>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
                             </p>
-                            <Button onClick={() => scrollToId('biens')} color="success" variant="contained" sx={{ fontWeight: 800, boxShadow: '0 6px 20px rgba(19,194,150,0.12)' }}>Voir les biens</Button>
+                            <div className='align-items-center justify-content-center' style={{ display: "flex" }}>
+                                <Button onClick={() => scrollToId('biens')} color="success" variant="contained" sx={{ fontWeight: 800, boxShadow: '0 6px 20px rgba(19,194,150,0.12)' }}>Voir les biens</Button>
+
+                            </div>
+
                         </div>
                     </div>
                     <div className="col-12 col-md-6 d-flex align-items-stretch carousel-section p-0">
@@ -397,12 +413,12 @@ const Home = () => {
                         <span className="fw-bold fs-4" style={{ color: theme.palette.text.primary }}>Vous êtes agent ou propriétaire ?</span>
                     </div>
                     <div className="d-flex gap-2 mt-3 mt-md-0">
-                                                <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                                                    <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'>Je suis une agence</Button>
-                                                </Link>
-                                                <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                                                    <Button color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Je suis propriétaire</Button>
-                                                </Link>
+                        <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
+                            <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'>Je suis une agence</Button>
+                        </Link>
+                        <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
+                            <Button color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Je suis propriétaire</Button>
+                        </Link>
                     </div>
                     <div className="d-none d-md-block">
                         <FaArrowRight className="text-secondary" size={32} />
@@ -425,7 +441,7 @@ const Home = () => {
                         <h3 className="fw-bold text-success mb-3 d-flex align-items-center gap-2 animate__animated animate__pulse animate__delay-1s">
                             <FaBuilding className="me-2" /> Ndaku Agence Immobilière
                         </h3>
-                        <p className="mb-2 fs-5" style={{ color: theme.palette.text.primary }}>Votre <span className="text-success fw-semibold">partenaire de confiance</span> pour l’achat, la vente et la location de biens immobiliers à Kinshasa et ses environs. Notre équipe expérimentée vous accompagne à chaque étape de votre projet, avec <span className="fw-semibold">professionnalisme</span>, <span className="fw-semibold">écoute</span> et <span className="fw-semibold">transparence</span>.</p>
+                        <p className="mb-2" style={{ color: theme.palette.text.primary }}>Votre <span className="text-success fw-semibold">partenaire de confiance</span> pour l’achat, la vente et la location de biens immobiliers à Kinshasa et ses environs. Notre équipe expérimentée vous accompagne à chaque étape de votre projet, avec <span className="fw-semibold">professionnalisme</span>, <span className="fw-semibold">écoute</span> et <span className="fw-semibold">transparence</span>.</p>
                         <p className="mb-2" style={{ color: theme.palette.text.secondary }}>Tosali mpo na yo : kobongisa, koteka, to kozwa ndako na confiance. Biso tozali awa pona kosalisa yo na biloko nyonso ya ndaku.</p>
                         <ul className="list-unstyled mb-3">
                             <li className="mb-2 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> <strong>Adresse :</strong> 10 Avenue du Commerce, Gombe, Kinshasa</li>
@@ -442,104 +458,104 @@ const Home = () => {
 
 
             {/* Section Biens moderne (6 biens, 3 par ligne) */}
-                        <div className="container py-5" id="biens">
-                                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                                    <span className="icon-circle bg-success text-white me-3"><FaHome size={28}/></span>
-                                    <span className="fw-bold" style={{fontSize:'2.2rem', color: theme.palette.text.primary, letterSpacing:'-1px'}}>Découvrez nos meilleures offres immobilières à Kinshasa</span>
+            <div className="container py-5" id="biens">
+                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
+                    <span className="icon-circle bg-success text-white me-3"><FaHome size={28} /></span>
+                    <span className="fw-bold">Découvrez nos meilleures offres immobilières à Kinshasa</span>
+                </div>
+                <p className="text-center text-muted mb-4 ">Appartements, maisons, terrains, boutiques, magasins : trouvez le bien qui vous correspond vraiment.<br /><span className="text-success">Tala ndako, lopango, biloko nyonso ya sika na Kinshasa !</span></p>
+                {/* Filtres intelligents */}
+                <div className="d-flex flex-wrap justify-content-center mb-4 gap-2 align-items-center">
+                    {['Tous', 'Résidentiel', 'Commerciaux', 'Terrains', 'Salles de fêtes'].map((cat) => (
+                        <button
+                            key={cat}
+                            className={`btn fw-bold px-3 rounded-pill ${cat === filter ? 'btn-success' : 'btn-outline-success'}`}
+                            style={{ minWidth: 120 }}
+                            onClick={() => setFilter(cat)}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                    <select
+                        className="form-select ms-2"
+                        style={{ maxWidth: 220, minWidth: 140, fontWeight: 'bold' }}
+                        value={commune}
+                        onChange={e => setCommune(e.target.value)}
+                    >
+                        <option value="Toutes">Toutes les communes</option>
+                        {communes.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="row justify-content-center">
+                    {(recommendedProperties && recommendedProperties.length ? recommendedProperties.slice(0, 6) : filteredProperties.slice(0, 6)).map((property, idx) => (
+                        <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
+                            <PropertyCard property={property} />
+                        </ScrollReveal>
+                    ))}
+                </div>
+                <div className="d-flex justify-content-center mt-3">
+                    <Link to="/appartement" style={{ textDecoration: 'none' }}>
+                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
+                    </Link>
+                </div>
+                {/* Publicité pour appartements/bureaux récemment construits */}
+                <div className="container py-4">
+                    <div className="card shadow-sm border-0 p-3" style={{ borderRadius: 12 }}>
+                        <div className="row align-items-center g-3">
+                            <div className="col-auto" style={{ maxWidth: 350, width: '100%' }}>
+                                <img src={require('../img/property-4.jpg')} alt="Appartements neufs" style={{ width: '100%', maxWidth: 350, height: 'auto', objectFit: 'cover', borderRadius: 8 }} />
+                            </div>
+                            <div className="col">
+                                <h5 className="card-title fw-bold text-primary mb-1">Nouveaux appartements & bureaux en ville</h5>
+                                <p className="mb-1 text-muted">Promotion exclusive: appartements neufs et espaces de bureaux disponibles en pré-lancement au centre-ville — réservations ouvertes.</p>
+                                <div className="d-flex gap-2">
+                                    <Link to="/appartement" className="btn btn-success btn-sm">Voir les appartements</Link>
+                                    <Link to="/commercials" className="btn btn-outline-secondary btn-sm">Voir les bureaux</Link>
                                 </div>
-                                <p className="text-center text-muted mb-4 fs-5">Appartements, maisons, terrains, boutiques, magasins : trouvez le bien qui vous correspond vraiment.<br /><span className="text-success">Tala ndako, lopango, biloko nyonso ya sika na Kinshasa !</span></p>
-                                {/* Filtres intelligents */}
-                                <div className="d-flex flex-wrap justify-content-center mb-4 gap-2 align-items-center">
-                                    {['Tous', 'Résidentiel', 'Commerciaux', 'Terrains', 'Salles de fêtes'].map((cat) => (
-                                        <button
-                                            key={cat}
-                                            className={`btn fw-bold px-3 rounded-pill ${cat === filter ? 'btn-success' : 'btn-outline-success'}`}
-                                            style={{minWidth:120}}
-                                            onClick={() => setFilter(cat)}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                    <select
-                                        className="form-select ms-2"
-                                        style={{maxWidth:220, minWidth:140, fontWeight:'bold'}}
-                                        value={commune}
-                                        onChange={e => setCommune(e.target.value)}
-                                    >
-                                        <option value="Toutes">Toutes les communes</option>
-                                        {communes.map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="row justify-content-center">
-                                    {(recommendedProperties && recommendedProperties.length ? recommendedProperties.slice(0,6) : filteredProperties.slice(0,6)).map((property, idx) => (
-                                        <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
-                                            <PropertyCard property={property} />
-                                        </ScrollReveal>
-                                    ))}
-                                </div>
-                                <div className="d-flex justify-content-center mt-3">
-                                    <Link to="/appartement" style={{ textDecoration: 'none' }}>
-                                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
-                                    </Link>
-                                </div>
-                                {/* Publicité pour appartements/bureaux récemment construits */}
-                                <div className="container py-4">
-                                    <div className="card shadow-sm border-0 p-3" style={{borderRadius:12}}>
-                                        <div className="row align-items-center g-3">
-                                            <div className="col-auto" style={{ maxWidth: 140, width: '100%' }}>
-                                                <img src={require('../img/property-4.jpg')} alt="Appartements neufs" style={{width:'100%', maxWidth:140, height:'auto', objectFit:'cover', borderRadius:8}} />
-                                            </div>
-                                            <div className="col">
-                                                <h5 className="fw-bold mb-1">Nouveaux appartements & bureaux en ville</h5>
-                                                <p className="mb-1 text-muted">Promotion exclusive: appartements neufs et espaces de bureaux disponibles en pré-lancement au centre-ville — réservations ouvertes.</p>
-                                                <div className="d-flex gap-2">
-                                                    <Link to="/appartement" className="btn btn-success btn-sm">Voir les appartements</Link>
-                                                    <Link to="/commercials" className="btn btn-outline-secondary btn-sm">Voir les bureaux</Link>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Section Véhicules à louer ou à vendre */}
-                        <div className="container py-5" id="vehicules">
-                                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                                    <span className="icon-circle bg-success text-white me-3"><FaCar size={28}/></span>
-                                    <span className="fw-bold" style={{fontSize:'2.2rem', color: theme.palette.text.primary, letterSpacing:'-1px'}}>Véhicules à louer ou à vendre</span>
-                                </div>
-                                <p className="text-center text-muted mb-5 fs-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span className="text-success">Location ou achat, tout est possible sur Ndaku !</span></p>
-                                                                <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0,6) : vehicles.slice(0,6))} />
-                                                                    <div className="d-flex justify-content-center mt-3">
-                                                                        <Link to="/voitures" style={{ textDecoration: 'none' }}>
-                                                                            <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
-                                                                        </Link>
-                                                                    </div>
-                        
-                                                                    {/* Publicité produit voiture (ex: constructeur) */}
-                                                                    <div className="container py-4">
-                                                                        <div className="card shadow-sm border-0 p-3 d-flex flex-row align-items-center gap-3" style={{borderRadius:12}}>
-                                                                            <img src={require('../img/Toyota car.jpg')} alt="Annonce constructeur" style={{width:'100%', maxWidth:140, height:'auto', objectFit:'cover', borderRadius:8}} />
-                                                                            <div className="flex-grow-1">
-                                                                                <h5 className="fw-bold mb-1">Promotion constructeur: Toyota RAV4</h5>
-                                                                                <p className="mb-1 text-muted">Offre spéciale concession — facilités de financement et garanties incluses. Découvrez le nouveau RAV4 aujourd'hui.</p>
-                                                                                <div className="d-flex gap-2">
-                                                                                    <Link to="/voitures" className="btn btn-primary btn-sm">Voir l'offre</Link>
-                                                                                        <a href="#contact" className="btn btn-outline-secondary btn-sm">Contactez le concessionnaire</a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
+            <div className="container py-5" id="vehicules">
+                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
+                    <span className="icon-circle bg-success text-white me-3"><FaCar size={28} /></span>
+                    <span >Véhicules à louer ou à vendre</span>
+                </div>
+                <p className="text-center text-muted mb-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span>Location ou achat, tout est possible sur Ndaku !</span></p>
+                <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0, 6) : vehicles.slice(0, 6))} />
+                <div className="d-flex justify-content-center mt-3">
+                    <Link to="/voitures" style={{ textDecoration: 'none' }}>
+                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
+                    </Link>
+                </div>
+
+                {/* Publicité produit voiture (ex: constructeur) */}
+                <div className="container py-4">
+                    <div className="card shadow-sm border-0 p-3 d-flex align-items-center gap-3 card-vehicule" style={{ borderRadius: 12 }}>
+                        <img src={require('../img/Toyota car.jpg')} alt="Annonce constructeur" style={{ width: '100%', maxWidth: 350, height: 'auto', objectFit: 'cover', borderRadius: 8 }} />
+                        <div className="flex-grow-1">
+                            <h5 className="fw-bold mb-1">Promotion constructeur: Toyota RAV4</h5>
+                            <p className="mb-1 text-muted">Offre spéciale concession — facilités de financement et garanties incluses. Découvrez le nouveau RAV4 aujourd'hui.</p>
+                            <div className="d-flex gap-2">
+                                <Link to="/voitures" className="btn btn-primary btn-sm">Voir l'offre</Link>
+                                <a href="#contact" className="btn btn-outline-secondary btn-sm">Contactez le concessionnaire</a>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Section Agents moderne */}
             <div className="bg-light py-5" id="agents">
                 <div className="container">
                     <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                      <span className="icon-circle bg-success text-white me-3"><FaUserFriends size={28}/></span>
-                      <span className="fw-bold" style={{fontSize:'2.2rem', color: theme.palette.text.primary, letterSpacing:'-1px'}}>Rencontrez nos agents experts et certifiés à Kinshasa</span>
+                        <span className="icon-circle bg-success text-white me-3"><FaUserFriends size={28} /></span>
+                        <span className="fw-bold" style={{ fontSize: '2.2rem', color: theme.palette.text.primary, letterSpacing: '-1px' }}>Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5 fs-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span className="text-success">Bato ya ndaku oyo bazali na motema!</span></p>
                     <div className="row justify-content-center">
@@ -547,11 +563,11 @@ const Home = () => {
                             <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
                                 {/* wrapper cliquable pour ouvrir la messagerie */}
                                 <div
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => openContact(agent)}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
-                                  style={{ cursor: 'pointer', outline: 'none' }}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => openContact(agent)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
+                                    style={{ cursor: 'pointer', outline: 'none' }}
                                 >
                                     <AgentCard agent={agent} />
                                 </div>
@@ -563,9 +579,9 @@ const Home = () => {
                             <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
                         </Link>
                     </div>
-                    </div>
                 </div>
-           
+            </div>
+
 
             {/* Modal de messagerie / contact agent */}
             <AgentContactModal agent={selectedAgent} open={contactOpen} onClose={closeContact} />
@@ -609,39 +625,41 @@ const Home = () => {
                     </h3>
                 </div>
                 <div className="row g-3">
-                    {promotions.slice(0,1).map(promo => (
+                    {promotions.slice(0, 1).map(promo => (
                         <div key={promo.id} className="col-12">
-                            <div className="card h-100 shadow-lg border-3 border-danger position-relative animate-card" style={{overflow:'hidden', background: 'linear-gradient(90deg, #fff 60%, #ffe06622 100%)'}}>
-                                <img src={promo.image} className="card-img-top" alt={promo.title} style={{ height: 260, objectFit: 'cover', borderBottom: '4px solid #d7263d' }} />
-                                <div className="card-body d-flex flex-column align-items-start">
-                                    <h4 className="card-title mb-2" style={{ color: '#d7263d', fontWeight: 800 }}>{promo.title}</h4>
-                                    <p className="card-text mb-3" style={{ fontSize: '1.1rem', color: '#333', fontWeight: 500 }}>{promo.excerpt}</p>
-                                    <div className="mb-3">
-                                        <span style={{ fontSize: '1.2rem', color: '#888', textDecoration: 'line-through', marginRight: 12 }}>
-                                            {promo.oldPrice} $
-                                        </span>
-                                        <span style={{ fontSize: '2rem', color: '#13c296', fontWeight: 900 }}>
-                                            {promo.newPrice} $
-                                        </span>
-                                        <span className="ms-2 badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-30%</span>
-                                    </div>
-                                    <div className="mb-3">
-                                        <span className="badge bg-warning text-dark" style={{ fontSize: '1rem', fontWeight: 600 }}>Offre limitée : réservez avant la fin du mois !</span>
-                                    </div>
-                                    <div className="d-flex align-items-center gap-3 mb-2">
-                                        <button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promo.id)}>
-                                            👍 {promo.likes} J'aime
-                                        </button>
-                                        <small className="text-muted">{promo.comments.length} commentaires</small>
-                                    </div>
-                                    <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
-                                        {promo.comments.map(c => (
-                                            <li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>
-                                        ))}
-                                    </ul>
-                                    <CommentInput onAdd={(author, text) => addCommentPromo(promo.id, author || 'Anonyme', text)} />
+                            <div className="promo-salle-card animate-card position-relative d-flex flex-lg-row flex-column align-items-stretch shadow-lg border-0" style={{ background: 'linear-gradient(90deg, #fff 60%, #ffe06622 100%)', borderRadius: 18, overflow: 'hidden', minHeight: 260 }}>
+                                <div className="promo-salle-img-wrap flex-shrink-0" style={{ minWidth: 0, width: '100%', maxWidth: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff8e1' }}>
+                                    <img src={promo.image} className="promo-salle-img" alt={promo.title} style={{ width: '100%', maxWidth: 340, height: 220, objectFit: 'cover', borderRadius: 16, boxShadow: '0 2px 16px #d7263d22' }} />
                                 </div>
-                                <div className="position-absolute top-0 end-0 m-3" style={{zIndex:2}}>
+                                <div className="promo-salle-body d-flex flex-column justify-content-between p-4" style={{ flex: 1, minWidth: 0 }}>
+                                    <div>
+                                        <h4 className="promo-salle-title mb-2" style={{ color: '#d7263d', fontWeight: 800, fontSize: '1.25rem' }}>{promo.title}</h4>
+                                        <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{promo.excerpt}</p>
+                                        <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                            <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{promo.oldPrice} $</span>
+                                            <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: '#13c296', fontWeight: 900 }}>{promo.newPrice} $</span>
+                                            <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-30%</span>
+                                        </div>
+                                        <div className="mb-3">
+                                            <span className="badge bg-warning text-dark" style={{ fontSize: '1rem', fontWeight: 600 }}>Offre limitée : réservez avant la fin du mois !</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                                            <button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promo.id)}>
+                                                👍 {promo.likes} J'aime
+                                            </button>
+                                            <small className="text-muted">{promo.comments.length} commentaires</small>
+                                        </div>
+                                        <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
+                                            {promo.comments.map(c => (
+                                                <li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>
+                                            ))}
+                                        </ul>
+                                        <CommentInput onAdd={(author, text) => addCommentPromo(promo.id, author || 'Anonyme', text)} />
+                                    </div>
+                                </div>
+                                <div className="position-absolute top-0 end-0 m-3" style={{ zIndex: 2 }}>
                                     <span className="badge bg-danger" style={{ fontSize: '1.1rem', fontWeight: 700, padding: '0.7em 1.2em', boxShadow: '0 2px 8px #d7263d33' }}>-30%</span>
                                 </div>
                             </div>
@@ -662,71 +680,69 @@ const Home = () => {
                         const comments = p.comments || [];
                         return (
                             <div key={promoKey} id={`promo-${promoKey}`} className="col-12">
-                                <div className="card shadow-sm mb-3" style={{ borderRadius: 12 }}>
-                                    <div className="row g-0 align-items-stretch">
-                                        <div className="col-auto" style={{ maxWidth: 320, width: '100%' }}>
-                                            {/* image en avant, professionel */}
-                                            <img src={p.images?.[0] || p.image || require('../img/property-1.jpg')} alt={p.name || p.title} style={{ width: '100%', maxWidth: 320, height: 'auto', objectFit: 'cover', borderTopLeftRadius: 12, borderBottomLeftRadius: 12 }} />
-                                        </div>
-                                        <div className="col">
-                                            <div className="card-body d-flex flex-column h-100">
-                                                <div className="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h5 className="fw-bold mb-1" style={{ color: '#0b5' }}>{p.name || p.title}</h5>
-                                                        <p className="text-muted small mb-1">{p.address || p.excerpt || ''}</p>
-                                                    </div>
-                                                    <div className="text-end">
-                                                        <div className="fs-6 text-success fw-bold">{p.price ? (typeof p.price === 'number' ? p.price.toLocaleString() + ' $' : p.price) : ''}</div>
-                                                        {p._promoMeta && <small className="badge bg-danger">-{p._promoMeta.discountPercent}%</small>}
-                                                    </div>
-                                                </div>
-
-                                                <p className="mb-2 text-secondary" style={{ flex: '0 0 auto' }}>{p.description || p.excerpt || ''}</p>
-
-                                                <div className="mt-auto d-flex align-items-center justify-content-between">
-                                                    <div className="d-flex gap-2 align-items-center">
-                                                        <button className="btn btn-sm btn-outline-danger" onClick={() => toggleLikePromo(promoKey)} aria-label="J'aime">
-                                                            👍 {likes}
-                                                        </button>
-                                                        <div style={{ minWidth: 'min(300px, 60vw)' }}>
-                                                            <CommentInput onAdd={(author, text) => addCommentPromo(promoKey, author || 'Anonyme', text)} />
-                                                        </div>
-                                                    </div>
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        <button className="btn btn-sm btn-outline-secondary" onClick={() => {
-                                                            // share: use Web Share API if available, otherwise copy link
-                                                            const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
-                                                            if (navigator.share) {
-                                                                navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => {});
-                                                            } else if (navigator.clipboard) {
-                                                                navigator.clipboard.writeText(shareUrl).then(() => {
-                                                                    setInfoMsg('Lien de l’offre copié dans le presse-papiers');
-                                                                    setInfoOpen(true);
-                                                                }).catch(() => {
-                                                                    setInfoMsg('Impossible de copier le lien');
-                                                                    setInfoOpen(true);
-                                                                });
-                                                            } else {
-                                                                setInfoMsg('Partage non disponible sur ce navigateur');
-                                                                setInfoOpen(true);
-                                                            }
-                                                        }}>Partager</button>
-                                                        <button className="btn btn-sm btn-success" onClick={() => handleVisitOrView(p, i)}>Voir</button>
-                                                    </div>
-                                                </div>
-                                                {/* Comments list (small) with toggle to view older */}
-                                                {comments.length > 0 && (
-                                                    <div className="mt-2">
-                                                        <button className="btn btn-link p-0 small" onClick={() => toggleCommentsOpen(promoKey)}>{commentsOpen[promoKey] ? 'Masquer les commentaires' : `Voir ${comments.length} commentaires`}</button>
-                                                        {commentsOpen[promoKey] && (
-                                                            <ul className="list-unstyled mt-2 mb-0 small" style={{ maxHeight: 160, overflowY: 'auto' }}>
-                                                                {comments.map(c => (<li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>))}
-                                                            </ul>
-                                                        )}
-                                                    </div>
-                                                )}
+                                <div className="promo-salle-card animate-card position-relative d-flex flex-lg-row flex-column align-items-stretch shadow-lg border-0" style={{ background: 'linear-gradient(90deg, #fff 60%, #ffe06622 100%)', borderRadius: 18, overflow: 'hidden', minHeight: 220 }}>
+                                    <div className="promo-salle-img-wrap flex-shrink-0" style={{ minWidth: 0, width: '100%', maxWidth: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff8e1' }}>
+                                        <img src={p.images?.[0] || p.image || require('../img/property-1.jpg')} className="promo-salle-img" alt={p.name || p.title} style={{ width: '100%', maxWidth: 340, height: 220, objectFit: 'cover', borderRadius: 16, boxShadow: '0 2px 16px #d7263d22' }} />
+                                    </div>
+                                    <div className="promo-salle-body d-flex flex-column justify-content-between p-4" style={{ flex: 1, minWidth: 0 }}>
+                                        <div>
+                                            <h4 className="promo-salle-title mb-2" style={{ color: '#d7263d', fontWeight: 800, fontSize: '1.25rem' }}>{p.name || p.title}</h4>
+                                            <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{p.address || p.excerpt || ''}</p>
+                                            <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                                {p.oldPrice && <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{p.oldPrice} $</span>}
+                                                {p.newPrice && <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: '#13c296', fontWeight: 900 }}>{p.newPrice} $</span>}
+                                                {p._promoMeta && p._promoMeta.discountPercent && <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-{p._promoMeta.discountPercent}%</span>}
+                                            </div>
+                                            {p.description && <div className="mb-2 text-secondary small">{p.description}</div>}
+                                            <div className="mb-3">
+                                                <span className="badge bg-warning text-dark" style={{ fontSize: '1rem', fontWeight: 600 }}>Offre limitée : réservez avant la fin du mois !</span>
                                             </div>
                                         </div>
+                                        <div>
+                                            <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                                                <button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promoKey)}>
+                                                    👍 {likes} J'aime
+                                                </button>
+                                                <small className="text-muted">{comments.length} commentaires</small>
+                                                <button className="btn btn-sm btn-outline-secondary" onClick={() => {
+                                                    const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
+                                                    if (navigator.share) {
+                                                        navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => { });
+                                                    } else if (navigator.clipboard) {
+                                                        navigator.clipboard.writeText(shareUrl).then(() => {
+                                                            setInfoMsg('Lien de l’offre copié dans le presse-papiers');
+                                                            setInfoOpen(true);
+                                                        }).catch(() => {
+                                                            setInfoMsg('Impossible de copier le lien');
+                                                            setInfoOpen(true);
+                                                        });
+                                                    } else {
+                                                        setInfoMsg('Partage non disponible sur ce navigateur');
+                                                        setInfoOpen(true);
+                                                    }
+                                                }}>Partager</button>
+                                                <button className="btn btn-sm btn-success" onClick={() => handleVisitOrView(p, i)}>Voir</button>
+                                            </div>
+                                            <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
+                                                {comments.map(c => (
+                                                    <li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>
+                                                ))}
+                                            </ul>
+                                            <CommentInput onAdd={(author, text) => addCommentPromo(promoKey, author || 'Anonyme', text)} />
+                                            {comments.length > 0 && (
+                                                <div className="mt-2">
+                                                    <button className="btn btn-link p-0 small" onClick={() => toggleCommentsOpen(promoKey)}>{commentsOpen[promoKey] ? 'Masquer les commentaires' : `Voir ${comments.length} commentaires`}</button>
+                                                    {commentsOpen[promoKey] && (
+                                                        <ul className="list-unstyled mt-2 mb-0 small" style={{ maxHeight: 160, overflowY: 'auto' }}>
+                                                            {comments.map(c => (<li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="position-absolute top-0 end-0 m-3" style={{ zIndex: 2 }}>
+                                        {p._promoMeta && p._promoMeta.discountPercent && <span className="badge bg-danger" style={{ fontSize: '1.1rem', fontWeight: 700, padding: '0.7em 1.2em', boxShadow: '0 2px 8px #d7263d33' }}>-{p._promoMeta.discountPercent}%</span>}
                                     </div>
                                 </div>
                             </div>
@@ -735,11 +751,9 @@ const Home = () => {
                         <div className="col-12 text-muted">Aucune offre en promotion pour le moment.</div>
                     )}
                 </div>
-
                 {/* centralized load more button */}
                 <div className="d-flex justify-content-center mt-3">
                     <button className="btn btn-lg btn-success fw-bold" onClick={() => {
-                        // append next batch of up to 10 promotions and ensure likes/comments exist
                         setPromotions(prev => {
                             const already = prev.__shownCount || prev.length || 0;
                             const next = promoData.slice(already, already + 10).map(item => {
@@ -760,81 +774,117 @@ const Home = () => {
             </section>
 
             {/* Carte interactive des biens et position utilisateur */}
-            <div className="container" style={{paddingBottom:"3vh"}}>
+            <div className="container" style={{ paddingBottom: "3vh" }}>
                 <div className="section-title text-center mb-3 animate__animated animate__fadeInDown">
-                    <span className="icon-circle bg-success text-white me-3"><FaMapMarkerAlt size={28}/></span>
-                    <span className="fw-bold" style={{fontSize:'2rem', color: theme.palette.text.primary}}>Carte des biens à Kinshasa</span>
+                    <span className="icon-circle bg-success text-white me-3"><FaMapMarkerAlt size={28} /></span>
+                    <span className="fw-bold" style={{ fontSize: '2rem', color: theme.palette.text.primary }}>Carte des biens à Kinshasa</span>
                 </div>
                 <MapView />
             </div>
 
             {/* Call to action */}
-            <div className="bg-success text-white text-center py-5">
+            <div className="bg-success text-white text-center py-5" style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center"
+            }}>
                 <div className="container">
                     <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
                     <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
                     <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
-            </div>
+            </div >
 
             {/* Footer pro et interactif */}
-                        {/* Google sign-in dialog (moderne, centré en bas) */}
-                        {showGooglePrompt && (
-                            <div style={{
-                                position: 'fixed',
-                                left: '50%',
-                                bottom: '2.5vh',
-                                transform: 'translateX(-50%)',
-                                zIndex: 3000,
-                                minWidth: 320,
-                                maxWidth: '95vw',
-                                boxShadow: '0 8px 32px rgba(19,194,150,0.13)',
-                                borderRadius: '18px',
-                                background: 'linear-gradient(90deg, #fff 60%, #e0f7fa 100%)',
-                                padding: '1.3rem 1.5rem 1.1rem 1.5rem',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                border: '1.5px solid #e0f7fa',
-                                animation: 'fadeInUp 0.5s cubic-bezier(.23,1.02,.47,.98)'
-                            }}
-                                aria-modal="true"
-                                role="dialog"
-                            >
-                                <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
-                                    {/* <img src={require('../img/logo192.png')} alt="Ndaku" style={{ width: 38, height: 38, borderRadius: 8, boxShadow: '0 2px 8px #13c29622' }} /> */}
-                                    <span style={{fontWeight:800,fontSize:'1.18rem',color:'#0a223a'}}>Connexion rapide</span>
-                                </div>
-                                <div style={{textAlign:'center',color:'#0a223a',fontSize:'1.05rem',marginBottom:18,maxWidth:320}}>
-                                    Connectez-vous avec Google pour un accès facilité et sécurisé à toutes les fonctionnalités Ndaku.
-                                </div>
-                                <button className="btn ndaku-btn" style={{minWidth:180,marginBottom:8}} onClick={acceptGoogleSign}>
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{width:22,height:22,marginRight:8,verticalAlign:'middle',borderRadius:4}} />
-                                    Se connecter avec Google
-                                </button>
-                                <button className="btn btn-outline-secondary" style={{minWidth:120}} onClick={dismissGooglePrompt}>Plus tard</button>
-                            </div>
-                        )}
+            {/* Google sign-in dialog (moderne, centré en bas) */}
+            {
+                showGooglePrompt && (
+                    <div style={{
+                        position: 'fixed',
+                        left: '50%',
+                        bottom: '2.5vh',
+                        transform: 'translateX(-50%)',
+                        zIndex: 3000,
+                        minWidth: 320,
+                        maxWidth: '95vw',
+                        boxShadow: '0 8px 32px rgba(19,194,150,0.13)',
+                        borderRadius: '18px',
+                        background: 'linear-gradient(90deg, #fff 60%, #e0f7fa 100%)',
+                        padding: '1.3rem 1.5rem 1.1rem 1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        border: '1.5px solid #e0f7fa',
+                        animation: 'fadeInUp 0.5s cubic-bezier(.23,1.02,.47,.98)'
+                    }}
+                        aria-modal="true"
+                        role="dialog"
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                            {/* <img src={require('../img/logo192.png')} alt="Ndaku" style={{ width: 38, height: 38, borderRadius: 8, boxShadow: '0 2px 8px #13c29622' }} /> */}
+                            <span style={{ fontWeight: 800, fontSize: '1.18rem', color: '#0a223a' }}>Connexion rapide</span>
+                        </div>
+                        <div style={{ textAlign: 'center', color: '#0a223a', fontSize: '1.05rem', marginBottom: 18, maxWidth: 320 }}>
+                            Connectez-vous avec Google pour un accès facilité et sécurisé à toutes les fonctionnalités Ndaku.
+                        </div>
+                        <button className="btn ndaku-btn" style={{ minWidth: 180, marginBottom: 8 }} onClick={acceptGoogleSign}>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{ width: 22, height: 22, marginRight: 8, verticalAlign: 'middle', borderRadius: 4 }} />
+                            Se connecter avec Google
+                        </button>
+                        <button className="btn btn-outline-secondary" style={{ minWidth: 120 }} onClick={dismissGooglePrompt}>Plus tard</button>
+                    </div>
+                )
+            }
 
             {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
-           
+
 
             <FooterPro />
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
+            {/* ChatWidget MongoDB-style, always present */}
+            <ChatWidget />
         </>
     );
 };
 
 export default Home;
 // Petit composant inline pour l'input de commentaire (concise, réutilisable)
-function CommentInput({ onAdd }) {
+// Utilitaire pour récupérer l'utilisateur connecté
+function getCurrentUser() {
+    try {
+        const user = JSON.parse(localStorage.getItem('ndaku_user'));
+        if (user && user.id && user.name) return user;
+    } catch (e) { }
+    return null;
+}
+
+function CommentInput({ onAdd, replyingTo, onCancelReply }) {
     const [text, setText] = React.useState('');
-    const [author, setAuthor] = React.useState('');
+    const user = getCurrentUser();
+    if (!user) {
+        return <div className="alert alert-warning py-2 px-3 mb-2">Connectez-vous pour commenter.</div>;
+    }
     return (
-        <div className="d-flex gap-2">
-            <input className="form-control form-control-sm" placeholder="Votre nom (optionnel)" value={author} onChange={e => setAuthor(e.target.value)} />
-            <input className="form-control form-control-sm" placeholder="Ajouter un commentaire..." value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { onAdd(author, text); setText(''); }}} />
-            <button className="btn btn-sm btn-success" onClick={() => { onAdd(author, text); setText(''); }}>Envoyer</button>
+        <div className="d-flex gap-2 align-items-center mb-2">
+            {replyingTo && (
+                <span className="badge bg-info text-dark me-2">Réponse à {replyingTo.author}
+                    <button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</button>
+                </span>
+            )}
+            <input
+                className="form-control form-control-sm"
+                placeholder={replyingTo ? `Répondre à ${replyingTo.author}...` : "Ajouter un commentaire..."}
+                value={text}
+                onChange={e => setText(e.target.value)}
+                onKeyDown={e => {
+                    if (e.key === 'Enter' && text.trim()) {
+                        onAdd(text, replyingTo?.id || null);
+                        setText('');
+                    }
+                }}
+            />
+            <button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</button>
         </div>
     );
 }

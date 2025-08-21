@@ -1,3 +1,118 @@
+/* --- Promo salle de fête responsive & moderne --- */
+.promo-salle-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: linear-gradient(90deg, #fff 60%, #ffe06622 100%);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #d7263d22;
+  overflow: hidden;
+  min-height: 220px;
+  margin-bottom: 1.5rem;
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.promo-salle-img-wrap {
+  background: #fff8e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  max-width: 380px;
+  padding: 0.7rem 0.5rem;
+}
+.promo-salle-img {
+  width: 100%;
+  max-width: 340px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px #d7263d22;
+}
+.promo-salle-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem 2.2rem 1.2rem 2.2rem;
+}
+.promo-salle-title {
+  color: #d7263d;
+  font-weight: 800;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.promo-salle-desc {
+  font-size: 1.08rem;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.promo-salle-oldprice {
+  font-size: 1.1rem;
+  color: #888;
+  text-decoration: line-through;
+}
+.promo-salle-newprice {
+  font-size: 2rem;
+  color: #13c296;
+  font-weight: 900;
+}
+
+@media (max-width: 991.98px) {
+  .promo-salle-card {
+    flex-direction: column;
+    border-radius: 14px;
+    min-height: 0;
+  }
+  .promo-salle-img-wrap {
+    max-width: 100%;
+    padding: 0.5rem 0.2rem;
+  }
+  .promo-salle-img {
+    max-width: 100%;
+    height: 160px;
+    border-radius: 12px;
+  }
+  .promo-salle-body {
+    padding: 1.2rem 1rem 0.8rem 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .promo-salle-card {
+    flex-direction: column;
+    border-radius: 10px;
+    min-height: 0;
+    margin-bottom: 1rem;
+    box-shadow: 0 1.5px 8px #d7263d11;
+  }
+  .promo-salle-img-wrap {
+    max-width: 100%;
+    padding: 0.3rem 0.1rem;
+  }
+  .promo-salle-img {
+    max-width: 100%;
+    height: 110px;
+    border-radius: 8px;
+  }
+  .promo-salle-body {
+    padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+  }
+  .promo-salle-title {
+    font-size: 1.08rem;
+    text-align: center;
+  }
+  .promo-salle-desc {
+    font-size: 0.98rem;
+    text-align: center;
+  }
+  .promo-salle-oldprice, .promo-salle-newprice {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+}
 /* Promo card responsive for appartements & bureaux */
 .promo-card {
   border-radius: 14px;
@@ -354,7 +469,7 @@ html, body {
     display: none;
   }
   .section-title .fw-bold {
-    font-size: 1.18rem;
+    font-size: 1.7rem;
     line-height: 1.1;
     margin: 0;
     text-align: center;
@@ -553,8 +668,6 @@ html, body {
 
   .carousel-box {
     width: 100vw;
-    margin-left: -1rem;
-    margin-right: -1rem;
   }
 
   .carousel-box img {
@@ -839,7 +952,7 @@ img {
 
 /* Promotions cards responsiveness: ensure images stack and text flows */
 .card img {
-  width: 100%;
+  width: 58%;
   height: auto;
   object-fit: cover;
 }
@@ -926,7 +1039,7 @@ img {
   button, 
   .btn,
   .nav-link {
-    min-height: 44px;
+    min-height: 10px;
   }
 }
 
@@ -973,6 +1086,9 @@ img {
   margin-bottom: 0.4rem;
   text-align: left;
 }
+.card-vehicule{
+  flex-direction :row;
+}
 @media (max-width: 767.98px) {
   .footer-pro .row {
     flex-direction: column;
@@ -998,6 +1114,14 @@ img {
   }
   .me-2 svg{
     display:none;
+  }
+  .card-vehicule{
+    width: 100%;
+    flex-direction: column;
+    max-width: 350px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
   }
   
 }

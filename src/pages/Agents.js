@@ -1,5 +1,6 @@
 import React from 'react';
 import Navbar from '../components/common/Navbar';
+import ChatWidget from '../components/common/ChatWidget';
 import AgentList from '../components/agent/AgentList';
 import FooterPro from '../components/common/FooterPro';
 import { agents } from '../data/fakedata';
@@ -24,7 +25,8 @@ const Agents = () => {
 
         <AgentList agents={agents} />
       </div>
-      <FooterPro />
+  <FooterPro />
+  <ChatWidget />
     </>
   );
 };

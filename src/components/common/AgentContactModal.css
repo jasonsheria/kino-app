@@ -13,9 +13,10 @@
   box-shadow: 0 8px 32px #13c29633;
   padding: 28px 22px 22px 22px;
   min-width: 320px;
-  max-width: 95vw;
+  max-width: 32vw;
   position: relative;
   min-height: 220px;
+  max-height : 90vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,6 +26,7 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 18px;
+  flex-direction: column-reverse;
 }
 .agent-avatar {
   width: 56px;

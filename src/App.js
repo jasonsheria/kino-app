@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import './App.css';
 import { ThemeProvider, CssBaseline, IconButton, Tooltip } from '@mui/material';
@@ -7,6 +8,8 @@ import getTheme from './theme';
 import AppRoutes from './routes';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { startEventSync } from './services/recommendationService';
+import { useGlobalCallModal } from './components/common/useGlobalCallModal';
+
 
 function App() {
   // Force le mode à 'light' ou 'dark' uniquement
@@ -43,6 +46,9 @@ function App() {
     };
   }, []);
 
+  // Global call modal integration
+  const { CallModal } = useGlobalCallModal();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -51,8 +57,8 @@ function App() {
           onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
           style={{
             position: 'fixed',
-            bottom: 65,
-            right: 24,
+            bottom: 13,
+            right: 64,
             zIndex: 9999,
             background: theme.palette.background.paper,
             color: theme.palette.text.primary,
@@ -71,6 +77,8 @@ function App() {
       <HashRouter>
         <AppRoutes />
       </HashRouter>
+      {/* Global Call Modal (always present) */}
+      <CallModal />
     </ThemeProvider>
   );
 }

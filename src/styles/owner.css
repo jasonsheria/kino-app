@@ -5,27 +5,40 @@
   --owner-muted: #536070;
   --owner-bg: #f6fbfa;
 }
-.owner-hero{
+.owner-hero {
   background: linear-gradient(180deg, rgba(6,182,163,0.03), rgba(15,191,154,0.02));
-  border-radius: 14px;
-  padding: 18px;
-  margin: 0 auto;
-  min-height: 100vh; /* fill viewport */
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
 }
 
-.owner-card{ 
+.owner-card { 
   border-radius: 14px;
   box-shadow: 0 12px 36px rgba(2,6,23,0.08);
   transition: transform .18s ease, box-shadow .18s ease;
   width: 100%;
   max-width: 1100px;
-  max-height: calc(80vh - 56px);
-  overflow: scroll;
-  overflow-x: hidden;
-  scrollbar-width : none;
+  min-height: 100vh;
+  background: #ffffff;
+  margin: 0;
+  border-radius: 0;
+}
+
+@media (min-width: 768px) {
+  .owner-card {
+    min-height: auto;
+    max-height: calc(90vh - 56px);
+    margin: 20px;
+    border-radius: 14px;
+  }
+
+  .owner-hero {
+    padding: 20px;
+  }
 }
 .owner-card:hover{ transform: translateY(-6px); box-shadow: 0 22px 54px rgba(2,6,23,0.12); }
 
@@ -144,7 +157,16 @@
 .door-panel{ height:200px; border-radius:12px; box-shadow: 0 12px 30px rgba(2,6,23,0.06); overflow:hidden; position:relative; transform-origin:center; transition: transform .36s cubic-bezier(.2,.9,.2,1), box-shadow .22s ease; display:flex; align-items:center; }
 .door-panel.left{ background: linear-gradient(180deg, #ffffff 0%, rgba(5,158,138,0.06) 100%); border: 1px solid rgba(5,158,138,0.08); }
 .door-panel.right{ background: linear-gradient(180deg, #ffffff 0%, rgba(15,191,154,0.06) 100%); border: 1px solid rgba(15,191,154,0.1); }
-.owner-door:focus .door-panel, .owner-door:hover .door-panel{ transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 48px rgba(2,6,23,0.14); }
+.owner-door:focus .door-panel, .owner-door:hover .door-panel { 
+  transform: translateY(-6px) scale(1.02); 
+  box-shadow: 0 20px 48px rgba(2,6,23,0.14);
+}
+
+@media (max-width: 768px) {
+  .owner-door:focus .door-panel, .owner-door:hover .door-panel {
+    transform: scale(1.01);
+  }
+}
 .door-content{ padding:18px; }
 .door-content h4{ margin:0 0 6px; font-weight:800; color:var(--owner-accent); font-size:1.15rem; }
 .door-content p{ margin:0 0 12px; color:var(--owner-muted); font-size:0.95rem }
@@ -159,13 +181,97 @@
 }
 .owner-door .door-panel{ animation: doorsIn .52s cubic-bezier(.2,.9,.2,1) both; }
 
-@media (max-width: 768px){
-  .owner-doors-wrapper{ flex-direction:column; gap:12px; }
-  .owner-door{ width:100%; }
-  .door-panel{ height:150px; }
-  .card-body.owner-form{ padding:4px !important; }
-  .door-content h4{ font-size:1rem; }
-  .door-content p{ font-size:0.86rem; }
+@media (max-width: 768px) {
+  .owner-doors-wrapper {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+  
+  .owner-door {
+    width: 100%;
+  }
+  
+  .door-panel {
+    height: auto;
+    min-height: 160px;
+  }
+  
+  .card-body.owner-form {
+    padding: 16px !important;
+  }
+  
+  .door-content {
+    padding: 24px 20px;
+  }
+  
+  .door-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+  }
+  
+  .door-content p {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+  }
+
+  .door-cta {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .owner-card .row {
+    margin: 0;
+  }
+
+  .owner-card .col-md-10 {
+    padding: 0;
+  }
+
+  .owner-card .card-body {
+    padding: 20px;
+  }
+
+  .owner-form h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .owner-form .text-muted {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  .form-label {
+    font-size: 1rem;
+  }
+
+  .form-control {
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .alert {
+    margin: 16px 0;
+    padding: 16px;
+  }
+
+  .row > div {
+    padding: 16px;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
 }
 
 /* Faithful dashboard layout styles */

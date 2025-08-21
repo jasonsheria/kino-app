@@ -1,68 +1,213 @@
-.chat-widget { position: fixed; right: 20px; bottom: 20px; width: 320px; max-width: calc(100% - 40px); z-index: 1050; }
-.chat-card { border-radius: 12px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-.chat-header { background: linear-gradient(90deg,#13c296,#0ea5a3); color: white; padding: 10px 12px; display:flex; align-items:center; justify-content:space-between }
-.chat-body { max-height: 280px; overflow:auto; background: #fff; padding: 10px; display:flex; flex-direction:column }
-.chat-input { display:flex; gap:8px; padding:8px; background:#fafafa }
-.chat-msg { padding:8px 10px; border-radius:10px; margin-bottom:8px; max-width:80%; }
-.chat-msg.me { background:#13c29633; align-self:flex-end; }
-.chat-msg.other { background:#f1f5f9; align-self:flex-start; }
-.chat-thumb { width:34px; height:34px; border-radius:50%; background:#eee; display:inline-block }
 
-.ndaku-chat-widget {
+/* MongoDB-style, pro, large, floating chat widget */
+.mongo-chat-widget {
 	position: fixed;
-	right: 85px;
-	bottom: 20px;
-	width: 320px;
-	max-width: calc(100% - 40px);
-	z-index: 1200;
-	border-radius: 10px;
+	right: 32px;
+	bottom: 32px;
+	width: 400px;
+	max-width: 96vw;
+	background: #23272f;
+	border-radius: 18px;
+	box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+	z-index: 1201;
+	display: none;
+	flex-direction: column;
 	overflow: hidden;
-	box-shadow: 0 10px 30px rgba(2,6,23,0.12);
-	background: #fff;
+	border: 1.5px solid #2e333d;
+	animation: mongo-chat-fadein 0.25s;
+}
+.mongo-chat-widget.open {
+	display: flex;
+}
+.mongo-chat-header {
+	background: #1a1d23;
+	color: #fff;
+	padding: 18px 22px 12px 22px;
+	font-size: 1.18rem;
+	font-weight: 700;
+	border-bottom: 1.5px solid #2e333d;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	letter-spacing: 0.01em;
+}
+.mongo-chat-title {
+	display: flex;
+	align-items: center;
+	font-size: 1.18rem;
+	font-weight: 700;
+	color: #13c296;
+	letter-spacing: 0.01em;
+}
+.mongo-chat-close {
+	background: none;
+	border: none;
+	color: #fff;
+	font-size: 1.5rem;
+	cursor: pointer;
+	opacity: 0.7;
+	transition: opacity 0.2s;
+}
+.mongo-chat-close:hover {
+	opacity: 1;
+}
+.mongo-chat-body {
+	flex: 1 1 auto;
+	padding: 20px 18px 14px 18px;
+	overflow-y: auto;
+	background: #23272f;
+	min-height: 220px;
+	max-height: 340px;
 	display: flex;
 	flex-direction: column;
-	transition: transform 0.35s cubic-bezier(.4,1.6,.4,1), opacity 0.35s, box-shadow 0.2s;
-	transform: translateY(40px) scale(0.98);
-	opacity: 0;
-	pointer-events: none;
 }
-.ndaku-chat-widget.open {
-	transform: translateY(0) scale(1);
-	opacity: 1;
-	pointer-events: auto;
+.mongo-chat-empty {
+	color: #aaa;
+	text-align: center;
+	margin-top: 40px;
+	font-size: 1.05rem;
 }
-.ndaku-chat-widget.inline {
-	position: static;
-	width: 100%;
-	max-width: none;
-	box-shadow: none;
-	border-radius: 8px;
-	transition: none;
-	transform: none;
-	opacity: 1;
-	pointer-events: auto;
+.mongo-chat-msg {
+	margin-bottom: 14px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	position: relative;
 }
-/* Call overlay animation */
-.ndaku-call-overlay {
-	position: absolute;
-	left: 0; right: 0; top: 0; bottom: 0;
-	background: rgba(255,255,255,0.97);
-	z-index: 100;
+.mongo-chat-msg.me {
+	align-items: flex-end;
+}
+.mongo-chat-bubble {
+	background: #13c296;
+	color: #fff;
+	padding: 10px 18px;
+	border-radius: 18px 18px 6px 18px;
+	font-size: 1.04rem;
+	max-width: 80vw;
+	min-width: 36px;
+	word-break: break-word;
+	box-shadow: 0 2px 8px rgba(19,194,150,0.08);
+	transition: background 0.2s;
+}
+.mongo-chat-msg.me .mongo-chat-bubble {
+	background: #2e333d;
+	color: #fff;
+	border-radius: 18px 18px 18px 6px;
+	box-shadow: 0 2px 8px rgba(30,34,44,0.10);
+}
+.mongo-chat-ts {
+	font-size: 0.82rem;
+	color: #7ad7c4;
+	margin-top: 2px;
+	margin-left: 4px;
+	opacity: 0.7;
+}
+.mongo-chat-msg.me .mongo-chat-ts {
+	color: #b0b6c1;
+	margin-right: 4px;
+	margin-left: 0;
+}
+.mongo-chat-input {
+	display: flex;
+	gap: 10px;
+	padding: 14px 18px 18px 18px;
+	background: #1a1d23;
+	border-top: 1.5px solid #2e333d;
+}
+.mongo-chat-input input {
+	flex: 1 1 auto;
+	border-radius: 10px;
+	border: 1.5px solid #2e333d;
+	background: #23272f;
+	color: #fff;
+	padding: 10px 14px;
+	font-size: 1.04rem;
+	outline: none;
+	transition: border 0.2s;
+}
+.mongo-chat-input input:focus {
+	border: 1.5px solid #13c296;
+}
+.mongo-chat-send {
+	background: #13c296;
+	color: #fff;
+	border: none;
+	border-radius: 10px;
+	padding: 10px 22px;
+	font-size: 1.04rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.2s;
+	box-shadow: 0 2px 8px rgba(19,194,150,0.08);
+}
+.mongo-chat-send:hover {
+	background: #0e9e7a;
+}
+.mongo-chat-fab {
+	position: fixed;
+	right: 32px;
+	bottom: 32px;
+	z-index: 1202;
+	border-radius: 50%;
+	width: 62px;
+	height: 62px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	animation: fadeInCall 0.4s;
+	font-size: 1.7rem;
+	background: #13c296;
+	color: #fff;
+	border: none;
+	box-shadow: 0 4px 18px rgba(19,194,150,0.18);
+	cursor: pointer;
+	transition: background 0.2s, box-shadow 0.2s;
 }
-@keyframes fadeInCall {
-	from { opacity: 0; transform: scale(0.95); }
-	to { opacity: 1; transform: scale(1); }
+.mongo-chat-fab:hover {
+	background: #0e9e7a;
+	box-shadow: 0 6px 24px rgba(19,194,150,0.22);
 }
-.ndaku-chat-header { background: linear-gradient(90deg,#13c296,#0ea5a3); color: white; padding: 10px 12px; display:flex; align-items:center; justify-content:space-between }
-.ndaku-chat-body { max-height: 280px; overflow:auto; padding: 10px; }
-.ndaku-chat-input { display:flex; gap:8px; padding:8px; background:#fafafa }
-.ndaku-chat-msg { padding:8px 10px; border-radius:10px; margin-bottom:8px; max-width:80%; }
-.ndaku-chat-msg.me { background:#13c29633; align-self:flex-end; }
-.ndaku-chat-msg.peer { background:#f1f5f9; align-self:flex-start; }
-.ndaku-chat-toggle { right: 20px; bottom: 20px; }
-
-.ndaku-chat-toggle .badge { position: relative; top: -1px; }
+.mongo-chat-badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	background: #e74c3c;
+	color: #fff;
+	border-radius: 12px;
+	padding: 2px 8px;
+	font-size: 0.92rem;
+	font-weight: 600;
+	box-shadow: 0 1px 4px rgba(231,76,60,0.12);
+}
+@media (max-width: 700px) {
+	.mongo-chat-widget {
+		width: 98vw;
+		right: 1vw;
+		bottom: 70px;
+		min-width: unset;
+		max-width: unset;
+		border-radius: 12px;
+	}
+	.mongo-chat-header {
+		font-size: 1rem;
+		padding: 12px 10px 8px 10px;
+	}
+	.mongo-chat-body {
+		min-height: 120px;
+		max-height: 220px;
+		padding: 10px 6px 8px 6px;
+	}
+	.mongo-chat-input {
+		padding: 8px 6px 8px 6px;
+	}
+	.mongo-chat-fab {
+		width: 52px;
+		height: 52px;
+		font-size: 1.3rem;
+		right: 12px;
+		bottom: 12px;
+	}
+}
+@keyframes mongo-chat-fadein {
+	from { opacity: 0; transform: translateY(30px) scale(0.98); }
+	to { opacity: 1; transform: none; }
+}

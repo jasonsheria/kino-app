@@ -136,7 +136,7 @@ const Navbar = () => {
         </div>
 
         {/* Boutons d'action */}
-        <div className="kn-cta-group">
+        <div className="kn-cta-group ct-1">
           <Link to="/owner/onboard" className="kn-cta kn-cta-outline">
             Devenir propriétaire
           </Link>
@@ -239,7 +239,7 @@ const Navbar = () => {
             >
               Contact
             </a>
-            <div className="kn-cta-group" style={{ margin: '16px 0' }}>
+            <div className="kn-cta-group" style={{ margin: '16px 0' , flexDirection : "column"}}>
               <Link
                 to="/owner/onboard"
                 className="kn-cta kn-cta-outline"

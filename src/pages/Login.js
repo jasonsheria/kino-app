@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ChatWidget from '../components/common/ChatWidget';
+import { FaEnvelope, FaLock, FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../components/common/fonts.css';
 import '../pages/auth.css';
 
@@ -51,34 +53,53 @@ const Login = () => {
           <p className="auth-small mb-3 text-center">Connectez-vous pour accéder à votre tableau de bord et gérer vos annonces.</p>
 
           <form onSubmit={submit} className="fade-in">
-            <div className="mb-3">
+            <div className="social-auth">
+              <button type="button" className="social-btn google">
+                <FaGoogle /> Continuer avec Google
+              </button>
+            </div>
+
+            <div className="or-divider">
+              <span>ou</span>
+            </div>
+
+            <div className="mb-4">
               <label htmlFor="login-email" className="form-label">Email</label>
-              <input
-                id="login-email"
-                type="email"
-                className={"form-control " + (email && !validateEmail(email) ? 'is-invalid' : '')}
-                value={email}
-                onChange={function(e){ setEmail(e.target.value); }}
-                placeholder="votre@email.com"
-                autoComplete="email"
-              />
+              <div className="input-with-icon">
+                <FaEnvelope className="input-icon" />
+                <input
+                  id="login-email"
+                  type="email"
+                  className={"form-control " + (email && !validateEmail(email) ? 'is-invalid' : '')}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="votre@email.com"
+                  autoComplete="email"
+                />
+              </div>
               {email && !validateEmail(email) ? <div className="error-text">Adresse email invalide</div> : null}
             </div>
 
-            <div className="mb-3">
+            <div className="mb-4">
               <label htmlFor="login-password" className="form-label">Mot de passe</label>
-              <div>
+              <div className="input-with-icon">
+                <FaLock className="input-icon" />
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
-                  className={"form-control"}
+                  className="form-control"
                   value={password}
-                  onChange={function(e){ setPassword(e.target.value); }}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder="Mot de passe"
                   autoComplete="current-password"
                 />
-                <button type="button" className="btn btn-sm btn-outline-secondary password-toggle" onClick={function(){ setShowPassword(function(s){ return !s; }); }} aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}>
-                  {showPassword ? 'Masquer' : 'Afficher'}
+                <button 
+                  type="button" 
+                  className="password-toggle" 
+                  onClick={() => setShowPassword(s => !s)}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
             </div>
@@ -105,6 +126,7 @@ const Login = () => {
           <div className="text-center mt-3 small text-muted">Pas encore de compte ? <Link to="/register">S'inscrire</Link></div>
         </div>
       </div>
+      <ChatWidget />
     </div>
   );
 };

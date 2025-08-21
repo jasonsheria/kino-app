@@ -35,10 +35,10 @@ const AgentCard = ({ agent }) => {
             </div>
             <div className="small text-muted mb-2 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> {agent.address}</div>
             <div className="d-flex align-items-center gap-3 mt-2">
-              <button className="text-decoration-none text-dark d-flex align-items-center justify-content-center btn btn-link p-0" title="Appeler" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, agentName: agent.name } } }))}>
+              <button className="text-decoration-none text-dark d-flex align-items-center justify-content-center btns btn-link p-0" title="Appeler" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, agentName: agent.name } } }))}>
                 <FaPhoneAlt className="text-success" size={20} />
               </button>
-              <button className="btn btn-link p-0 m-0 text-success d-flex align-items-center justify-content-center" style={{fontSize:20}} title="WhatsApp" onClick={()=>setShowContact(true)}>
+              <button className="btns btn-link p-0 m-0 text-success d-flex align-items-center justify-content-center" style={{fontSize:20}} title="WhatsApp" onClick={()=>setShowContact(true)}>
                 <FaWhatsapp size={20} />
               </button>
               <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none d-flex align-items-center justify-content-center" title="Facebook">

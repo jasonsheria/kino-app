@@ -320,7 +320,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-dropdown);
-  height : 100vh;
+  height: 100vh;
   -webkit-overflow-scrolling: touch;
   visibility: hidden;
 }
@@ -391,21 +391,30 @@
   color: var(--primary);
 }
 .kn-cta-group{
-  margin: 16px 0px;
-  display: flex;
-  flex-direction: column;
+  display : flex;
 }
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .kn-menu
-   {
+.ct-1 {
+  display: flex;
+  margin: 16px 0px;
+
+}
+
+@media (max-width : 900px) {
+  .ct-1 {
     display: none;
   }
-  
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .kn-menu {
+    display: none;
+  }
+
   .kn-menu-toggle {
     display: block;
   }
-  
+
   .kn-nav {
     padding: 0 16px;
   }
@@ -417,6 +426,7 @@
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -428,6 +438,7 @@
     transform: translateX(-20px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -444,10 +455,30 @@
   opacity: 0;
 }
 
-.kn-drawer.show .kn-drawer-link:nth-child(1) { animation-delay: calc(var(--link-delay) * 1); }
-.kn-drawer.show .kn-drawer-link:nth-child(2) { animation-delay: calc(var(--link-delay) * 2); }
-.kn-drawer.show .kn-drawer-link:nth-child(3) { animation-delay: calc(var(--link-delay) * 3); }
-.kn-drawer.show .kn-drawer-link:nth-child(4) { animation-delay: calc(var(--link-delay) * 4); }
-.kn-drawer.show .kn-drawer-link:nth-child(5) { animation-delay: calc(var(--link-delay) * 5); }
-.kn-drawer.show .kn-drawer-link:nth-child(6) { animation-delay: calc(var(--link-delay) * 6); }
-.kn-drawer.show .kn-drawer-link:nth-child(7) { animation-delay: calc(var(--link-delay) * 7); }
+.kn-drawer.show .kn-drawer-link:nth-child(1) {
+  animation-delay: calc(var(--link-delay) * 1);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(2) {
+  animation-delay: calc(var(--link-delay) * 2);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(3) {
+  animation-delay: calc(var(--link-delay) * 3);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(4) {
+  animation-delay: calc(var(--link-delay) * 4);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(5) {
+  animation-delay: calc(var(--link-delay) * 5);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(6) {
+  animation-delay: calc(var(--link-delay) * 6);
+}
+
+.kn-drawer.show .kn-drawer-link:nth-child(7) {
+  animation-delay: calc(var(--link-delay) * 7);
+}

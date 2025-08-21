@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import ChatWidget from '../components/common/ChatWidget';
+import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../pages/auth.css';
 
 const Register = () => {
@@ -44,30 +46,71 @@ const Register = () => {
           <h3 className="fw-bold mb-1 text-center">Créer un compte</h3>
           <p className="auth-small mb-3 text-center">Inscrivez-vous pour publier des annonces et contacter des agents.</p>
 
-          <div className="d-flex gap-2 mb-3 social-row">
-            <button type="button" className="btn social-btn google flex-grow-1" aria-label="Continuer avec Google">Continuer avec Google</button>
-            <button type="button" className="btn social-btn github" aria-label="Continuer avec GitHub">Git</button>
+          <div className="social-row">
+            <button type="button" className="social-btn google" aria-label="Continuer avec Google">
+              <FaGoogle /> Continuer avec Google
+            </button>
+            <button type="button" className="social-btn github" aria-label="Continuer avec GitHub">
+              <FaGithub /> Continuer avec GitHub
+            </button>
           </div>
 
-          <div className="or-divider mb-3" aria-hidden="true"><span>ou</span></div>
+          <div className="or-divider">
+            <span>ou</span>
+          </div>
 
           <form onSubmit={submit} className="fade-in">
-            <div className="mb-3">
+            <div className="mb-4">
               <label htmlFor="register-name" className="form-label">Nom complet</label>
-              <input id="register-name" className={`form-control ${name && name.trim() === '' ? 'is-invalid' : ''}`} value={name} onChange={e=>setName(e.target.value)} placeholder="Votre nom" />
+              <div className="input-with-icon">
+                <FaUser className="input-icon" />
+                <input 
+                  id="register-name" 
+                  className={`form-control ${name && name.trim() === '' ? 'is-invalid' : ''}`} 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  placeholder="Votre nom"
+                />
+              </div>
             </div>
-            <div className="mb-3">
+
+            <div className="mb-4">
               <label htmlFor="register-email" className="form-label">Email</label>
-              <input id="register-email" type="email" className={`form-control ${email && !validateEmail(email) ? 'is-invalid' : ''}`} value={email} onChange={e=>setEmail(e.target.value)} placeholder="votre@email.com" />
+              <div className="input-with-icon">
+                <FaEnvelope className="input-icon" />
+                <input 
+                  id="register-email" 
+                  type="email" 
+                  className={`form-control ${email && !validateEmail(email) ? 'is-invalid' : ''}`} 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  placeholder="votre@email.com"
+                />
+              </div>
               {email && !validateEmail(email) && <div className="error-text">Adresse email invalide</div>}
             </div>
-            <div className="mb-3 position-relative">
+
+            <div className="mb-4">
               <label htmlFor="register-password" className="form-label">Mot de passe</label>
-              <div className="input-with-toggle">
-                <input id="register-password" type={showPassword? 'text':'password'} className="form-control" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mot de passe" />
-                <button type="button" className="btn btn-sm btn-outline-secondary password-toggle" onClick={()=>setShowPassword(s=>!s)}>{showPassword? 'Masquer':'Afficher'}</button>
+              <div className="input-with-icon">
+                <FaLock className="input-icon" />
+                <input 
+                  id="register-password" 
+                  type={showPassword ? 'text' : 'password'} 
+                  className="form-control" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  placeholder="Mot de passe"
+                />
+                <button 
+                  type="button" 
+                  className="password-toggle"
+                  onClick={() => setShowPassword(s => !s)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
-              <div className="small text-muted mt-1">Minimum 6 caractères</div>
+              <div className="form-text">Minimum 6 caractères</div>
             </div>
 
             {error && <div className="alert alert-danger py-2 mb-3 small">{error}</div>}
@@ -80,6 +123,7 @@ const Register = () => {
           <div className="text-center mt-3 small text-muted">Déjà un compte ? <Link to="/login">Se connecter</Link></div>
         </div>
       </div>
+      <ChatWidget />
     </div>
   );
 };

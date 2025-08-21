@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
+import ChatWidget from '../components/common/ChatWidget';
 import FooterPro from '../components/common/FooterPro';
 import { agents } from '../data/fakedata';
 import { FaWhatsapp, FaPhone, FaEnvelope } from 'react-icons/fa';
@@ -14,7 +15,8 @@ const AgentDetails = () => {
     <div>
       <Navbar />
       <div className="container py-5"><div className="alert alert-warning">Agent introuvable</div></div>
-      <FooterPro />
+  <FooterPro />
+  <ChatWidget />
     </div>
   );
 
