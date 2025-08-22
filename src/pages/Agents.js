@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from '../components/common/Navbar';
 import ChatWidget from '../components/common/ChatWidget';
 import AgentList from '../components/agent/AgentList';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 import { agents } from '../data/fakedata';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
 

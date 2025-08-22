@@ -35,7 +35,7 @@ export default function OwnerOnboard(){
   <div className="container owner-hero">
       <div className="row justify-content-center">
         <div className="col-md-10">
-          <div className="card owner-card shadow-sm p-4">
+          <div className="card owner-card shadow-sm p-2">
             <div className="card-body owner-form">
               <div style={{display:'flex', justifyContent:'flex-end', marginBottom:8}}>
                 <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => navigate('/')}>Quitter</button>

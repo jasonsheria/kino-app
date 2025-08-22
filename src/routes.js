@@ -16,6 +16,8 @@ import Appartement from './pages/Appartement';
 import SalleFete from './pages/SalleFete';
 import NotFound from './pages/NotFound';
 import AuthCallback from './pages/AuthCallback';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import OwnerOnboard from './pages/OwnerOnboard';
 import OwnerRequest from './pages/OwnerRequest';
 import OwnerDashboard from './pages/OwnerDashboard';
@@ -46,7 +48,9 @@ import AgencyPay from './pages/AgencyPay';
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
-  <Route path="/voitures" element={<Voitures />} />
+    <Route path="/about" element={<About />} />
+    <Route path="/contact" element={<Contact />} />
+    <Route path="/voitures" element={<Voitures />} />
   <Route path="/terrain" element={<Terrain />} />
   <Route path="/appartement" element={<Appartement />} />
   <Route path="/salle" element={<SalleFete />} />

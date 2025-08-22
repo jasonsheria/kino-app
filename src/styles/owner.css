@@ -197,9 +197,6 @@
     min-height: 160px;
   }
   
-  .card-body.owner-form {
-    padding: 16px !important;
-  }
   
   .door-content {
     padding: 24px 20px;
@@ -271,6 +268,7 @@
   .badge {
     font-size: 0.9rem;
     padding: 8px 12px;
+   color: #00bc9b;
   }
 }
 

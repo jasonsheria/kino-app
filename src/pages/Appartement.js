@@ -6,7 +6,7 @@ import ScrollReveal from '../components/common/ScrollReveal';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import MapView from '../components/property/MapView';
 import { properties } from '../data/fakedata';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 
 const Appartement = () => {
   const [filter, setFilter] = React.useState({});
@@ -32,7 +32,7 @@ const Appartement = () => {
   return (
     <>
       <Navbar />
-      <div className="container" style={{marginTop:"20vh"}}>
+      <div className="container" style={{marginTop:"13vh"}}>
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>

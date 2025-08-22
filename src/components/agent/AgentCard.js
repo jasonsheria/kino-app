@@ -11,47 +11,278 @@ const AgentCard = ({ agent }) => {
   const isCertified = agent.subscription && agent.subscription.toLowerCase() === 'pro';
   const rating = isCertified ? 5 : 4;
   const [showContact, setShowContact] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+
   return (
-    <div className="card shadow-lg border-0 mb-4 agent-card animate__animated animate__fadeInUp" style={{ borderRadius: 22, overflow: 'hidden', background: 'linear-gradient(120deg, #f8f9fa 60%, #e9f7f3 100%)', minHeight: 160 }}>
-      <div className="row g-0 align-items-center" style={{ minHeight: 160 }}>
-        <div className="col-4 d-flex flex-column align-items-center justify-content-center position-relative py-3">
-          <div className="position-relative" style={{ zIndex: 2 }}>
-            <img src={agent.photo} alt={agent.name} className="img-fluid rounded-circle border agent-photo shadow-lg" style={{ width: 82, height: 82, objectFit: 'cover', border: '4px solid #13c296', boxShadow: '0 4px 24px #13c29633' }} />
+    <div 
+      className="agent-card-container"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="agent-card">
+        <div className="agent-photo-section">
+          <div className="agent-photo-wrapper">
+            <img src={agent.photo} alt={agent.name} className="agent-photo" />
             {isCertified && (
-              <FaCheckCircle className="position-absolute bottom-0 end-0 translate-middle text-success bg-white rounded-circle" size={26} style={{ border: '2px solid #fff', boxShadow: '0 1px 4px #0002', right: -6, bottom: -6 }} title="Agent certifié" />
+              <div className="certified-badge">
+                <FaCheckCircle size={24} />
+              </div>
             )}
           </div>
-          <div className="d-flex align-items-center gap-1 mt-2">
-            {[...Array(5)].map((_, i) => i < rating ? <FaStar key={i} className="text-warning" size={15} /> : <FaRegStar key={i} className="text-warning" size={15} />)}
+          <div className="rating-stars">
+            {[...Array(5)].map((_, i) => (
+              <span key={i} className={`star ${i < rating ? 'filled' : ''}`}>
+                {i < rating ? <FaStar /> : <FaRegStar />}
+              </span>
+            ))}
           </div>
         </div>
-        <div className="col-8">
-          <div className="card-body py-2 px-3">
-            <div className="d-flex align-items-center mb-1 gap-2">
-              <h6 className="card-title fw-bold text-success mb-0 d-flex align-items-center gap-2" style={{ fontSize: '1.1rem' }}>
-                {isCertified && <FaUserShield className="text-success" title="Agent certifié" />} {agent.name}
-              </h6>
-              <span className={`badge rounded-pill ${agent.status === 'Actif' ? 'bg-success' : 'bg-secondary'}`}>{agent.status}</span>
+
+        <div className="agent-info-section">
+          <div className="agent-header">
+            <div className="agent-name">
+              {isCertified && <FaUserShield className="certified-icon" title="Agent certifié" />}
+              <h3>{agent.name}</h3>
             </div>
-            <div className="small text-muted mb-2 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> {agent.address}</div>
-            <div className="d-flex align-items-center gap-3 mt-2">
-              <button className="text-decoration-none text-dark d-flex align-items-center justify-content-center btns btn-link p-0" title="Appeler" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, agentName: agent.name } } }))}>
-                <FaPhoneAlt className="text-success" size={20} />
-              </button>
-              <button className="btns btn-link p-0 m-0 text-success d-flex align-items-center justify-content-center" style={{fontSize:20}} title="WhatsApp" onClick={()=>setShowContact(true)}>
-                <FaWhatsapp size={20} />
-              </button>
-              <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none d-flex align-items-center justify-content-center" title="Facebook">
-                <FaFacebook size={20} />
-              </a>
-              <a href={`mailto:${agent.email}`} className="text-decoration-none text-dark d-flex align-items-center justify-content-center" title="Email">
-                <FaEnvelope className="text-success" size={20} />
-              </a>
-              {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-            </div>
+            <span className={`status-badge ${agent.status === 'Actif' ? 'active' : 'inactive'}`}>
+              {agent.status}
+            </span>
+          </div>
+
+          <div className="agent-location">
+            <FaMapMarkerAlt />
+            <span>{agent.address}</span>
+          </div>
+
+          <div className="contact-buttons">
+            <button 
+              className="contact-btn call"
+              onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { 
+                detail: { to: 'support', meta: { agentId: agent.id, agentName: agent.name } } 
+              }))}
+            >
+              <FaPhoneAlt />
+              <span className="btn-label">Appeler</span>
+            </button>
+            <button 
+              className="contact-btn whatsapp"
+              onClick={() => setShowContact(true)}
+            >
+              <FaWhatsapp />
+              <span className="btn-label">WhatsApp</span>
+            </button>
+            <a 
+              href={agent.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="contact-btn facebook"
+            >
+              <FaFacebook />
+              <span className="btn-label">Facebook</span>
+            </a>
+            <a 
+              href={`mailto:${agent.email}`}
+              className="contact-btn email"
+            >
+              <FaEnvelope />
+              <span className="btn-label">Email</span>
+            </a>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .agent-card-container {
+          perspective: 1000px;
+          margin-bottom: 1.5rem;
+        }
+
+        .agent-card {
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+          display: flex;
+          padding: 1.5rem;
+          gap: 1.5rem;
+          transition: all 0.3s ease;
+          border: 1px solid rgba(19, 194, 150, 0.1);
+        }
+
+        .agent-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 40px rgba(19, 194, 150, 0.15);
+          border-color: rgba(19, 194, 150, 0.3);
+        }
+
+        .agent-photo-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .agent-photo-wrapper {
+          position: relative;
+          width: 100px;
+          height: 100px;
+        }
+
+        .agent-photo {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 4px solid #13c296;
+          box-shadow: 0 5px 15px rgba(19, 194, 150, 0.2);
+          transition: transform 0.3s ease;
+        }
+
+        .agent-card:hover .agent-photo {
+          transform: scale(1.05);
+        }
+
+        .certified-badge {
+          position: absolute;
+          bottom: -5px;
+          right: -5px;
+          background: white;
+          border-radius: 50%;
+          padding: 3px;
+          border: 2px solid #13c296;
+          color: #13c296;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .rating-stars {
+          display: flex;
+          gap: 2px;
+        }
+
+        .star {
+          color: #ffc107;
+          transition: transform 0.2s ease;
+        }
+
+        .star.filled {
+          transform: ${isHovered ? 'scale(1.2)' : 'scale(1)'};
+        }
+
+        .agent-info-section {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .agent-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .agent-name {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .agent-name h3 {
+          margin: 0;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: #2d3748;
+        }
+
+        .certified-icon {
+          color: #13c296;
+          font-size: 1.2rem;
+        }
+
+        .status-badge {
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+
+        .status-badge.active {
+          background: rgba(19, 194, 150, 0.1);
+          color: #13c296;
+        }
+
+        .status-badge.inactive {
+          background: rgba(160, 174, 192, 0.1);
+          color: #a0aec0;
+        }
+
+        .agent-location {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #718096;
+          font-size: 0.9rem;
+        }
+
+        .contact-buttons {
+          display: flex;
+          gap: 1rem;
+          margin-top: 0.5rem;
+        }
+
+        .contact-btn {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          color: #4a5568;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          font-size: 0.9rem;
+        }
+
+        .contact-btn:hover {
+          transform: translateY(-2px);
+          background: rgba(19, 194, 150, 0.1);
+          color: #13c296;
+        }
+
+        .btn-label {
+          display: none;
+        }
+
+        .contact-btn:hover .btn-label {
+          display: inline;
+        }
+
+        @media (max-width: 768px) {
+          .agent-card {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+          }
+
+          .agent-header {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
+          .contact-buttons {
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+
+          .agent-location {
+            justify-content: center;
+          }
+        }
+      `}</style>
+
+      {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
     </div>
   );
 };

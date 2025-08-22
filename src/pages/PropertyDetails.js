@@ -9,7 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../pages/HomeSection.css';
 import ChatWidget from '../components/common/ChatWidget';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '' }) {

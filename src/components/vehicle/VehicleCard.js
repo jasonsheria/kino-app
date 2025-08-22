@@ -25,8 +25,8 @@ const VehicleCard = ({ vehicle }) => {
         />
         {vehicle.images.length > 1 && (
           <>
-            <button className="btn btn-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" style={{zIndex:2}} onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
-            <button className="btn btn-light position-absolute top-50 end-0 translate-middle-y me-2 shadow" style={{zIndex:2}} onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
+            <button className="btns btn-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" style={{zIndex:2}} onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
+            <button className="btns btn-light position-absolute top-50 end-0 translate-middle-y me-2 shadow" style={{zIndex:2}} onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
           </>
         )}
         <span className="badge bg-success position-absolute top-0 end-0 m-2 fs-6 shadow">{vehicle.type}</span>

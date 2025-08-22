@@ -6,7 +6,7 @@ import MapView from '../components/property/MapView';
 import { vehicles } from '../data/fakedataVehicles';
 import '../pages/HomeSection.css';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 
 const Voitures = () => {
   const [filter, setFilter] = React.useState({});
@@ -19,7 +19,7 @@ const Voitures = () => {
   return (
     <>
       <Navbar />
-      <div className="container py-5">
+      <div className="container py-5"  style={{marginTop:"5vh"}}>
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="subpage-header scroll-reveal">

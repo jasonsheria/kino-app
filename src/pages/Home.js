@@ -1,13 +1,13 @@
 import React from 'react';
 import ChatWidget from '../components/common/ChatWidget';
 import { useTheme } from '@mui/material/styles';
-import { FaUserTie, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar } from 'react-icons/fa';
+import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import MapView from '../components/property/MapView';
 import FooterPro from '../components/common/Footer';
 import LandingCarousel from '../components/property/LandingCarousel';
-import Button from '../components/common/Button';
+import Buttons from '../components/common/Button';
 import { properties, agents } from '../data/fakedata';
 import { vehicles } from '../data/fakedataVehicles';
 import recService from '../services/recommendationService';
@@ -21,7 +21,7 @@ import AgentCard from '../components/agent/AgentCard';
 import ScrollReveal from '../components/common/ScrollReveal';
 import AgentContactModal from '../components/common/Messenger';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery } from '@mui/material';
 // --- PKCE helpers (browser) ---
 async function sha256(plain) {
     const encoder = new TextEncoder();
@@ -220,8 +220,81 @@ const Home = () => {
         setShowGooglePrompt(false);
     };
 
-    // Filtres intelligents
-    const commercialTypes = ["Place commerciale", "Terrain vide", "Boutique", "Magasin"];
+    // Configuration des catégories et filtres
+    const propertyConfig = React.useMemo(() => ({
+        categories: {
+            Tous: {
+                label: 'Tous les biens',
+                filter: () => true
+            },
+            Résidentiel: {
+                label: 'Biens résidentiels',
+                types: ["Appartement", "Villa", "Maison", "Studio", "Penthouse"],
+                filter: (p) => ["Appartement", "Villa", "Maison", "Studio", "Penthouse"].includes(p.type)
+            },
+            Commerciaux: {
+                label: 'Espaces commerciaux',
+                types: ["Place commerciale", "Boutique", "Magasin"],
+                filter: (p) => ["Place commerciale", "Boutique", "Magasin"].includes(p.type)
+            },
+            Terrains: {
+                label: 'Terrains',
+                types: ["Terrain", "Terrain vide"],
+                filter: (p) => ["Terrain", "Terrain vide"].includes(p.type)
+            },
+            'Salles de fêtes': {
+                label: 'Salles de fêtes',
+                types: ["Salle de fête"],
+                filter: (p) => p.type === "Salle de fête"
+            },
+            Locations: {
+                label: 'En location',
+                filter: (p) => p.status === 'location'
+            }
+        }
+    }), []);
+
+    // État local pour les résultats filtrés
+    const [filteredResults, setFilteredResults] = React.useState(properties);
+    
+    // Comptage des biens par catégorie
+    const categoryCounts = React.useMemo(() => {
+        const counts = {};
+        Object.entries(propertyConfig.categories).forEach(([key, category]) => {
+            counts[key] = properties.filter(category.filter).length;
+        });
+        return counts;
+    }, [properties, propertyConfig]);
+
+    // Fonction de filtrage principale
+    const applyFilters = React.useCallback((props, activeFilter, activeCommune) => {
+        let results = [...props];
+        
+        // Appliquer le filtre de catégorie
+        if (activeFilter !== 'Tous') {
+            const categoryFilter = propertyConfig.categories[activeFilter]?.filter;
+            if (categoryFilter) {
+                results = results.filter(categoryFilter);
+            }
+        }
+        
+        // Appliquer le filtre de commune
+        if (activeCommune !== 'Toutes') {
+            results = results.filter(p => {
+                const parts = p.address.split(',').map(s => s.trim());
+                return parts.some(part => part === activeCommune);
+            });
+        }
+        
+        return results;
+    }, [propertyConfig]);
+
+    // Effet pour mettre à jour les résultats filtrés
+    React.useEffect(() => {
+        const results = applyFilters(properties, filter, commune);
+        setFilteredResults(results);
+    }, [properties, filter, commune, applyFilters]);
+
     // Extraire la liste unique des communes à partir des adresses
     const communes = React.useMemo(() => {
         const all = properties.map(p => {
@@ -233,20 +306,8 @@ const Home = () => {
         return Array.from(new Set(all));
     }, [properties]);
 
-    let filteredProperties =
-        filter === 'Tous'
-            ? properties
-            : filter === 'Commerciaux'
-                ? properties.filter(p => commercialTypes.includes(p.type))
-                : filter === 'Terrains'
-                    ? properties.filter(p => p.type.toLowerCase().includes('terrain'))
-                    : filter === 'Salles de fêtes'
-                        ? properties.filter(p => p.type.toLowerCase().includes('salle'))
-                        : properties.filter(p => !commercialTypes.includes(p.type) && !p.type.toLowerCase().includes('terrain') && !p.type.toLowerCase().includes('salle'));
-
-    if (commune !== 'Toutes') {
-        filteredProperties = filteredProperties.filter(p => p.address.includes(commune));
-    }
+    // Cette section n'est plus nécessaire car nous utilisons maintenant filteredResults
+    // qui est géré par useEffect et applyFilters
 
     // Compact testimonials slider (3 visibles, texte réduit)
     const testimonials = React.useMemo(() => ([
@@ -388,8 +449,25 @@ const Home = () => {
                                 <span>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
                             </p>
                             <div className='align-items-center justify-content-center' style={{ display: "flex" }}>
-                                <Button onClick={() => scrollToId('biens')} color="success" variant="contained" sx={{ fontWeight: 800, boxShadow: '0 6px 20px rgba(19,194,150,0.12)' }}>Voir les biens</Button>
-
+                                <Button
+                                    onClick={() => scrollToId('biens')}
+                                    variant="contained"
+                                    startIcon={<FaHome />}
+                                    sx={{
+                                        bgcolor: '#13c296',
+                                        color: 'white',
+                                        alignSelf: 'flex-start',
+                                        textTransform: 'none',
+                                        px: 3,
+                                        '&:hover': {
+                                            bgcolor: '#10a37f',
+                                            transform: 'translateY(-2px)',
+                                            transition: 'all 0.2s'
+                                        }
+                                    }}
+                                >
+                                    Voir les biens
+                                </Button>
                             </div>
 
                         </div>
@@ -414,10 +492,10 @@ const Home = () => {
                     </div>
                     <div className="d-flex gap-2 mt-3 mt-md-0">
                         <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                            <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'>Je suis une agence</Button>
+                           <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'> Agence</Button>
                         </Link>
                         <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                            <Button color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Je suis propriétaire</Button>
+                           <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Propriétaire</Button>
                         </Link>
                     </div>
                     <div className="d-none d-md-block">
@@ -441,16 +519,16 @@ const Home = () => {
                         <h3 className="fw-bold text-success mb-3 d-flex align-items-center gap-2 animate__animated animate__pulse animate__delay-1s">
                             <FaBuilding className="me-2" /> Ndaku Agence Immobilière
                         </h3>
-                        <p className="mb-2" style={{ color: theme.palette.text.primary }}>Votre <span className="text-success fw-semibold">partenaire de confiance</span> pour l’achat, la vente et la location de biens immobiliers à Kinshasa et ses environs. Notre équipe expérimentée vous accompagne à chaque étape de votre projet, avec <span className="fw-semibold">professionnalisme</span>, <span className="fw-semibold">écoute</span> et <span className="fw-semibold">transparence</span>.</p>
-                        <p className="mb-2" style={{ color: theme.palette.text.secondary }}>Tosali mpo na yo : kobongisa, koteka, to kozwa ndako na confiance. Biso tozali awa pona kosalisa yo na biloko nyonso ya ndaku.</p>
+                        <p className="mb-2" >Votre <span >partenaire de confiance</span> pour l’achat, la vente et la location de biens immobiliers à Kinshasa et ses environs. Notre équipe expérimentée vous accompagne à chaque étape de votre projet, avec <span >professionnalisme</span>, <span >écoute</span> et <span >transparence</span>.</p>
+                        <p className="mb-2" >Tosali mpo na yo : kobongisa, koteka, to kozwa ndako na confiance. Biso tozali awa pona kosalisa yo na biloko nyonso ya ndaku.</p>
                         <ul className="list-unstyled mb-3">
                             <li className="mb-2 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> <strong>Adresse :</strong> 10 Avenue du Commerce, Gombe, Kinshasa</li>
                             <li className="mb-2 d-flex align-items-center gap-2"><FaPhoneAlt className="text-success" /> <strong>Téléphone :</strong> +243 900 000 000</li>
                             <li className="mb-2 d-flex align-items-center gap-2"><FaEnvelope className="text-success" /> <strong>Email :</strong> contact@ndaku.cd</li>
                         </ul>
-                        <div className="d-flex gap-2 mt-3">
-                            <Button onClick={() => scrollToId('biens')} color="success" className="animate__animated animate__pulse animate__infinite">Découvrir nos biens</Button>
-                            <Button onClick={() => scrollToId('agents')} variant="outlined" color="success">Rencontrer nos agents</Button>
+                        <div className="d-flex gap-2 mt-4">
+                           <Button onClick={() => scrollToId('biens')} variant="outlined" color="success" className="animate__animated animate__pulse animate__infinite">Découvrir nos biens</Button>
+                           <Button onClick={() => scrollToId('agents')} variant="outlined" color="success">Rencontrer nos agents</Button>
                         </div>
                     </div>
                 </div>
@@ -465,39 +543,261 @@ const Home = () => {
                 </div>
                 <p className="text-center text-muted mb-4 ">Appartements, maisons, terrains, boutiques, magasins : trouvez le bien qui vous correspond vraiment.<br /><span className="text-success">Tala ndako, lopango, biloko nyonso ya sika na Kinshasa !</span></p>
                 {/* Filtres intelligents */}
-                <div className="d-flex flex-wrap justify-content-center mb-4 gap-2 align-items-center">
-                    {['Tous', 'Résidentiel', 'Commerciaux', 'Terrains', 'Salles de fêtes'].map((cat) => (
-                        <button
-                            key={cat}
-                            className={`btn fw-bold px-3 rounded-pill ${cat === filter ? 'btn-success' : 'btn-outline-success'}`}
-                            style={{ minWidth: 120 }}
-                            onClick={() => setFilter(cat)}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                    <select
-                        className="form-select ms-2"
-                        style={{ maxWidth: 220, minWidth: 140, fontWeight: 'bold' }}
-                        value={commune}
-                        onChange={e => setCommune(e.target.value)}
-                    >
-                        <option value="Toutes">Toutes les communes</option>
-                        {communes.map(c => (
-                            <option key={c} value={c}>{c}</option>
+                <div className="filter-cards-container mb-4">
+                    <div className="row g-3 justify-content-center">
+                        {[
+                            { name: 'Tous', icon: <FaHome size={24} /> },
+                            { name: 'Résidentiel', icon: <FaHouseUser size={24} /> },
+                            { name: 'Commerciaux', icon: <FaStore size={24} /> },
+                            { name: 'Terrains', icon: <FaTree size={24} /> },
+                            { name: 'Salles de fêtes', icon: <FaGlassCheers size={24} /> },
+                            { name: 'Locations', icon: <FaKey size={24} /> }
+                        ].map((cat) => (
+                            <div className="col-6 col-md-4 col-lg-2" key={cat.name}>
+                                <Button
+                                    className="filter-card-button"
+                                    variant={cat.name === filter ? 'contained' : 'outlined'}
+                                    color={cat.name === filter ? 'primary' : 'secondary'}
+                                    onClick={() => setFilter(cat.name)}
+                                    fullWidth
+                                    sx={{
+                                        height: '100%',
+                                        p: 2,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        borderRadius: 2,
+                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        transform: cat.name === filter ? 'translateY(-4px)' : 'none',
+                                        '&:hover': {
+                                            transform: 'translateY(-4px)',
+                                            bgcolor: cat.name === filter ? '#13c296' : 'rgba(19, 194, 150, 0.08)'
+                                        }
+                                    }}
+                                >
+                                    <div className={`icon-wrapper ${cat.name === filter ? 'active' : ''}`}>
+                                        {cat.icon}
+                                    </div>
+                                    <div className="filter-card-title">{cat.name}</div>
+                                    <div className="filter-card-count">{categoryCounts[cat.name]} biens</div>
+                                </Button>
+                            </div>  
                         ))}
-                    </select>
+                    </div>
+                    
+                    {/* Debug info - à supprimer en production */}
+                    <div className="filter-stats-container mt-4 mb-3">
+                        <div className="filter-stats-grid">
+                            <div className="filter-stat-card">
+                                <div className="stat-icon">
+                                    <FaFilter className="text-success" />
+                                </div>
+                                <div className="stat-info">
+                                    <div className="stat-label">Filtre actif</div>
+                                    <div className="stat-value">{filter}</div>
+                                </div>
+                            </div>
+                            <div className="filter-stat-card">
+                                <div className="stat-icon">
+                                    <FaMapMarkerAlt className="text-success" />
+                                </div>
+                                <div className="stat-info">
+                                    <div className="stat-label">Commune</div>
+                                    <div className="stat-value">{commune}</div>
+                                </div>
+                            </div>
+                            <div className="filter-stat-card">
+                                <div className="stat-icon">
+                                    <FaListUl className="text-success" />
+                                </div>
+                                <div className="stat-info">
+                                    <div className="stat-label">Résultats</div>
+                                    <div className="stat-value">{filteredResults.length}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <style jsx>{`
+                            .filter-stats-container {
+                                background: linear-gradient(to right, rgba(19, 194, 150, 0.03), rgba(19, 194, 150, 0.01));
+                                padding: 1.5rem;
+                                border-radius: 16px;
+                                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+                            }
+                            .filter-stats-grid {
+                                display: grid;
+                                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                                gap: 1rem;
+                                justify-content: center;
+                            }
+                            .filter-stat-card {
+                                display: flex;
+                                align-items: center;
+                                gap: 1rem;
+                                padding: 1rem;
+                                background: white;
+                                border-radius: 12px;
+                                box-shadow: 0 2px 8px rgba(19, 194, 150, 0.08);
+                                transition: all 0.2s ease;
+                            }
+                            .filter-stat-card:hover {
+                                transform: translateY(-2px);
+                                box-shadow: 0 4px 12px rgba(19, 194, 150, 0.12);
+                            }
+                            .stat-icon {
+                                width: 40px;
+                                height: 40px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                background: rgba(19, 194, 150, 0.1);
+                                border-radius: 10px;
+                                font-size: 1.2rem;
+                            }
+                            .stat-info {
+                                flex: 1;
+                            }
+                            .stat-label {
+                                font-size: 0.85rem;
+                                color: #64748b;
+                                margin-bottom: 0.2rem;
+                            }
+                            .stat-value {
+                                font-weight: 600;
+                                color: #1e293b;
+                                font-size: 1.1rem;
+                            }
+                        `}</style>
+                    </div>
+                    <div className="commune-filter-container mt-4 mb-2">
+                        <div className="text-center mb-3">
+                            <span className="filter-section-title">
+                                <FaMapMarkerAlt className="text-success me-2" size={20} />
+                                Filtrer par commune
+                            </span>
+                        </div>
+                        <div className="d-flex justify-content-center">
+                            <div className="position-relative commune-select-wrapper">
+                                <select
+                                    className="form-select custom-select-pro"
+                                    value={commune}
+                                    onChange={e => setCommune(e.target.value)}
+                                >
+                                    <option value="Toutes">Toutes les communes</option>
+                                    {communes.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
+                                <div className="select-icon">
+                                    <FaMapMarkerAlt className="text-success" size={16} />
+                                </div>
+                            </div>
+                        </div>
+                        <style jsx>{`
+                            .commune-filter-container {
+                                background: linear-gradient(to right, rgba(19, 194, 150, 0.05), rgba(19, 194, 150, 0.02));
+                                padding: 1.5rem;
+                                border-radius: 16px;
+                            }
+                            .filter-section-title {
+                                font-weight: 600;
+                                font-size: 1.1rem;
+                                color: #1e293b;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            }
+                            .commune-select-wrapper {
+                                position: relative;
+                                width: 100%;
+                                max-width: 320px;
+                            }
+                            .custom-select-pro {
+                                width: 100%;
+                                padding: 12px 40px 12px 16px;
+                                font-weight: 500;
+                                font-size: 0.95rem;
+                                color: #0f172a;
+                                background-color: white;
+                                border: 2px solid #e2e8f0;
+                                border-radius: 12px;
+                                appearance: none;
+                                transition: all 0.2s ease;
+                                cursor: pointer;
+                                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                            }
+                            .custom-select-pro:hover {
+                                border-color: #13c296;
+                                box-shadow: 0 2px 12px rgba(19, 194, 150, 0.1);
+                            }
+                            .custom-select-pro:focus {
+                                outline: none;
+                                border-color: #13c296;
+                                box-shadow: 0 0 0 3px rgba(19, 194, 150, 0.1);
+                            }
+                            .select-icon {
+                                position: absolute;
+                                right: 12px;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                pointer-events: none;
+                            }
+                        `}</style>
+                    </div>
                 </div>
+
+                <style jsx>{`
+                    .filter-cards-container {
+                        margin-top: 1rem;
+                    }
+                    .filter-card-button {
+                        background: white;
+                    }
+                    .icon-wrapper {
+                        width: 48px;
+                        height: 48px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 12px;
+                        background: rgba(19, 194, 150, 0.1);
+                        color: #13c296;
+                        transition: all 0.3s ease;
+                    }
+                    .icon-wrapper.active {
+                        background: #13c296;
+                        color: white;
+                    }
+                    .filter-card-title {
+                        font-weight: 600;
+                        font-size: 0.95rem;
+                        margin-top: 0.5rem;
+                        text-align: center;
+                    }
+                    .filter-card-count {
+                        font-size: 0.85rem;
+                        color: #64748b;
+                    }
+                    .custom-select:focus {
+                        border-color: #13c296;
+                        box-shadow: 0 0 0 2px rgba(19, 194, 150, 0.2);
+                    }
+                `}</style>
                 <div className="row justify-content-center">
-                    {(recommendedProperties && recommendedProperties.length ? recommendedProperties.slice(0, 6) : filteredProperties.slice(0, 6)).map((property, idx) => (
+                    {filteredResults.slice(0, 6).map((property, idx) => (
                         <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
                             <PropertyCard property={property} />
                         </ScrollReveal>
                     ))}
+                    {filteredResults.length === 0 && (
+                        <div className="col-12 text-center py-4">
+                            <p className="text-muted">Aucun bien ne correspond aux critères sélectionnés.</p>
+                        </div>
+                    )}
                 </div>
                 <div className="d-flex justify-content-center mt-3">
                     <Link to="/appartement" style={{ textDecoration: 'none' }}>
-                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
+                       <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
                     </Link>
                 </div>
                 {/* Publicité pour appartements/bureaux récemment construits */}
@@ -510,9 +810,9 @@ const Home = () => {
                             <div className="col">
                                 <h5 className="card-title fw-bold text-primary mb-1">Nouveaux appartements & bureaux en ville</h5>
                                 <p className="mb-1 text-muted">Promotion exclusive: appartements neufs et espaces de bureaux disponibles en pré-lancement au centre-ville — réservations ouvertes.</p>
-                                <div className="d-flex gap-2">
-                                    <Link to="/appartement" className="btn btn-success btn-sm">Voir les appartements</Link>
-                                    <Link to="/commercials" className="btn btn-outline-secondary btn-sm">Voir les bureaux</Link>
+                                <div className="d-flex gap-2 mt-2">
+                                    <Link to="/appartement" className="btn btn-success btn-sm"> Appartements </Link>
+                                    <Link to="/commercials" className="btn btn-outline-secondary btn-sm"> Bureaux </Link>
                                 </div>
                             </div>
                         </div>
@@ -530,7 +830,7 @@ const Home = () => {
                 <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0, 6) : vehicles.slice(0, 6))} />
                 <div className="d-flex justify-content-center mt-3">
                     <Link to="/voitures" style={{ textDecoration: 'none' }}>
-                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
+                       <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
                     </Link>
                 </div>
 
@@ -541,9 +841,52 @@ const Home = () => {
                         <div className="flex-grow-1">
                             <h5 className="fw-bold mb-1">Promotion constructeur: Toyota RAV4</h5>
                             <p className="mb-1 text-muted">Offre spéciale concession — facilités de financement et garanties incluses. Découvrez le nouveau RAV4 aujourd'hui.</p>
-                            <div className="d-flex gap-2">
-                                <Link to="/voitures" className="btn btn-primary btn-sm">Voir l'offre</Link>
-                                <a href="#contact" className="btn btn-outline-secondary btn-sm">Contactez le concessionnaire</a>
+                            <div className="d-flex gap-3 mt-3">
+                                <Link to="/voitures" style={{ textDecoration: 'none' }}>
+                                    <Button
+                                        variant="contained"
+                                        sx={{
+                                            bgcolor: '#13c296',
+                                            color: 'white',
+                                            '&:hover': {
+                                                bgcolor: '#0ea67e',
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: '0 4px 12px rgba(19, 194, 150, 0.2)'
+                                            },
+                                            transition: 'all 0.2s ease',
+                                            borderRadius: '12px',
+                                            padding: '8px 20px',
+                                            fontSize: '0.95rem',
+                                            fontWeight: 600,
+                                            textTransform: 'none'
+                                        }}
+                                    >
+                                        Voir l'offre
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="outlined"
+                                    component="a"
+                                    href="#contact"
+                                    sx={{
+                                        borderColor: '#9ca3af',
+                                        color: '#4b5563',
+                                        '&:hover': {
+                                            borderColor: '#6b7280',
+                                            backgroundColor: 'rgba(107, 114, 128, 0.04)',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+                                        },
+                                        transition: 'all 0.2s ease',
+                                        borderRadius: '12px',
+                                        padding: '8px 20px',
+                                        fontSize: '0.95rem',
+                                        fontWeight: 600,
+                                        textTransform: 'none'
+                                    }}
+                                >
+                                    Contacter le concessionnaire
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -555,15 +898,15 @@ const Home = () => {
                 <div className="container">
                     <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
                         <span className="icon-circle bg-success text-white me-3"><FaUserFriends size={28} /></span>
-                        <span className="fw-bold" style={{ fontSize: '2.2rem', color: theme.palette.text.primary, letterSpacing: '-1px' }}>Rencontrez nos agents experts et certifiés à Kinshasa</span>
+                        <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
-                    <p className="text-center text-muted mb-5 fs-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span className="text-success">Bato ya ndaku oyo bazali na motema!</span></p>
+                    <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
                     <div className="row justify-content-center">
                         {agents.slice(0, 6).map(agent => (
                             <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
                                 {/* wrapper cliquable pour ouvrir la messagerie */}
                                 <div
-                                    role="button"
+                                    role="Buttons"
                                     tabIndex={0}
                                     onClick={() => openContact(agent)}
                                     onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
@@ -576,7 +919,7 @@ const Home = () => {
                     </div>
                     <div className="d-flex justify-content-center mt-3">
                         <Link to="/agents" style={{ textDecoration: 'none' }}>
-                            <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
+                           <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
                         </Link>
                     </div>
                 </div>
@@ -589,10 +932,10 @@ const Home = () => {
             {/* Témoignages utilisateurs — compact, 3 visibles, navigation */}
             <section className="container py-4" aria-label="Avis utilisateurs">
                 <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h3 className="fw-bold mb-0" style={{ fontSize: '1.4rem' }}>Avis de nos utilisateurs</h3>
+                    <h3 className="fw-bold mb-0" style={{ fontSize: '1.4rem' }}>Avis des utilisateurs</h3>
                     <div>
-                        <button className="btn btn-sm btn-outline-secondary me-2" onClick={prevTestimonials} aria-label="Précédent">‹</button>
-                        <button className="btn btn-sm btn-outline-secondary" onClick={nextTestimonials} aria-label="Suivant">›</button>
+                       <Button className="btns btn-sm btn-outline-secondary me-2" onClick={prevTestimonials} aria-label="Précédent">‹</Button>
+                       <Button className="btns btn-sm btn-outline-secondary" onClick={nextTestimonials} aria-label="Suivant">›</Button>
                     </div>
                 </div>
                 <div className="row g-3">
@@ -645,17 +988,68 @@ const Home = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                            <button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promo.id)}>
-                                                👍 {promo.likes} J'aime
-                                            </button>
-                                            <small className="text-muted">{promo.comments.length} commentaires</small>
+                                        <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => toggleLikePromo(promo.id)}
+                                                sx={{
+                                                    borderColor: '#d7263d',
+                                                    color: '#d7263d',
+                                                    '&:hover': {
+                                                        borderColor: '#d7263d',
+                                                        backgroundColor: 'rgba(215, 38, 61, 0.04)',
+                                                        transform: 'translateY(-2px)',
+                                                        boxShadow: '0 4px 12px rgba(215, 38, 61, 0.15)'
+                                                    },
+                                                    transition: 'all 0.2s ease',
+                                                    borderRadius: '12px',
+                                                    padding: '8px 16px',
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: 600,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.2rem' }}>👍</span>
+                                                <span>{promo.likes} J'aime</span>
+                                            </Button>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <span className="badge" style={{
+                                                    backgroundColor: 'rgba(75, 85, 99, 0.1)',
+                                                    color: '#4b5563',
+                                                    padding: '8px 12px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 500
+                                                }}>
+                                                    {promo.comments.length} commentaires
+                                                </span>
+                                            </div>
                                         </div>
-                                        <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
-                                            {promo.comments.map(c => (
-                                                <li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>
-                                            ))}
-                                        </ul>
+                                        <div className="comments-section" style={{
+                                            maxHeight: '180px',
+                                            overflowY: 'auto',
+                                            borderRadius: '12px',
+                                            background: 'rgba(249, 250, 251, 0.8)',
+                                            padding: '12px',
+                                            marginBottom: '16px'
+                                        }}>
+                                            <ul className="list-unstyled mb-2">
+                                                {promo.comments.map(c => (
+                                                    <li key={c.id} className="comment-item" style={{
+                                                        padding: '8px 12px',
+                                                        marginBottom: '8px',
+                                                        borderRadius: '8px',
+                                                        background: 'white',
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                                    }}>
+                                                        <strong style={{ color: '#374151' }}>{c.author}:</strong>
+                                                        <span style={{ color: '#6b7280', marginLeft: '8px' }}>{c.text}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                         <CommentInput onAdd={(author, text) => addCommentPromo(promo.id, author || 'Anonyme', text)} />
                                     </div>
                                 </div>
@@ -700,11 +1094,11 @@ const Home = () => {
                                         </div>
                                         <div>
                                             <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                                <button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promoKey)}>
+                                               <Button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promoKey)}>
                                                     👍 {likes} J'aime
-                                                </button>
+                                               </Button>
                                                 <small className="text-muted">{comments.length} commentaires</small>
-                                                <button className="btn btn-sm btn-outline-secondary" onClick={() => {
+                                               <Button className="btn btn-sm btn-outline-secondary" onClick={() => {
                                                     const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
                                                     if (navigator.share) {
                                                         navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => { });
@@ -720,8 +1114,8 @@ const Home = () => {
                                                         setInfoMsg('Partage non disponible sur ce navigateur');
                                                         setInfoOpen(true);
                                                     }
-                                                }}>Partager</button>
-                                                <button className="btn btn-sm btn-success" onClick={() => handleVisitOrView(p, i)}>Voir</button>
+                                                }}>Partager</Button>
+                                               <Button className="btn btn-sm btn-success" onClick={() => handleVisitOrView(p, i)}>Voir</Button>
                                             </div>
                                             <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
                                                 {comments.map(c => (
@@ -731,7 +1125,7 @@ const Home = () => {
                                             <CommentInput onAdd={(author, text) => addCommentPromo(promoKey, author || 'Anonyme', text)} />
                                             {comments.length > 0 && (
                                                 <div className="mt-2">
-                                                    <button className="btn btn-link p-0 small" onClick={() => toggleCommentsOpen(promoKey)}>{commentsOpen[promoKey] ? 'Masquer les commentaires' : `Voir ${comments.length} commentaires`}</button>
+                                                   <Button className="btn btn-link p-0 small" onClick={() => toggleCommentsOpen(promoKey)}>{commentsOpen[promoKey] ? 'Masquer les commentaires' : `Voir ${comments.length} commentaires`}</Button>
                                                     {commentsOpen[promoKey] && (
                                                         <ul className="list-unstyled mt-2 mb-0 small" style={{ maxHeight: 160, overflowY: 'auto' }}>
                                                             {comments.map(c => (<li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>))}
@@ -751,9 +1145,9 @@ const Home = () => {
                         <div className="col-12 text-muted">Aucune offre en promotion pour le moment.</div>
                     )}
                 </div>
-                {/* centralized load more button */}
+                {/* centralized load more Buttons */}
                 <div className="d-flex justify-content-center mt-3">
-                    <button className="btn btn-lg btn-success fw-bold" onClick={() => {
+                   <Button className="btn btn-lg btn-success fw-bold" onClick={() => {
                         setPromotions(prev => {
                             const already = prev.__shownCount || prev.length || 0;
                             const next = promoData.slice(already, already + 10).map(item => {
@@ -769,7 +1163,7 @@ const Home = () => {
                             newList.__shownCount = already + next.length;
                             return newList;
                         });
-                    }}>Voir plus d'offre</button>
+                    }}>Voir plus d'offre</Button>
                 </div>
             </section>
 
@@ -792,7 +1186,7 @@ const Home = () => {
                 <div className="container">
                     <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
                     <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-                    <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
+                   <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
             </div >
 
@@ -828,11 +1222,11 @@ const Home = () => {
                         <div style={{ textAlign: 'center', color: '#0a223a', fontSize: '1.05rem', marginBottom: 18, maxWidth: 320 }}>
                             Connectez-vous avec Google pour un accès facilité et sécurisé à toutes les fonctionnalités Ndaku.
                         </div>
-                        <button className="btn ndaku-btn" style={{ minWidth: 180, marginBottom: 8 }} onClick={acceptGoogleSign}>
+                       <Button className="btn ndaku-btn" style={{ minWidth: 180, marginBottom: 8 }} onClick={acceptGoogleSign}>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{ width: 22, height: 22, marginRight: 8, verticalAlign: 'middle', borderRadius: 4 }} />
                             Se connecter avec Google
-                        </button>
-                        <button className="btn btn-outline-secondary" style={{ minWidth: 120 }} onClick={dismissGooglePrompt}>Plus tard</button>
+                       </Button>
+                       <Button className="btn btn-outline-secondary" style={{ minWidth: 120 }} onClick={dismissGooglePrompt}>Plus tard</Button>
                     </div>
                 )
             }
@@ -869,7 +1263,7 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
         <div className="d-flex gap-2 align-items-center mb-2">
             {replyingTo && (
                 <span className="badge bg-info text-dark me-2">Réponse à {replyingTo.author}
-                    <button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</button>
+                   <Button type="Buttons" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</Button>
                 </span>
             )}
             <input
@@ -884,7 +1278,7 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
                     }
                 }}
             />
-            <button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</button>
+           <Button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</Button>
         </div>
     );
 }

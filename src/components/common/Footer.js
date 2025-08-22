@@ -1,8 +1,9 @@
 import React from 'react';
-import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery, Link } from '@mui/material';
 import { FaFacebook, FaTwitter, FaInstagram, FaPhone, FaEnvelope, FaMapMarkerAlt, 
          FaHome, FaUserFriends, FaHandshake, FaComments, FaWhatsapp } from 'react-icons/fa';
 import { useTheme } from '@mui/material/styles';
+import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery, Link } from '@mui/material';
+
 
 const Footer = () => {
   const theme = useTheme();

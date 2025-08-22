@@ -94,9 +94,9 @@ const Navbar = () => {
             Accueil
           </Link>
           
-          <a href="#apropos" className="kn-menu-link">
+          <Link to="/about" className="kn-menu-link">
             À propos
-          </a>
+          </Link>
 
           <div className="kn-dropdown">
             <button
@@ -130,9 +130,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          <a href="#contact" className="kn-menu-link">
+          <Link to="/contact" className="kn-menu-link">
             Contact
-          </a>
+          </Link>
         </div>
 
         {/* Boutons d'action */}
@@ -197,13 +197,13 @@ const Navbar = () => {
             >
               Accueil
             </Link>
-            <a
-              href="#apropos"
+            <Link
+              to="/about"
               className="kn-drawer-link"
               onClick={() => setIsDrawerOpen(false)}
             >
               À propos
-            </a>
+            </Link>
             <Link
               to="/voitures"
               className={`kn-drawer-link ${location.pathname === '/voitures' ? 'active' : ''}`}
@@ -232,13 +232,13 @@ const Navbar = () => {
             >
               <FaGlassCheers /> Salle de fête
             </Link>
-            <a
-              href="#contact"
+            <Link
+              to="/contact"
               className="kn-drawer-link"
               onClick={() => setIsDrawerOpen(false)}
             >
               Contact
-            </a>
+            </Link>
             <div className="kn-cta-group" style={{ margin: '16px 0' , flexDirection : "column"}}>
               <Link
                 to="/owner/onboard"

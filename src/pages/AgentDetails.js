@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import ChatWidget from '../components/common/ChatWidget';
-import FooterPro from '../components/common/FooterPro';
+import FooterPro from '../components/common/Footer';
 import { agents } from '../data/fakedata';
 import { FaWhatsapp, FaPhone, FaEnvelope } from 'react-icons/fa';
 
