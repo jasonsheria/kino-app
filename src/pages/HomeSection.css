@@ -253,7 +253,6 @@ html, body {
 
     .hero-title {
       order: 1;
-      font-size: clamp(1.7rem, 6vw, 2.2rem);
       margin-bottom: 1.2rem;
       line-height: 1.18;
       background: linear-gradient(90deg, #13c296 0%, #0a223a 50%, #d7263d 100%);
@@ -294,7 +293,6 @@ html, body {
     }
 
     .hero-desc {
-      font-size: 1.05rem;
       margin-bottom: 1.1rem;
       line-height: 1.5;
       text-align: justify;
