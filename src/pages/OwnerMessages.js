@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Button, IconButton, Avatar } from '@mui/material';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import Modal from '../components/common/Modal';
 import { messages as sampleMessages, owners } from '../data/fakedata';
@@ -13,6 +14,10 @@ export default function OwnerMessages(){
   const [msgs, setMsgs] = useState(()=> JSON.parse(localStorage.getItem('owner_messages')||'null') || sampleMessages.filter(m=> m.toId === ownerId) );
   const [replyTo, setReplyTo] = useState(null);
   const [replyText, setReplyText] = useState('');
+  const [query, setQuery] = useState('');
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [composeTo, setComposeTo] = useState('');
+  const [composeSubject, setComposeSubject] = useState('');
   const [threadOpen, setThreadOpen] = useState(false);
   const [attachLocation, setAttachLocation] = useState(null); // {lat,lng}
   const [showMap, setShowMap] = useState(false);
@@ -21,6 +26,11 @@ export default function OwnerMessages(){
   const [modalOpen, setModalOpen] = useState(false);
 
   const ownerMessages = useMemo(()=> msgs.filter(m=> m.toId === ownerId), [msgs, ownerId]);
+  const filteredMessages = useMemo(()=>{
+    if(!query || !query.trim()) return ownerMessages;
+    const q = query.trim().toLowerCase();
+    return ownerMessages.filter(m=> (m.from && m.from.toLowerCase().includes(q)) || (m.text && m.text.toLowerCase().includes(q)) );
+  },[ownerMessages, query]);
 
   const markRead = (id)=>{
     const next = msgs.map(m=> m.id===id ? {...m, read:true} : m);
@@ -138,62 +148,103 @@ export default function OwnerMessages(){
   },[showMap]);
 
   const messages = JSON.parse(localStorage.getItem('owner_messages')||'[]');
+  // responsive helper: treat <=768px as mobile
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+  useEffect(()=>{
+    const onResize = ()=> setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return ()=> window.removeEventListener('resize', onResize);
+  },[]);
+
+  // when on mobile and thread open, hide list to show conversation full width
+  const showList = !(isMobile && threadOpen);
+  const showThread = !isMobile || threadOpen;
+
   return (
     <OwnerLayout>
-      <div>
-        <h4>Messages</h4>
+      <div className="owner-messages-shell">
+        <div className="owner-messages-toolbar">
+          <h4>Messages</h4>
+          <div className="owner-messages-search">
+            <input placeholder="Rechercher par nom ou texte" className="form-control" value={query} onChange={(e)=>setQuery(e.target.value)} />
+            <button className="btn owner-btn-primary" onClick={()=>{ setComposeOpen(true); }} title="Nouveau message">Nouveau</button>
+          </div>
+        </div>
+
         {ownerMessages.length===0 && <div className="alert alert-info">Aucun message pour le moment.</div>}
-        <div style={{display:'flex',gap:12}}>
-          <div style={{flex:1}}>
-            {ownerMessages.map((m,i)=> (
-              <div key={m.id} className={`card mb-2 ${m.read ? '' : 'border-3'}`} style={{cursor:'pointer'}} onClick={()=>{ setReplyTo(m); setThreadOpen(true); }}>
-                <div className="card-body d-flex justify-content-between align-items-center">
-                  <div>
-                    <div className="fw-bold">{m.from} <span className="small text-muted">· {new Date(m.time).toLocaleString()}</span></div>
-                    <div className="small text-muted">{m.text}</div>
-                  </div>
-                  <div className="d-flex gap-2">
-                    <button title="Marquer lu" className="btn" onClick={(e)=>{ e.stopPropagation(); markRead(m.id); }} style={{width:34,height:34,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:8,border:'1px solid #6c757d',background:'#fff'}}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                    <button title="Répondre" className="btn" onClick={(e)=>{ e.stopPropagation(); setReplyTo(m); setThreadOpen(true); }} style={{width:34,height:34,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:8,border:'1px solid #0d6efd',background:'#fff',color:'#0d6efd'}}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 14l-4-4 4-4M14 10h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                    <button title="Supprimer" className="btn" onClick={(e)=>{ e.stopPropagation(); remove(m.id); }} style={{width:34,height:34,display:'inline-flex',alignItems:'center',justifyContent:'center',borderRadius:8,border:'1px solid #dc3545',background:'#fff',color:'#dc3545'}}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
+
+        <div className="owner-msg-wrap">
+          {showList && (
+            <div className="owner-msg-list">
+              {filteredMessages.map((m)=> (
+                <div key={m.id} className={`card mb-2 owner-msg-card ${m.read ? '' : 'border-3'}`} onClick={()=>{ setReplyTo(m); setThreadOpen(true); }}>
+                  <div className="owner-msg-body card-body d-flex align-items-center">
+                    <Avatar className="owner-msg-avatar">{m.from ? m.from.split(' ').map(s=>s[0]).slice(0,2).join('') : 'U'}</Avatar>
+                    <div className="owner-msg-meta">
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+                        <div className="title">{m.from}</div>
+                        <div style={{fontSize:12,color:'#6c757d',flex:'0 0 auto'}}>{new Date(m.time).toLocaleString()}</div>
+                      </div>
+                      <div className="excerpt">{m.text}</div>
+                    </div>
+                    <div className="owner-msg-actions">
+                      {!m.read && <div className="owner-msg-badge">Nouveau</div>}
+                      <div style={{display:'flex',gap:6}}>
+                        <IconButton title="Marquer lu" size="small" onClick={(e)=>{ e.stopPropagation(); markRead(m.id); }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </IconButton>
+                        <IconButton title="Répondre" size="small" color="primary" onClick={(e)=>{ e.stopPropagation(); setReplyTo(m); setThreadOpen(true); }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 14l-4-4 4-4M14 10h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </IconButton>
+                        <IconButton title="Supprimer" size="small" color="error" onClick={(e)=>{ e.stopPropagation(); remove(m.id); }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </IconButton>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
-          <div style={{width:420}}>
-            {!threadOpen && <div className="small text-muted">Sélectionnez un message pour ouvrir la conversation</div>}
-            {threadOpen && replyTo && (
-              <div className="card">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between mb-2">
-                    <div className="fw-bold">Conversation avec {replyTo.from}</div>
-                    <div><button className="btn btn-sm btn-outline-secondary" onClick={()=>{ setThreadOpen(false); setReplyTo(null); }}>Fermer</button></div>
+          {showThread && (
+            <div className="owner-thread-wrap">
+              {!threadOpen && <div className="small text-muted">Sélectionnez un message pour ouvrir la conversation</div>}
+              {threadOpen && replyTo && (
+                <div className="owner-thread-card card">
+                  <div className="owner-thread-header">
+                    <div className="meta">
+                      <Avatar className="avatar">{replyTo.from ? replyTo.from.split(' ').map(s=>s[0]).slice(0,2).join('') : 'U'}</Avatar>
+                      <div>
+                        <div style={{fontWeight:700}}>{replyTo.from}</div>
+                        <div className="small text-muted">{replyTo.from && replyTo.from}</div>
+                      </div>
+                    </div>
+                    <div>
+                      <Button variant="outlined" size="small" onClick={()=>{ setThreadOpen(false); setReplyTo(null); }}>Fermer</Button>
+                    </div>
                   </div>
-                  <div style={{maxHeight:300,overflow:'auto',marginBottom:8}}>
+
+                  <div className="owner-thread-messages">
                     {(msgs.filter(x=> x.fromId===replyTo.fromId || x.toId===replyTo.fromId) || []).map((m2,idx)=> (
-                      <div key={m2.id || idx} style={{marginBottom:8}}>
-                        <div className="small text-muted">{m2.from} · {new Date(m2.time).toLocaleString()}</div>
-                        <div>{m2.text}</div>
+                      <div key={m2.id || idx} className={`owner-thread-message ${m2.fromId===ownerId ? 'outgoing' : 'incoming'}`}>
+                        <div className="meta">{m2.from} · {new Date(m2.time).toLocaleString()}</div>
+                        <div className="bubble">{m2.text}</div>
                       </div>
                     ))}
                   </div>
-                  <textarea className="form-control mb-2" rows={3} value={replyText} onChange={e=>setReplyText(e.target.value)} />
-                  <div className="d-flex gap-2">
-                    <button className="btn owner-btn-primary" onClick={()=>{ sendReply(); }}>Envoyer</button>
-                    <button className="btn btn-outline-secondary" onClick={()=>{ setThreadOpen(false); setReplyTo(null); }}>Annuler</button>
+
+                  <div className="owner-thread-compose">
+                    <textarea className="form-control mb-2" rows={3} value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder="Écrire une réponse..." />
+                    <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                      <Button variant="outlined" size="small" onClick={()=>{ setThreadOpen(false); setReplyTo(null); }}>Annuler</Button>
+                      <Button variant="contained" size="small" onClick={sendReply}>Envoyer</Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         <Modal open={modalOpen} onClose={()=>{ setModalOpen(false); setReplyTo(null); }}>
@@ -203,8 +254,49 @@ export default function OwnerMessages(){
                 <h5 className="mb-2">Répondre à {replyTo && replyTo.from}</h5>
                 <textarea className="form-control mb-2" rows={4} value={replyText} onChange={e=>setReplyText(e.target.value)} />
                 <div className="d-flex gap-2">
-                  <button className="btn owner-btn-primary" onClick={sendReply}>Envoyer</button>
-                  <button className="btn btn-outline-secondary" onClick={()=>{ setModalOpen(false); setReplyTo(null); }}>Annuler</button>
+                  <Button variant="contained" size="small" onClick={sendReply}>Envoyer</Button>
+                  <Button variant="outlined" size="small" onClick={()=>{ setModalOpen(false); setReplyTo(null); }}>Annuler</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Compose modal for new messages */}
+        <Modal open={composeOpen} onClose={()=>{ setComposeOpen(false); setComposeTo(''); setComposeSubject(''); }}>
+          <div className="owner-compose-modal">
+            <div className="card">
+              <div className="card-body">
+                <h5 className="mb-2">Nouveau message</h5>
+                <div className="mb-2">
+                  <label className="form-label">Destinataire (nom ou id)</label>
+                  <input className="form-control" value={composeTo} onChange={e=>setComposeTo(e.target.value)} placeholder="ex: John Doe ou 42" />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">Sujet (optionnel)</label>
+                  <input className="form-control" value={composeSubject} onChange={e=>setComposeSubject(e.target.value)} placeholder="Objet" />
+                </div>
+                <div className="mb-2">
+                  <label className="form-label">Message</label>
+                  <textarea className="form-control" rows={4} value={replyText} onChange={e=>setReplyText(e.target.value)} />
+                </div>
+                <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                  <Button variant="outlined" size="small" onClick={()=>{ setComposeOpen(false); setComposeTo(''); setComposeSubject(''); setReplyText(''); }}>Annuler</Button>
+                  <Button variant="contained" size="small" onClick={()=>{
+                    // try to resolve recipient to an id (simple heuristic)
+                    let toId = null;
+                    if(/^[0-9]+$/.test(composeTo)) toId = Number(composeTo);
+                    else {
+                      const found = msgs.find(x=> x.from && x.from.toLowerCase()===composeTo.trim().toLowerCase());
+                      if(found) toId = found.fromId;
+                    }
+                    if(!toId){ alert('Impossible de résoudre le destinataire. Utilisez un id numérique ou un nom exact existant.'); return; }
+                    const out = { id: Date.now(), fromId: ownerId, from: 'Propriétaire', toId, to: composeTo, text: replyText, time: Date.now(), read: true, channel:'web', status:'queued' };
+                    const next = [out, ...msgs]; setMsgs(next); localStorage.setItem('owner_messages', JSON.stringify(next));
+                    // open thread with this recipient
+                    setComposeOpen(false); setReplyText(''); setComposeTo(''); setComposeSubject('');
+                    setReplyTo({ from: out.to, fromId: out.toId }); setThreadOpen(true);
+                  }}>Envoyer</Button>
                 </div>
               </div>
             </div>

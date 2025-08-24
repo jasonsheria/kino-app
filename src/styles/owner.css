@@ -309,7 +309,8 @@
 @media (max-width: 992px){
   .left-col{ display:none; }
   .center-card{ padding:12px; }
-  .stat-row{ flex-direction:row; gap:10px; }
+  .stat-row{ flex-direction:row; gap:10px;        overflow: scroll;
+        scrollbar-width: none; }
 }
 
 /* icon buttons and dropdowns */
@@ -390,3 +391,78 @@ html, body, #root { height:100%; }
 .profile-avatar { width:180px; height:180px; border-radius:12px; overflow:hidden; }
 .profile-meta { display:flex; flex-direction:column; gap:8px; }
 .profile-action-row { display:flex; gap:8px; justify-content:flex-end; }
+
+/* OwnerMessages specific styles */
+.owner-messages-toolbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+.owner-messages-search{ display:flex; gap:8px; align-items:center; }
+.owner-msg-wrap{ display:flex; gap:16px; align-items:flex-start; }
+.owner-msg-list{ flex:1; min-width:260px; max-width:720px; max-height:65vh; overflow:auto; }
+.owner-msg-card{ cursor:pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.owner-msg-card:hover{ transform: translateY(-4px); box-shadow:0 12px 30px rgba(8,20,40,0.06); }
+.owner-msg-body{ display:flex; align-items:center; gap:12px; padding:12px; }
+.owner-msg-avatar{ width:48px; height:48px; flex:0 0 48px; display:flex; align-items:center; justify-content:center; border-radius:8px; background:#f1f3f5; font-weight:700; color:#333; }
+.owner-msg-meta{ flex:1; min-width:0; }
+.owner-msg-meta .title{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.owner-msg-meta .excerpt{ font-size:13px; color:#6c757d; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.owner-msg-actions{ display:flex; flex-direction:column; gap:6px; margin-left:8px; align-items:flex-end; }
+.owner-msg-badge{ background:#dc3545; color:#fff; font-size:12px; padding:4px 6px; border-radius:8px; }
+
+.owner-thread-card{ max-height:65vh; display:flex; flex-direction:column; }
+.owner-thread-header{ padding:12px 16px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
+.owner-thread-messages{ padding:12px 16px 8px; overflow:auto; flex:1; }
+.owner-thread-message{ margin-bottom:12px; }
+.owner-thread-message .meta{ font-size:12px; color:#6c757d; margin-bottom:6px; }
+.owner-thread-message .bubble{ padding:8px; border-radius:6px; max-width:100%; }
+.owner-thread-message.outgoing .bubble{ background:#e9f7ef; }
+.owner-thread-message.incoming .bubble{ background:#f8f9fa; }
+.owner-thread-compose{ padding:12px; border-top:1px solid #eee; }
+
+/* modal compose */
+.owner-compose-modal .card{ min-width:360px; }
+
+/* subtle transitions to simulate MUI-like motion */
+.fade-in{ animation: fadeIn .28s ease both; }
+@keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
+
+/* Enhanced visuals for OwnerMessages */
+.owner-messages-shell{ display:flex; flex-direction:column; gap:12px; }
+.owner-messages-toolbar h4{ margin:0; font-size:1.25rem; letter-spacing:0.2px; }
+.owner-messages-search .form-control{ min-width:220px; border-radius:10px; padding:10px 12px; border:1px solid #eef2f6; }
+.owner-messages-search .btn{ height:42px; border-radius:10px; padding:8px 14px; }
+
+.owner-msg-wrap{ display:flex; gap:16px; align-items:stretch; }
+.owner-msg-list{ box-shadow:0 8px 28px rgba(12,30,60,0.04); border-radius:12px; padding:8px; background:#fff; }
+.owner-msg-card{ border-radius:10px; overflow:hidden; }
+.owner-msg-body{ gap:12px; padding:12px 14px; }
+.owner-msg-avatar{ width:52px; height:52px; flex:0 0 52px; border-radius:10px; font-size:14px; }
+.owner-msg-meta .title{ font-size:15px; }
+.owner-msg-meta .excerpt{ font-size:13px; color:#586673; }
+.owner-msg-actions{ align-items:flex-end; }
+.owner-msg-badge{ background:#ef4444; color:#fff; font-weight:700; font-size:12px; padding:5px 8px; border-radius:999px; }
+
+.owner-action-btn{ width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid #e6edf1; background:#fff; }
+.owner-action-btn.reply{ border-color:#0d6efd; color:#0d6efd; }
+.owner-action-btn.delete{ border-color:#dc3545; color:#dc3545; }
+.owner-action-btn.read{ border-color:#6c757d; color:#374151; }
+
+.owner-thread-wrap{ width:420px; }
+.owner-thread-card{ border-radius:12px; box-shadow:0 12px 36px rgba(12,30,60,0.06); background:#fff; overflow:hidden; }
+.owner-thread-header{ padding:12px 16px; border-bottom:1px solid #f1f4f7; display:flex; align-items:center; justify-content:space-between; }
+.owner-thread-header .meta{ display:flex; align-items:center; gap:12px; }
+.owner-thread-header .meta .avatar{ width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#f1f3f5; font-weight:800; }
+.owner-thread-messages{ padding:12px 16px; overflow:auto; background:linear-gradient(180deg,#ffffff,#fbfdff); }
+.owner-thread-message .bubble{ box-shadow:0 6px 18px rgba(12,30,60,0.04); }
+.owner-thread-message.outgoing{ text-align:right; }
+.owner-thread-message.incoming{ text-align:left; }
+
+.owner-thread-compose textarea.form-control{ border-radius:10px; padding:10px; border:1px solid #eef2f6; }
+.owner-thread-compose .btn{ border-radius:10px; }
+
+.owner-compose-modal .card{ border-radius:12px; box-shadow:0 18px 44px rgba(12,30,60,0.08); }
+.owner-compose-modal .form-label{ font-weight:700; margin-bottom:6px; }
+
+@media (max-width: 768px){
+  .owner-thread-wrap{ width:100%; }
+  .owner-msg-list{ max-width:100%; }
+  .owner-messages-search .form-control{ min-width:120px; }
+}

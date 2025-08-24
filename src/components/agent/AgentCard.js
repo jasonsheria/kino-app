@@ -18,6 +18,7 @@ const AgentCard = ({ agent }) => {
       className="agent-card-container"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{ width: '100%', height: '100%' }}
     >
       <div className="agent-card">
         <div className="agent-photo-section">
@@ -25,7 +26,7 @@ const AgentCard = ({ agent }) => {
             <img src={agent.photo} alt={agent.name} className="agent-photo" />
             {isCertified && (
               <div className="certified-badge">
-                <FaCheckCircle size={24} />
+                <FaCheckCircle size={18} />
               </div>
             )}
           </div>
@@ -94,37 +95,39 @@ const AgentCard = ({ agent }) => {
       <style jsx>{`
         .agent-card-container {
           perspective: 1000px;
-          margin-bottom: 1.5rem;
+          height: 100%;
         }
 
         .agent-card {
-          background: white;
-          border-radius: 20px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+          background: transparent;
+          border-radius: 0;
+          box-shadow: none;
           display: flex;
-          padding: 1.5rem;
-          gap: 1.5rem;
-          transition: all 0.3s ease;
-          border: 1px solid rgba(19, 194, 150, 0.1);
+          padding: 0;
+          gap: 1rem;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          border: none;
+          align-items: flex-start;
+          height: 100%;
         }
 
         .agent-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 15px 40px rgba(19, 194, 150, 0.15);
-          border-color: rgba(19, 194, 150, 0.3);
+          transform: translateY(-4px);
         }
 
         .agent-photo-section {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 1rem;
+          gap: 0.5rem;
+          width: 92px;
+          flex: 0 0 92px;
         }
 
         .agent-photo-wrapper {
           position: relative;
-          width: 100px;
-          height: 100px;
+          width: 72px;
+          height: 72px;
         }
 
         .agent-photo {
@@ -132,153 +135,66 @@ const AgentCard = ({ agent }) => {
           height: 100%;
           border-radius: 50%;
           object-fit: cover;
-          border: 4px solid #13c296;
-          box-shadow: 0 5px 15px rgba(19, 194, 150, 0.2);
-          transition: transform 0.3s ease;
+          border: 2px solid rgba(0,0,0,0.06);
+          transition: transform 0.25s ease;
         }
 
         .agent-card:hover .agent-photo {
-          transform: scale(1.05);
+          transform: scale(1.03);
         }
 
         .certified-badge {
           position: absolute;
-          bottom: -5px;
-          right: -5px;
+          bottom: -6px;
+          right: -6px;
           background: white;
           border-radius: 50%;
           padding: 3px;
-          border: 2px solid #13c296;
-          color: #13c296;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(0,0,0,0.06);
         }
 
-        .rating-stars {
-          display: flex;
-          gap: 2px;
-        }
+        .rating-stars { display:flex; gap:4px; }
 
-        .star {
-          color: #ffc107;
-          transition: transform 0.2s ease;
-        }
-
-        .star.filled {
-          transform: ${isHovered ? 'scale(1.2)' : 'scale(1)'};
-        }
+        .star { color: #ffc107; }
 
         .agent-info-section {
-          flex: 1;
+          flex: 1 1 auto;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
-        }
-
-        .agent-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .agent-name {
-          display: flex;
-          align-items: center;
           gap: 0.5rem;
+          min-width: 0;
         }
 
-        .agent-name h3 {
-          margin: 0;
-          font-size: 1.2rem;
-          font-weight: 600;
-          color: #2d3748;
-        }
+        .agent-header { display:flex; justify-content:space-between; align-items:center; }
 
-        .certified-icon {
-          color: #13c296;
-          font-size: 1.2rem;
-        }
+        .agent-name { display:flex; align-items:center; gap:0.5rem; }
 
-        .status-badge {
-          padding: 0.25rem 0.75rem;
-          border-radius: 20px;
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
+        .agent-name h3 { margin:0; font-size:1rem; font-weight:600; color: #2d3748; }
 
-        .status-badge.active {
-          background: rgba(19, 194, 150, 0.1);
-          color: #13c296;
-        }
+        .certified-icon { color: #13c296; font-size:1rem; }
 
-        .status-badge.inactive {
-          background: rgba(160, 174, 192, 0.1);
-          color: #a0aec0;
-        }
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 0; font-size:0.85rem; font-weight:500; }
 
-        .agent-location {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: #718096;
-          font-size: 0.9rem;
-        }
+        .status-badge.active { background: rgba(19, 194, 150, 0.08); color: #13c296; }
+        .status-badge.inactive { background: rgba(160,174,192,0.06); color:#a0aec0; }
 
-        .contact-buttons {
-          display: flex;
-          gap: 1rem;
-          margin-top: 0.5rem;
-        }
+        .agent-location { display:flex; align-items:center; gap:0.5rem; color:#718096; font-size:0.9rem; }
 
-        .contact-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 8px;
-          background: transparent;
-          color: #4a5568;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          text-decoration: none;
-          font-size: 0.9rem;
-        }
+        .contact-buttons { display:flex; gap:0.5rem; margin-top:auto; }
 
-        .contact-btn:hover {
-          transform: translateY(-2px);
-          background: rgba(19, 194, 150, 0.1);
-          color: #13c296;
-        }
+        .contact-btn { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.6rem; border:none; border-radius:0; background:transparent; color:#4a5568; cursor:pointer; font-size:0.85rem; }
 
-        .btn-label {
-          display: none;
-        }
+        .contact-btn:hover { transform:translateY(-2px); color:#13c296; }
 
-        .contact-btn:hover .btn-label {
-          display: inline;
-        }
+        .btn-label { display:none; }
+
+        .contact-btn:hover .btn-label { display:inline; }
 
         @media (max-width: 768px) {
-          .agent-card {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 1rem;
-          }
-
-          .agent-header {
-            flex-direction: column;
-            gap: 0.5rem;
-          }
-
-          .contact-buttons {
-            justify-content: center;
-            flex-wrap: wrap;
-          }
-
-          .agent-location {
-            justify-content: center;
-          }
+          .agent-card { flex-direction: row; padding: 0.5rem 0; }
+          .agent-photo-section { width: 72px; }
+          .agent-info-section { gap: 0.25rem; }
+          .contact-buttons { justify-content:flex-end; }
         }
       `}</style>
 
