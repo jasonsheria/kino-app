@@ -1,40 +1,169 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { FaTachometerAlt, FaHome, FaEnvelope, FaWallet, FaStar, FaSignOutAlt, FaBars, FaUsers, FaCalendarAlt, FaFileAlt, FaUserCircle, FaShieldAlt, FaCog } from 'react-icons/fa';
+import { NavLink, useLocation } from 'react-router-dom';
+import { FaTachometerAlt, FaHome, FaEnvelope, FaWallet, FaStar, FaSignOutAlt, FaUsers, FaCalendarAlt, FaFileAlt, FaUserCircle, FaShieldAlt, FaCog } from 'react-icons/fa';
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+  Typography,
+  Divider,
+  Avatar,
+} from '@mui/material';
 
-export default function OwnerSidebar({ collapsed, onToggle }) {
+export default function OwnerSidebar({ collapsed }) {
+  const location = useLocation();
+
   return (
-    <div className={`card owner-card ${collapsed ? 'compact' : ''}`}>
+    <Box sx={{ mt: 2 }}>
+      {!collapsed && (
+        <Box sx={{ px: 3, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Avatar src="/logo192.png" />
+            <Box>
+              <Typography variant="subtitle2" fontWeight="600">
+                Propriétaire
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Compte partenaire
+              </Typography>
+            </Box>
+          </Box>
+          <Divider />
+        </Box>
+      )}
+        <List sx={{ px: 2 }}>
+          {[
+            { to: '/owner/dashboard', icon: <FaTachometerAlt />, label: 'Tableau de bord' },
+            { to: '/owner/properties', icon: <FaHome />, label: 'Mes biens' },
+            { to: '/owner/agents', icon: <FaUsers />, label: 'Agents' },
+            { to: '/owner/appointments', icon: <FaCalendarAlt />, label: 'Rendez-vous' },
+            { to: '/owner/messages', icon: <FaEnvelope />, label: 'Messages' },
+          ].map(({ to, icon, label }) => (
+            <ListItem key={to} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={to}
+                selected={location.pathname === to}
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  minHeight: 44,
+                  color: location.pathname === to ? 'primary.main' : 'text.primary',
+                  bgcolor: location.pathname === to ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    minWidth: 36,
+                    color: location.pathname === to ? 'primary.main' : 'inherit'
+                  }}
+                >
+                  {icon}
+                </ListItemIcon>
+                {!collapsed && <ListItemText primary={label} />}
+              </ListItemButton>
+            </ListItem>
+          ))}
 
-      <div className="card-body owner-sidebar" style={{ padding: collapsed ? 8 : 16, paddingRight: 0 }}>
-        <div className={`d-flex align-items-center gap-3 mb-3 ${collapsed ? 'compact-header' : ''}`}>
+          <Divider sx={{ my: 2 }} />
 
-          {!collapsed && (
-            <div>
-              <div className="fw-bold">Propriétaire</div>
-              <div className="small text-muted">Compte partenaire</div>
-            </div>
-          )}
-          {/* collapse button inside the sidebar */}
-          <button onClick={() => onToggle && onToggle()} className="btn btn-sm btn-light ms-auto sidebar-collapse-btn" aria-label="toggle sidebar">
-            <FaBars />
-          </button>
-        </div>
-        <nav className="nav flex-column">
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/dashboard"><FaTachometerAlt /> {!collapsed && 'Tableau de bord'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/properties"><FaHome /> {!collapsed && 'Mes biens'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/agents"><FaUsers /> {!collapsed && 'Agents'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/appointments"><FaCalendarAlt /> {!collapsed && 'Rendez-vous'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/messages"><FaEnvelope /> {!collapsed && 'Messages'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/profile"><FaUserCircle /> {!collapsed && 'Profil'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/wallet"><FaWallet /> {!collapsed && 'Wallet'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/security"><FaShieldAlt /> {!collapsed && 'Sécurité'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/subscribe"><FaStar /> {!collapsed && 'Abonnement'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/settings"><FaCog /> {!collapsed && 'Paramètres'}</NavLink>
-          <NavLink className="nav-link d-flex align-items-center gap-2" to="/owner/privacy"><FaFileAlt /> {!collapsed && 'Politique '}</NavLink>
-          <NavLink className="nav-link text-danger d-flex align-items-center gap-2" to="/"><FaSignOutAlt /> {!collapsed && 'Se déconnecter'}</NavLink>
-        </nav>
-      </div>
-    </div>
+          {[
+            { to: '/owner/profile', icon: <FaUserCircle />, label: 'Profil' },
+            { to: '/owner/wallet', icon: <FaWallet />, label: 'Wallet' },
+            { to: '/owner/security', icon: <FaShieldAlt />, label: 'Sécurité' },
+            { to: '/owner/subscribe', icon: <FaStar />, label: 'Abonnement' },
+          ].map(({ to, icon, label }) => (
+            <ListItem key={to} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={to}
+                selected={location.pathname === to}
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  minHeight: 44,
+                  color: location.pathname === to ? 'primary.main' : 'text.primary',
+                  bgcolor: location.pathname === to ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    minWidth: 36,
+                    color: location.pathname === to ? 'primary.main' : 'inherit'
+                  }}
+                >
+                  {icon}
+                </ListItemIcon>
+                {!collapsed && <ListItemText primary={label} />}
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          <Divider sx={{ my: 2 }} />
+
+          {[
+            { to: '/owner/settings', icon: <FaCog />, label: 'Paramètres' },
+            { to: '/owner/privacy', icon: <FaFileAlt />, label: 'Politique' },
+          ].map(({ to, icon, label }) => (
+            <ListItem key={to} disablePadding>
+              <ListItemButton
+                component={NavLink}
+                to={to}
+                selected={location.pathname === to}
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  minHeight: 44,
+                  color: location.pathname === to ? 'primary.main' : 'text.primary',
+                  bgcolor: location.pathname === to ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    bgcolor: 'action.hover',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    minWidth: 36,
+                    color: location.pathname === to ? 'primary.main' : 'inherit'
+                  }}
+                >
+                  {icon}
+                </ListItemIcon>
+                {!collapsed && <ListItemText primary={label} />}
+              </ListItemButton>
+            </ListItem>
+          ))}
+
+          <ListItem disablePadding>
+            <ListItemButton
+              component={NavLink}
+              to="/"
+              sx={{
+                borderRadius: 1,
+                mb: 0.5,
+                minHeight: 44,
+                color: 'error.main',
+                '&:hover': {
+                  bgcolor: 'error.lighter',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36, color: 'error.main' }}>
+                <FaSignOutAlt />
+              </ListItemIcon>
+              {!collapsed && <ListItemText primary="Se déconnecter" />}
+            </ListItemButton>
+          </ListItem>
+        </List>
+    </Box>
   );
 }

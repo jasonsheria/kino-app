@@ -58,9 +58,9 @@ export default function OwnerCalendar({ ownerId, initialDate }){
   return (
     <div className="owner-calendar">
       <div className="cal-header d-flex align-items-center justify-content-between">
-        <div className="cal-nav">
-          <button className="btn btn-sm btn-light me-2" onClick={prevMonth} aria-label="previous month">◀</button>
-          <button className="btn btn-sm btn-light" onClick={nextMonth} aria-label="next month">▶</button>
+        <div className="cal-nav d-flex flex-row align-items-center" style={{margin : "10px"}}>
+          <button className="btns btn-sm btn-light me-2" onClick={prevMonth} aria-label="previous month">◀</button>
+          <button className="btns btn-sm btn-light" onClick={nextMonth} aria-label="next month">▶</button>
         </div>
         <div className="cal-title">{viewDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
         <div className="cal-legend small text-muted">Occupied dates are highlighted</div>

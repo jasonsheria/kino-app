@@ -4,15 +4,79 @@ import '../styles/owner.css';
 import FileUploadPreview from '../components/common/FileUploadPreview';
 import ConfirmModal from '../components/common/ConfirmModal';
 import InfoModal from '../components/common/InfoModal';
+import { styled } from '@mui/material/styles';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
-import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery, Link } from '@mui/material';
+import { 
+  Box, 
+  Container, 
+  Grid, 
+  Stack, 
+  Typography, 
+  IconButton, 
+  Button, 
+  useMediaQuery, 
+  Link,
+  Paper,
+  TextField,
+  Chip
+} from '@mui/material';
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
+
+const FilePreview = ({ file, onDelete }) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1,
+        mt: 1,
+        border: '1px solid #e0e0e0',
+        borderRadius: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        bgcolor: '#f8f9fa'
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <InsertDriveFileIcon color="primary" />
+        <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {file.name}
+        </Typography>
+        <Chip 
+          label={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
+          size="small"
+          variant="outlined"
+          sx={{ ml: 1 }}
+        />
+      </Box>
+      <IconButton size="small" onClick={onDelete} color="error">
+        <DeleteIcon fontSize="small" />
+      </IconButton>
+    </Paper>
+  );
+};
 
 export default function OwnerRequest() {
   const [step, setStep] = useState(1);
   const [types, setTypes] = useState([]);
   const [form, setForm] = useState({ nom: '', postnom: '', prenom: '', email: '', phone: '', address: '' });
   const [idFile, setIdFile] = useState(null);
-  const [propTitles, setPropTitles] = useState([]);
+  const [propTitleFiles, setPropTitleFiles] = useState([]);
   const [validationError, setValidationError] = useState('');
   const [completion, setCompletion] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -24,12 +88,12 @@ export default function OwnerRequest() {
     fields.forEach(k => { if (form[k] && String(form[k]).trim().length > 0) filled++; });
     if (types.length) filled += 1;
     if (idFile) filled += 1;
-    if (propTitles.length) filled += 1;
+    if (propTitleFiles.length) filled += 1;
     const total = fields.length + 3;
     const pct = Math.round((filled / total) * 100);
     setCompletion(pct);
     try { localStorage.setItem('owner_profile_completion', JSON.stringify({ pct, updated: Date.now() })); } catch (e) { }
-  }, [form, types, idFile, propTitles]);
+  }, [form, types, idFile, propTitleFiles]);
 
   // on mount: restore draft if any
   useEffect(() => {
@@ -39,7 +103,7 @@ export default function OwnerRequest() {
         const draft = JSON.parse(raw || '{}');
         if (draft.types) setTypes(draft.types);
         if (draft.form) setForm(draft.form);
-        if (draft.propTitles) setPropTitles(draft.propTitles);
+        if (draft.propTitleFiles) setPropTitleFiles(draft.propTitleFiles);
       }
     } catch (e) { console.error('restore draft failed', e); }
 
@@ -72,7 +136,7 @@ export default function OwnerRequest() {
       const sub = JSON.parse(localStorage.getItem('owner_subscription') || 'null');
       if (!sub || !sub.type) {
         // save draft (files cannot be serialized fully) - keep meta and ids
-        const draft = { types, form, propTitles, savedAt: Date.now() };
+        const draft = { types, form, propTitleFiles: propTitleFiles.map(f => f.name), savedAt: Date.now() };
         localStorage.setItem('owner_request_draft', JSON.stringify(draft));
         // navigate to subscription selection before final submit
         navigate('/owner/subscribe');
@@ -92,7 +156,7 @@ export default function OwnerRequest() {
     sessionStorage.setItem('owner_submission_lock', '1');
     setConfirmOpen(false);
     const payload = new FormData();
-    payload.append('meta', JSON.stringify({ types, form, propTitles }));
+    payload.append('meta', JSON.stringify({ types, form, propTitleFiles: propTitleFiles.map(file => file.name) }));
     if (idFile) payload.append('idFile', idFile);
     let saveStatus = 'pending';
     let serverMessage = 'Votre demande a été envoyée avec succès. Vous recevrez un code sous 48h.';
@@ -106,6 +170,13 @@ export default function OwnerRequest() {
       const code = Math.random().toString(36).slice(2, 8).toUpperCase();
       let subscription = null;
       try { subscription = JSON.parse(localStorage.getItem('owner_subscription') || 'null'); } catch (e) { }
+
+      // Create FormData for files
+      const formData = new FormData();
+      formData.append('idFile', idFile);
+      propTitleFiles.forEach((file, index) => {
+        formData.append(`propertyTitle${index}`, file);
+      });
 
       // dedupe: avoid creating duplicates if a very recent application with same email+name exists
       const existingRaw = localStorage.getItem('owner_application');
@@ -124,7 +195,7 @@ export default function OwnerRequest() {
         return;
       }
 
-      const app = { id: Date.now(), status: saveStatus, message: serverMessage, code, submittedAt: now, subscription, meta: { types, form, propTitles } };
+      const app = { id: Date.now(), status: saveStatus, message: serverMessage, code, submittedAt: now, subscription, meta: { types, form, propTitleFiles: propTitleFiles.map(file => file.name) } };
       existing.unshift(app);
       localStorage.setItem('owner_application', JSON.stringify(existing));
       // cleanup draft and resume flag after successful save
@@ -141,173 +212,449 @@ export default function OwnerRequest() {
   const [infoTitle, setInfoTitle] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   return (
-    <div className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-12 text-center mb-3">
-          <h3 className="mb-1">Demande de partenariat propriétaire</h3>
-          <p className="text-muted">Complétez les informations et choisissez un abonnement pour finaliser votre inscription.</p>
-        </div>
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
+      <Box sx={{ mb: { xs: 3, md: 4 }, textAlign: 'center' }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ 
+          fontSize: { xs: '1.5rem', md: '2rem' },
+          fontWeight: 600 
+        }}>
+          Demande de partenariat propriétaire
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ 
+          maxWidth: '600px',
+          mx: 'auto',
+          px: { xs: 2, md: 0 }
+        }}>
+          Complétez les informations et choisissez un abonnement pour finaliser votre inscription.
+        </Typography>
+      </Box>
 
-        <div className="col-12">
-          <div className="d-flex gap-4 justify-content-center flex-wrap">
-            {/* Left info card */}
-            <div style={{ width: 300, borderRadius: 12, background: '#fff', padding: 20, boxShadow: '0 6px 18px rgba(20,24,40,0.06)', border: '1px solid #eceff3' }}>
-              <div className="small text-muted">Pourquoi devenir partenaire</div>
-              <div className="fw-bold mt-2">Avantages</div>
-              <ul style={{ marginTop: 10, paddingLeft: 18 }}>
-                <li>Publication illimitée après activation</li>
-                <li>Gestion des demandes et réservations</li>
-                <li>Support prioritaire</li>
-              </ul>
-              <div style={{ marginTop: 10 }}>
-                <Button variant="contained"
-                 
-                  sx={{
-                    bgcolor: '#13c296',
-                    color: 'white',
-                    alignSelf: 'flex-start',
-                    textTransform: 'none',
-                    px: 3,
-                    '&:hover': {
-                      bgcolor: '#10a37f',
-                      transform: 'translateY(-2px)',
-                      transition: 'all 0.2s'
-                    }
-                  }} onClick={() => navigate('/owner/subscribe')}>Choisir un abonnement</Button>
-              </div>
-              {/* Right status card */}
-              <div style={{ margin: "10px", borderRadius: 12, background: '#fff', padding: 20, boxShadow: '0 6px 18px rgba(20,24,40,0.06)', border: '1px solid #eceff3' }}>
-                <div className="small text-muted">État de la demande</div>
-                <div className="fw-bold mt-2">Suivi</div>
-                <div style={{ marginTop: 10 }}>
-                  <div className="small text-muted">Après soumission, vous recevrez un code pour accéder à votre tableau de bord.</div>
-                  <div style={{ marginTop: 12 }}>
-                    <a 
-                    className="btn bg-primary"
+      <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
+        {/* Left info cards column */}
+        <Grid item xs={12} md={4} lg={3} order={{ xs: 2, md: 1 }}>
+          <Stack spacing={{ xs: 2, md: 3 }}>
+            {/* Benefits card */}
+            <Paper elevation={0} sx={{ 
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2
+            }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Pourquoi devenir partenaire
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                Avantages
+              </Typography>
+              <Stack spacing={1.5} sx={{ mb: 3 }}>
+                {[
+                  'Publication illimitée après activation',
+                  'Gestion des demandes et réservations',
+                  'Support prioritaire',
+                  'Tableau de bord détaillé',
+                  'Statistiques avancées'
+                ].map((benefit, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <CheckCircleIcon sx={{ color: '#13c296', fontSize: 20, mt: 0.3 }} />
+                    <Typography variant="body2">{benefit}</Typography>
+                  </Box>
+                ))}
+              </Stack>
+              <Button 
+                fullWidth
+                variant="contained"
+                onClick={() => navigate('/owner/subscribe')}
+                sx={{
+                  bgcolor: '#13c296',
+                  color: 'white',
+                  py: 1.5,
+                  textTransform: 'none',
+                  '&:hover': {
+                    bgcolor: '#10a37f',
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.2s'
+                  }
+                }}
+              >
+                Choisir un abonnement
+              </Button>
+            </Paper>
+            {/* Status card */}
+            <Paper elevation={0} sx={{ 
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2
+            }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                État de la demande
+              </Typography>
+              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+                Suivi
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Après soumission, vous recevrez un code pour accéder à votre tableau de bord.
+              </Typography>
+              <Button
+                fullWidth
+                variant="outlined"
+                component={Link}
+                to="/owner/onboard"
+                sx={{
+                  py: 1.5,
+                  textTransform: 'none',
+                  borderColor: '#13c296',
+                  color: '#13c296',
+                  '&:hover': {
+                    borderColor: '#10a37f',
+                    bgcolor: 'rgba(19, 194, 150, 0.04)',
+                    transform: 'translateY(-2px)',
+                    transition: 'all 0.2s'
+                  }
+                }}
+              >
+                Voir l'état
+              </Button>
+            </Paper>
+          </Stack>
+        </Grid>
+
+        {/* Center - main form card */}
+        <Grid item xs={12} md={8} lg={9} order={{ xs: 1, md: 2 }}>
+          <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
+            {/* Progress bar */}
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Taux de complétion du profil
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {completion}%
+                </Typography>
+              </Box>
+              <Box sx={{ height: 8, bgcolor: '#eef9f6', borderRadius: 1, overflow: 'hidden' }}>
+                <Box 
+                  sx={{ 
+                    width: `${completion}%`, 
+                    height: '100%', 
+                    background: 'linear-gradient(90deg, #13c296, #10a37f)'
+                  }} 
+                />
+              </Box>
+              {completion < 70 && (
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mt: 1, 
+                    p: 1, 
+                    bgcolor: 'warning.light', 
+                    color: 'warning.dark',
+                    borderRadius: 1
+                  }}
+                >
+                  Votre profil est à {completion}%. Veuillez compléter vos informations.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Contact Information Form */}
+            <Typography variant="h6" gutterBottom>
+              Information de contact
+            </Typography>
+
+            {/* Step 1: Property Types */}
+            {step === 1 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                  Quel(s) type(s) de bien possédez-vous ?
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+                  {['Voiture', 'Terrain', 'Appartement', 'Salle de fête'].map(t => (
+                    <Button 
+                      key={t} 
+                      variant={types.includes(t) ? "contained" : "outlined"}
+                      onClick={() => toggleType(t)}
+                      sx={{
+                        mb: 1,
+                        bgcolor: types.includes(t) ? '#13c296' : 'transparent',
+                        color: types.includes(t) ? 'white' : 'text.primary',
+                        '&:hover': {
+                          bgcolor: types.includes(t) ? '#0ea67e' : 'rgba(19, 194, 150, 0.04)'
+                        }
+                      }}
+                    >
+                      {t}
+                    </Button>
+                  ))}
+                </Stack>
+                <Stack direction="row" spacing={2}>
+                  <Button
                     variant="contained"
-                                   
-                                    sx={{
-                                      bgcolor: '#13c296',
-                                      color: 'white',
-                                      alignSelf: 'flex-start',
-                                      textTransform: 'none',
-                                      px: 3,
-                                      '&:hover': {
-                                        bgcolor: '#10a37f',
-                                        transform: 'translateY(-2px)',
-                                        transition: 'all 0.2s'
-                                      }
-                                    }} href="/owner/onboard">Voir l'état</a>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    onClick={() => types.length ? setStep(2) : setValidationError('Sélectionnez au moins un type de bien')}
+                    sx={{
+                      bgcolor: '#13c296',
+                      color: 'white',
+                      textTransform: 'none',
+                      '&:hover': {
+                        bgcolor: '#10a37f',
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.2s'
+                      }
+                    }}
+                  >
+                    Suivant
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => { setTypes([]); setValidationError(''); }}
+                    sx={{
+                      borderColor: 'grey.300',
+                      color: 'text.primary',
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: 'grey.400',
+                        bgcolor: 'grey.50'
+                      }
+                    }}
+                  >
+                    Réinitialiser
+                  </Button>
+                </Stack>
+                {validationError && (
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mt: 2, 
+                      p: 1, 
+                      bgcolor: 'error.light', 
+                      color: 'error.dark',
+                      borderRadius: 1
+                    }}
+                  >
+                    {validationError}
+                  </Typography>
+                )}
+              </Box>
+            )}
 
-            {/* Center — main form card (keeps original form and logic) */}
-            <div style={{ width: 720 }}>
-              <div style={{ maxWidth: 720, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div className="small text-muted">Taux de complétion du profil</div>
-                  <div className="small fw-bold">{completion}%</div>
-                </div>
-                <div style={{ height: 10, background: '#eef9f6', borderRadius: 8, overflow: 'hidden' }}>
-                  <div style={{ width: `${completion}%`, height: '100%', background: 'linear-gradient(90deg, var(--owner-accent), var(--owner-accent-2))' }} />
-                </div>
-                {completion < 70 && <div className="mt-2 alert alert-warning small">Votre profil est à {completion}%. Veuillez compléter vos informations.</div>}
-              </div>
+            {/* Step 2: Personal Information Form */}
+            {step === 2 && (
+              <Box component="form" onSubmit={submitApplication}>
+                <Typography variant="subtitle1" sx={{ mb: 3 }}>
+                  Vos informations
+                </Typography>
 
-              <div className="card owner-card shadow-sm">
-                <div className="card-body p-3">
-                  <h4 className="mb-2">Information de contact</h4>
-                  {step === 1 && (
-                    <div>
-                      <h6>Quel(s) type(s) de bien possédez-vous ?</h6>
-                      <div className="d-flex gap-2 flex-wrap mb-3">
-                        {['Voiture', 'Terrain', 'Appartement', 'Salle de fête'].map(t => (
-                          <Button key={t} type="Button" className={`btn ${types.includes(t) ? 'owner-btn-primary' : 'btn-outline-secondary'}`} onClick={() => toggleType(t)}>{t}</Button>
-                        ))}
-                      </div>
-                      <div className="d-flex gap-2">
-                        <Button 
-                        sx={{
-                    bgcolor: '#13c296',
-                    color: 'white',
-                    alignSelf: 'flex-start',
-                    textTransform: 'none',
-                    px: 3,
-                    '&:hover': {
-                      bgcolor: '#10a37f',
-                      transform: 'translateY(-2px)',
-                      transition: 'all 0.2s'
-                    }}}
-                        onClick={() => types.length ? setStep(2) : setValidationError('Sélectionnez au moins un type de bien')}>Suivant</Button>
-                        <Button 
-                         sx={{
-                    bgcolor: '#13c296',
-                    color: 'white',
-                    alignSelf: 'flex-start',
-                    textTransform: 'none',
-                    px: 3,
-                    '&:hover': {
-                      bgcolor: '#10a37f',
-                      transform: 'translateY(-2px)',
-                      transition: 'all 0.2s'
-                    }}}
-                        onClick={() => { setTypes([]); setValidationError(''); }}>Réinitialiser</Button>
-                      </div>
-                    </div>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Nom"
+                      required
+                      value={form.nom}
+                      onChange={e => setForm({ ...form, nom: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Post-nom"
+                      value={form.postnom}
+                      onChange={e => setForm({ ...form, postnom: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Prénom"
+                      required
+                      value={form.prenom}
+                      onChange={e => setForm({ ...form, prenom: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Téléphone"
+                      value={form.phone}
+                      onChange={e => setForm({ ...form, phone: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Adresse complète"
+                      value={form.address}
+                      onChange={e => setForm({ ...form, address: e.target.value })}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* ID Document Upload */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Pièce d'identité (passeport, carte, permis)
+                  </Typography>
+                  <Button
+                    component="label"
+                    variant="outlined"
+                    startIcon={<CloudUploadIcon />}
+                    sx={{
+                      width: '100%',
+                      py: 2,
+                      border: '2px dashed',
+                      borderColor: idFile ? 'primary.main' : 'grey.300',
+                      '&:hover': {
+                        borderColor: 'primary.main'
+                      }
+                    }}
+                  >
+                    {idFile ? 'Changer le fichier' : 'Télécharger votre pièce d\'identité'}
+                    <VisuallyHiddenInput
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file && file.size <= 5 * 1024 * 1024) {
+                          setIdFile(file);
+                        } else {
+                          alert('Le fichier doit faire moins de 5MB');
+                        }
+                      }}
+                    />
+                  </Button>
+                  {idFile && (
+                    <FilePreview
+                      file={idFile}
+                      onDelete={() => setIdFile(null)}
+                    />
                   )}
+                </Box>
 
-                  {step === 2 && (
-                    <form onSubmit={submitApplication}>
-                      <h6 className="mb-3">Vos informations</h6>
-                      <div className="row">
-                        <div className="col-md-4 mb-3"><input className="form-control" placeholder="Nom" value={form.nom} onChange={e => setForm({ ...form, nom: e.target.value })} /></div>
-                        <div className="col-md-4 mb-3"><input className="form-control" placeholder="Post-nom" value={form.postnom} onChange={e => setForm({ ...form, postnom: e.target.value })} /></div>
-                        <div className="col-md-4 mb-3"><input className="form-control" placeholder="Prénom" value={form.prenom} onChange={e => setForm({ ...form, prenom: e.target.value })} /></div>
-                      </div>
-                      <div className="row">
-                        <div className="col-md-6 mb-3"><input className="form-control" placeholder="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></div>
-                        <div className="col-md-6 mb-3"><input className="form-control" placeholder="Téléphone" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
-                      </div>
-                      <div className="mb-3"><input className="form-control" placeholder="Adresse complète" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} /></div>
+                {/* Property Title Documents Upload */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Titre(s) de propriété
+                  </Typography>
+                  <Button
+                    component="label"
+                    variant="outlined"
+                    startIcon={<CloudUploadIcon />}
+                    sx={{
+                      width: '100%',
+                      py: 2,
+                      border: '2px dashed',
+                      borderColor: propTitleFiles.length ? 'primary.main' : 'grey.300',
+                      '&:hover': {
+                        borderColor: 'primary.main'
+                      }
+                    }}
+                  >
+                    Ajouter des titres de propriété
+                    <VisuallyHiddenInput
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        const validFiles = files.filter(file => file.size <= 5 * 1024 * 1024);
+                        if (validFiles.length !== files.length) {
+                          alert('Certains fichiers dépassent la limite de 5MB et n\'ont pas été ajoutés');
+                        }
+                        setPropTitleFiles(prev => [...prev, ...validFiles]);
+                      }}
+                    />
+                  </Button>
+                  {propTitleFiles.map((file, index) => (
+                    <FilePreview
+                      key={index}
+                      file={file}
+                      onDelete={() => setPropTitleFiles(files => files.filter((_, i) => i !== index))}
+                    />
+                  ))}
+                </Box>
 
-                      <div className="mb-3">
-                        <FileUploadPreview file={idFile} onChange={setIdFile} label={"Pièce d'identité (passeport, carte, permis)"} />
-                      </div>
+                {validationError && (
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mb: 2, 
+                      p: 1, 
+                      bgcolor: 'error.light', 
+                      color: 'error.dark',
+                      borderRadius: 1
+                    }}
+                  >
+                    {validationError}
+                  </Typography>
+                )}
 
-                      <div className="mb-3"><input className="form-control" placeholder="Titre(s) de propriété (optionnel)" value={propTitles.join(',')} onChange={e => setPropTitles(e.target.value.split(',').map(s => s.trim()))} /></div>
+                <Stack direction="row" spacing={2} justifyContent="flex-end">
+                  <Button
+                    variant="outlined"
+                    onClick={() => setStep(1)}
+                    sx={{
+                      borderColor: 'grey.300',
+                      color: 'text.primary',
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: 'grey.400',
+                        bgcolor: 'grey.50'
+                      }
+                    }}
+                  >
+                    Retour
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={submitApplication}
+                    sx={{
+                      bgcolor: '#13c296',
+                      color: 'white',
+                      textTransform: 'none',
+                      '&:hover': {
+                        bgcolor: '#10a37f',
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.2s'
+                      }
+                    }}
+                  >
+                    Soumettre la demande
+                  </Button>
+                </Stack>
+              </Box>
+            )}
+          </Paper>
+        </Grid>
 
-                      {validationError && <div className="alert alert-danger small">{validationError}</div>}
-
-                      <div className="d-flex justify-content-end gap-2">
-                        <Button type="Button" className="btn btn-outline-secondary" onClick={() => setStep(1)}>Retour</Button>
-                        <Button  sx={{
-                    bgcolor: '#13c296',
-                    color: 'white',
-                    alignSelf: 'flex-start',
-                    textTransform: 'none',
-                    px: 3,
-                    '&:hover': {
-                      bgcolor: '#10a37f',
-                      transform: 'translateY(-2px)',
-                      transition: 'all 0.2s'
-                    }}} onClick={submitApplication}>Soumettre la demande</Button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              </div>
-            </div>
-
-
-          </div>
-        </div>
-      </div>
-
-      <ConfirmModal open={confirmOpen} title="Confirmer l'envoi" message="Confirmez-vous l'envoi de votre demande ?" onConfirm={doSubmit} onCancel={() => setConfirmOpen(false)} />
-      <InfoModal open={infoOpen} title={infoTitle} message={infoMessage} onClose={() => { setInfoOpen(false); navigate('/owner/onboard'); }} />
-    </div>
+        {/* Modals */}
+        <ConfirmModal
+          open={confirmOpen}
+          title="Confirmer l'envoi"
+          message="Confirmez-vous l'envoi de votre demande ?"
+          onConfirm={doSubmit}
+          onCancel={() => setConfirmOpen(false)}
+        />
+        <InfoModal
+          open={infoOpen}
+          title={infoTitle}
+          message={infoMessage}
+          onClose={() => { setInfoOpen(false); navigate('/owner/onboard'); }}
+        />
+      </Grid>
+    </Container>
   );
 }

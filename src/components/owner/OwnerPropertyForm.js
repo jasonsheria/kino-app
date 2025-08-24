@@ -1,4 +1,28 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  Box,
+  Grid,
+  Stack,
+  TextField,
+  MenuItem,
+  Button,
+  Typography,
+  IconButton,
+  Chip,
+  Card,
+  CardMedia,
+  useTheme,
+  Paper,
+  Divider,
+  Alert,
+  alpha,
+} from '@mui/material';
+import {
+  CloudUpload as CloudUploadIcon,
+  Close as CloseIcon,
+  MyLocation as MyLocationIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
 import { agents, properties as sampleProps, owners as sampleOwners } from '../../data/fakedata';
 
 export default function OwnerPropertyForm({onSave, initial={}}){
@@ -163,104 +187,432 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     }, {enableHighAccuracy:true, timeout:8000});
   };
 
+  const theme = useTheme();
+  
+  const commonTextFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 0,
+      backgroundColor: 'background.paper',
+    }
+  };
+  
   return (
-    <div className="card mt-3 owner-card owner-form">
-      <div className="card-body">
-        <h5 className="mb-3">{defaults.title ? 'Modifier bien' : 'Ajouter un bien'}</h5>
-        <form onSubmit={onSubmit}>
-          <div className="row">
-            <div className="col-md-6 mb-3"><input className="form-control" placeholder="Titre" value={p.title} onChange={e=>setP({...p,title:e.target.value})} required /></div>
-            <div className="col-md-3 mb-3">
-              <select className="form-select" value={p.type} onChange={e=>setP({...p,type:e.target.value})}>
-                {types.map(t=> <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="col-md-3 mb-3">
-              <input className="form-control" placeholder="Prix" value={p.price} onChange={e=>setP({...p,price:e.target.value})} />
-            </div>
-          </div>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        p: 3,
+        borderRadius: 0,
+        border: `1px solid ${theme.palette.divider}`,
+        bgcolor: '#fff'
+      }}
+    >
+      <form id="property-form" onSubmit={onSubmit}>
+        <Stack spacing={2.5}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Titre"
+                value={p.title}
+                onChange={(e) => setP({ ...p, title: e.target.value })}
+                required
+                error={!!errors.title}
+                helperText={errors.title}
+                variant="outlined"
+                sx={commonTextFieldSx}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                select
+                label="Type"
+                value={p.type}
+                onChange={(e) => setP({ ...p, type: e.target.value })}
+                variant="outlined"
+                sx={commonTextFieldSx}
+              >
+                {types.map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                label="Prix"
+                value={p.price}
+                onChange={(e) => setP({ ...p, price: e.target.value })}
+                error={!!errors.price}
+                helperText={errors.price}
+                variant="outlined"
+                type="number"
+                inputProps={{ min: 0 }}
+                sx={commonTextFieldSx}
+              />
+            </Grid>
+          </Grid>
 
-          <div className="row">
-            <div className="col-md-8 mb-3"><input className="form-control" placeholder="Adresse complète" value={p.address} onChange={e=>setP({...p,address:e.target.value})} /></div>
-            <div className="col-md-4 mb-3">
-              <select className="form-select" value={p.agentId||''} onChange={e=>setP({...p,agentId: Number(e.target.value)})}>
-                {agentOptions.map(a=> <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-              {preferredAgentIds && preferredAgentIds.length>0 && <div className="small text-muted">Agents suggérés selon vos préférences</div>}
-            </div>
-          </div>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={8}>
+              <TextField
+                fullWidth
+                label="Adresse complète"
+                value={p.address}
+                onChange={(e) => setP({ ...p, address: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                select
+                label="Agent"
+                value={p.agentId || ''}
+                onChange={(e) => setP({ ...p, agentId: Number(e.target.value) })}
+              >
+                {agentOptions.map((a) => (
+                  <MenuItem key={a.id} value={a.id}>
+                    {a.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {preferredAgentIds && preferredAgentIds.length > 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Agents suggérés selon vos préférences
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
 
-          <div className="mb-3"><textarea className="form-control" placeholder="Description" value={p.description} onChange={e=>setP({...p,description:e.target.value})} rows={3} /></div>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Description"
+            value={p.description}
+            onChange={(e) => setP({ ...p, description: e.target.value })}
+          />
 
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <div className="mb-2 small text-muted">Images (max 8) — glisser/déposer ou cliquez pour sélectionner</div>
-              <div className="d-flex gap-2 flex-wrap">
-                {images.map((src,idx)=> (
-                  <div key={idx} style={{position:'relative'}}>
-                    <img src={src} alt="preview" style={{width:100,height:70,objectFit:'cover',borderRadius:6}} />
-                    <button type="button" className="btn btn-sm btn-danger" style={{position:'absolute',right:2,top:2}} onClick={()=>removeImage(idx)}>×</button>
-                  </div>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Images (max 8)
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gap: 1.5,
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                }}
+              >
+                {images.map((src, idx) => (
+                  <Paper 
+                    key={idx} 
+                    sx={{ 
+                      position: 'relative',
+                      height: 90,
+                      overflow: 'hidden',
+                      borderRadius: 0,
+                      border: `1px solid ${theme.palette.divider}`,
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="90"
+                      image={src}
+                      alt="preview"
+                      sx={{ 
+                        objectFit: 'cover',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                        },
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => removeImage(idx)}
+                      sx={{
+                        position: 'absolute',
+                        right: 4,
+                        top: 4,
+                        bgcolor: 'rgba(255,255,255,0.9)',
+                        borderRadius: 0,
+                        '&:hover': { 
+                          bgcolor: theme.palette.error.light,
+                          color: theme.palette.error.contrastText,
+                        },
+                      }}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Paper>
                 ))}
                 {images.length < 8 && (
-                  <label className="btn btn-outline-secondary btn-sm" style={{height:70,display:'inline-flex',alignItems:'center',padding:'0 12px',borderRadius:6, cursor:'pointer'}}>
-                    Ajouter
-                    <input type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=> addFiles(e.target.files)} />
-                  </label>
+                  <Button
+                    component="label"
+                    variant="outlined"
+                    sx={{
+                      height: 90,
+                      borderRadius: 0,
+                      borderStyle: 'dashed',
+                      borderColor: theme.palette.divider,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.main,
+                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                      },
+                    }}
+                  >
+                    <Stack spacing={1} alignItems="center">
+                      <AddIcon />
+                      <Typography variant="caption" color="text.secondary">
+                        Ajouter une image
+                      </Typography>
+                    </Stack>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      hidden
+                      onChange={(e) => addFiles(e.target.files)}
+                    />
+                  </Button>
                 )}
-              </div>
-            </div>
-            <div className="col-md-6 mb-3"><input className="form-control" placeholder="Superficie (m²)" value={p.superficie} onChange={e=>setP({...p,superficie:e.target.value})} /></div>
-          </div>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Superficie (m²)"
+                value={p.superficie}
+                onChange={(e) => setP({ ...p, superficie: e.target.value })}
+              />
+            </Grid>
+          </Grid>
 
-          <div className="row">
-            <div className="col-md-7 mb-3">
-              <div className="row">
-                <div className="col-md-6 mb-2"><input className="form-control" placeholder="Latitude" value={p.geoloc && p.geoloc.lat !== undefined ? p.geoloc.lat : ''} onChange={e=>setP({...p,geoloc:{...p.geoloc, lat: e.target.value}})} /></div>
-                <div className="col-md-6 mb-2"><input className="form-control" placeholder="Longitude" value={p.geoloc && p.geoloc.lng !== undefined ? p.geoloc.lng : ''} onChange={e=>setP({...p,geoloc:{...p.geoloc, lng: e.target.value}})} /></div>
-                <div className="col-12"><button type="button" className="btn btn-outline-secondary btn-sm mt-1" onClick={useMyLocation}>Utiliser ma position</button></div>
-              </div>
-            </div>
-            <div className="col-md-5 mb-3">
-              <div style={{width:'100%',height:160,borderRadius:6,overflow:'hidden',background:'#f3f3f3'}}>
-                <div ref={mapDivRef} style={{width:'100%',height:'100%'}} />
-              </div>
-              <div className="small text-muted mt-1">Aperçu de la position (OpenStreetMap)</div>
-            </div>
-          </div>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={7}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Latitude"
+                    value={p.geoloc && p.geoloc.lat !== undefined ? p.geoloc.lat : ''}
+                    onChange={(e) =>
+                      setP({ ...p, geoloc: { ...p.geoloc, lat: e.target.value } })
+                    }
+                    error={!!errors.geoloc}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Longitude"
+                    value={p.geoloc && p.geoloc.lng !== undefined ? p.geoloc.lng : ''}
+                    onChange={(e) =>
+                      setP({ ...p, geoloc: { ...p.geoloc, lng: e.target.value } })
+                    }
+                    error={!!errors.geoloc}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    startIcon={<MyLocationIcon />}
+                    onClick={useMyLocation}
+                    variant="outlined"
+                    size="small"
+                  >
+                    Utiliser ma position
+                  </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item xs={12} md={5}>
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Paper
+                  sx={{
+                    width: '100%',
+                    height: 200,
+                    overflow: 'hidden',
+                    bgcolor: 'grey.100',
+                    borderRadius: 0,
+                    border: `1px solid ${theme.palette.divider}`,
+                    flex: 1,
+                  }}
+                >
+                  <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
+                </Paper>
+                <Box sx={{ 
+                  p: 1, 
+                  bgcolor: theme.palette.grey[50],
+                  borderLeft: `1px solid ${theme.palette.divider}`,
+                  borderRight: `1px solid ${theme.palette.divider}`,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Aperçu de la position (OpenStreetMap)
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {errors.geoloc && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {errors.geoloc}
+            </Alert>
+          )}
 
           {isResidential && (
-            <div className="row">
-              <div className="col-md-2 mb-3"><input type="number" min="0" className="form-control" placeholder="Chambres" value={p.chambres} onChange={e=>setP({...p,chambres: Number(e.target.value)})} /></div>
-              <div className="col-md-2 mb-3"><input type="number" min="0" className="form-control" placeholder="Douches" value={p.douches} onChange={e=>setP({...p,douches: Number(e.target.value)})} /></div>
-              <div className="col-md-2 mb-3"><input type="number" min="0" className="form-control" placeholder="Salon" value={p.salon} onChange={e=>setP({...p,salon: Number(e.target.value)})} /></div>
-              <div className="col-md-2 mb-3"><input type="number" min="0" className="form-control" placeholder="Cuisine" value={p.cuisine} onChange={e=>setP({...p,cuisine: Number(e.target.value)})} /></div>
-              <div className="col-md-2 mb-3"><input type="number" min="0" className="form-control" placeholder="SDB" value={p.sdb} onChange={e=>setP({...p,sdb: Number(e.target.value)})} /></div>
-            </div>
+            <Grid container spacing={2}>
+              <Grid item xs={6} sm={4} md={2.4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Chambres"
+                  inputProps={{ min: 0 }}
+                  value={p.chambres}
+                  onChange={(e) => setP({ ...p, chambres: Number(e.target.value) })}
+                  error={!!errors.chambres}
+                  helperText={errors.chambres}
+                />
+              </Grid>
+              <Grid item xs={6} sm={4} md={2.4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Douches"
+                  inputProps={{ min: 0 }}
+                  value={p.douches}
+                  onChange={(e) => setP({ ...p, douches: Number(e.target.value) })}
+                />
+              </Grid>
+              <Grid item xs={6} sm={4} md={2.4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Salon"
+                  inputProps={{ min: 0 }}
+                  value={p.salon}
+                  onChange={(e) => setP({ ...p, salon: Number(e.target.value) })}
+                />
+              </Grid>
+              <Grid item xs={6} sm={4} md={2.4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Cuisine"
+                  inputProps={{ min: 0 }}
+                  value={p.cuisine}
+                  onChange={(e) => setP({ ...p, cuisine: Number(e.target.value) })}
+                />
+              </Grid>
+              <Grid item xs={6} sm={4} md={2.4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="SDB"
+                  inputProps={{ min: 0 }}
+                  value={p.sdb}
+                  onChange={(e) => setP({ ...p, sdb: Number(e.target.value) })}
+                />
+              </Grid>
+            </Grid>
           )}
 
           {isCommercial && (
-            <div className="mb-3">
-              <div className="small text-muted">Caractéristiques</div>
-              <div className="d-flex gap-2 flex-wrap mt-2">
-                {['Parking','Cuisine','Sécurité','Vitrine'].map(f=> (
-                  <button key={f} type="button" className={`btn btn-sm ${p.features && p.features.includes(f) ? 'owner-btn-primary' : 'btn-outline-secondary'}`} onClick={() => toggleFeature(f)}>{f}</button>
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                p: 2, 
+                borderRadius: 0,
+                borderColor: theme.palette.divider,
+              }}
+            >
+              <Typography variant="subtitle2" gutterBottom sx={{ color: theme.palette.text.primary }}>
+                Caractéristiques
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {['Parking', 'Cuisine', 'Sécurité', 'Vitrine'].map((f) => (
+                  <Chip
+                    key={f}
+                    label={f}
+                    onClick={() => toggleFeature(f)}
+                    color={p.features && p.features.includes(f) ? 'primary' : 'default'}
+                    variant={p.features && p.features.includes(f) ? 'filled' : 'outlined'}
+                    sx={{ 
+                      borderRadius: 0,
+                      height: 32,
+                      '& .MuiChip-label': {
+                        px: 1.5,
+                      },
+                      ...(p.features && p.features.includes(f) 
+                        ? {
+                            bgcolor: theme.palette.primary.main,
+                            color: theme.palette.primary.contrastText,
+                            '&:hover': {
+                              bgcolor: theme.palette.primary.dark,
+                            },
+                          }
+                        : {
+                            borderColor: theme.palette.divider,
+                            '&:hover': {
+                              bgcolor: theme.palette.action.hover,
+                            },
+                          }
+                      ),
+                    }}
+                  />
                 ))}
-              </div>
-            </div>
+              </Box>
+            </Paper>
           )}
 
-          <div className="d-flex gap-2">
-            <button className="btn owner-btn-primary" type="submit" disabled={Object.keys(errors).length>0}>Enregistrer</button>
-            <button type="button" className="btn btn-outline-secondary" onClick={()=>onSave(initial)}>Annuler</button>
-          </div>
-          {Object.keys(errors).length>0 && (
-            <div className="mt-2 text-danger small">
-              {Object.values(errors).map((v,i)=>(<div key={i}>{v}</div>))}
-            </div>
+          {Object.keys(errors).length > 0 && (
+            <Paper 
+              sx={{ 
+                p: 2,
+                borderLeft: `4px solid ${theme.palette.error.main}`,
+                bgcolor: alpha(theme.palette.error.main, 0.03),
+                borderRadius: 0,
+              }}
+            >
+              <Stack spacing={0.5}>
+                {Object.values(errors).map((v, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: theme.palette.error.main,
+                      }}
+                    />
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: theme.palette.error.main,
+                        fontWeight: 500
+                      }}
+                    >
+                      {v}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
           )}
-        </form>
-      </div>
-    </div>
+        </Stack>
+      </form>
+    </Paper>
   );
 }
