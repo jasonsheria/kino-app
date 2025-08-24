@@ -171,11 +171,11 @@ const AgentCard = ({ agent }) => {
 
         .agent-name h3 { margin:0; font-size:1rem; font-weight:600; color: #2d3748; }
 
-        .certified-icon { color: #13c296; font-size:1rem; }
+  .certified-icon { color: var(--ndaku-primary); font-size:1rem; }
 
         .status-badge { padding: 0.25rem 0.5rem; border-radius: 0; font-size:0.85rem; font-weight:500; }
 
-        .status-badge.active { background: rgba(19, 194, 150, 0.08); color: #13c296; }
+  .status-badge.active { background: var(--ndaku-primary-100); color: var(--ndaku-primary); }
         .status-badge.inactive { background: rgba(160,174,192,0.06); color:#a0aec0; }
 
         .agent-location { display:flex; align-items:center; gap:0.5rem; color:#718096; font-size:0.9rem; }
@@ -184,7 +184,7 @@ const AgentCard = ({ agent }) => {
 
         .contact-btn { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.6rem; border:none; border-radius:0; background:transparent; color:#4a5568; cursor:pointer; font-size:0.85rem; }
 
-        .contact-btn:hover { transform:translateY(-2px); color:#13c296; }
+  .contact-btn:hover { transform:translateY(-2px); color:var(--ndaku-primary); }
 
         .btn-label { display:none; }
 

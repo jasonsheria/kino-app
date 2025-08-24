@@ -2,12 +2,15 @@ import React, { useEffect, useState, useMemo } from 'react';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import Modal from '../components/common/Modal';
 import '../styles/owner.css';
+import { Button, useMediaQuery, useTheme } from '@mui/material';
 // Chart.js
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 export default function OwnerWallet(){
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   // determine current owner id (from localStorage draft or fallback to sample owner)
   const ownerDraft = (()=>{ try{ return JSON.parse(localStorage.getItem('owner_request_draft')||'null'); }catch(e){return null;} })();
   const owner = ownerDraft && ownerDraft.id ? ownerDraft : { id:1, name:'Propriétaire Demo' };
@@ -150,8 +153,8 @@ export default function OwnerWallet(){
                 </div>
 
                 <div className="mt-3 d-flex gap-2">
-                  <button className="btn owner-btn-primary">Ajouter des fonds</button>
-                  <button className="btn btn-outline-secondary">Retirer</button>
+                  <Button variant="contained" className="owner-btn-primary" onClick={() => setOpenAdd(true)}>Ajouter des fonds</Button>
+                  <Button variant="outlined" onClick={() => setOpenWithdraw(true)}>Retirer</Button>
                 </div>
               </div>
             </div>
@@ -204,21 +207,21 @@ export default function OwnerWallet(){
               <div className="card-body">
                 <div className="d-flex align-items-center justify-content-between">
                   <h6>Invoices</h6>
-                  <div>
-                    <input type="file" accept="application/pdf,image/*" id="invoiceUpload" style={{display:'none'}} onChange={handleInvoiceUpload} />
-                    <label htmlFor="invoiceUpload" className="btn btn-sm btn-outline-secondary" style={{cursor:'pointer'}}>Upload invoice</label>
-                  </div>
+                    <div>
+                      <input type="file" accept="application/pdf,image/*" id="invoiceUpload" style={{display:'none'}} onChange={handleInvoiceUpload} />
+                      <Button size="small" variant="outlined" onClick={() => document.getElementById('invoiceUpload').click()}>Upload invoice</Button>
+                    </div>
                 </div>
                 <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:12}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <div>
-                      <button className="btn btn-sm btn-outline-secondary" onClick={()=> setOpenAdd(true)}>Ajouter des fonds</button>
-                      <button className="btn btn-sm btn-outline-secondary ms-2" onClick={()=> setOpenWithdraw(true)}>Retirer</button>
-                    </div>
-                    <div>
-                      <label htmlFor="invoiceUpload2" className="btn btn-sm btn-outline-secondary" style={{cursor:'pointer'}}>Upload invoice</label>
-                      <input id="invoiceUpload2" type="file" accept="application/pdf,image/*" style={{display:'none'}} onChange={handleInvoiceUpload} />
-                    </div>
+                      <div>
+                        <Button size="small" variant="outlined" onClick={()=> setOpenAdd(true)}>Ajouter des fonds</Button>
+                        <Button size="small" variant="outlined" className="ms-2" onClick={()=> setOpenWithdraw(true)}>Retirer</Button>
+                      </div>
+                      <div>
+                        <input id="invoiceUpload2" type="file" accept="application/pdf,image/*" style={{display:'none'}} onChange={handleInvoiceUpload} />
+                        <Button size="small" variant="outlined" onClick={() => document.getElementById('invoiceUpload2').click()}>Upload invoice</Button>
+                      </div>
                   </div>
 
                   {invoices.map((inv, idx) => (
@@ -229,7 +232,7 @@ export default function OwnerWallet(){
                         <div className="small text-muted">{inv.due || (inv.time ? new Date(inv.time).toLocaleString() : '')}</div>
                       </div>
                       <div style={{display:'flex',gap:8}}>
-                        {inv.dataUrl && <button className="btn btn-sm btn-outline-primary" onClick={()=>downloadInvoice(inv)}>Download</button>}
+                        {inv.dataUrl && <Button size="small" variant="outlined" onClick={()=>downloadInvoice(inv)}>Download</Button>}
                       </div>
                     </div>
                   ))}
@@ -247,15 +250,15 @@ export default function OwnerWallet(){
                             </div>
                           </div>
                           <div style={{display:'flex',gap:8}}>
-                            {!c.verified && !c.verifying && <button className="btn btn-sm btn-outline-success" onClick={()=> verifyCard(c.id)}>Vérifier</button>}
-                            <button className="btn btn-sm btn-outline-secondary" onClick={()=>{ setCardForm(c); setOpenCardModal(true); }}>Modifier</button>
-                            <button className="btn btn-sm btn-outline-danger" onClick={()=> removeCard(c.id)}>Supprimer</button>
-                            {!c.primary && <button className="btn btn-sm btn-outline-primary" onClick={()=> setPrimaryCard(c.id)}>Définir par défaut</button>}
+                            {!c.verified && !c.verifying && <Button size="small" variant="outlined" color="success" onClick={()=> verifyCard(c.id)}>Vérifier</Button>}
+                            <Button size="small" variant="outlined" onClick={()=>{ setCardForm(c); setOpenCardModal(true); }}>Modifier</Button>
+                            <Button size="small" variant="outlined" color="error" onClick={()=> removeCard(c.id)}>Supprimer</Button>
+                            {!c.primary && <Button size="small" variant="outlined" onClick={()=> setPrimaryCard(c.id)}>Définir par défaut</Button>}
                           </div>
                         </div>
                       ))}
                       <div>
-                        <button className="btn btn-sm btn-primary" onClick={()=>{ setCardForm({ id:null, name:'', number:'', exp:'', cvv:'' }); setOpenCardModal(true); }}>Ajouter une carte</button>
+                        <Button size="small" variant="contained" onClick={()=>{ setCardForm({ id:null, name:'', number:'', exp:'', cvv:'' }); setOpenCardModal(true); }}>Ajouter une carte</Button>
                       </div>
                     </div>
                   </div>
@@ -271,9 +274,9 @@ export default function OwnerWallet(){
             <h5>Ajouter des fonds</h5>
             <div className="mb-2 small text-muted">Simulation de paiement (Stripe mock)</div>
             <input className="form-control mb-2" placeholder="Montant en USD" id="addAmount" type="number" />
-            <div className="d-flex gap-2">
-              <button className="btn owner-btn-primary" onClick={()=>{ const v = document.getElementById('addAmount').value || 0; addFunds(Number(v)); }}>Payer</button>
-              <button className="btn btn-outline-secondary" onClick={()=>setOpenAdd(false)}>Annuler</button>
+            <div className="d-flex gap-2" style={{marginTop:8}}>
+              <Button variant="contained" className="owner-btn-primary" onClick={()=>{ const v = document.getElementById('addAmount').value || 0; addFunds(Number(v)); }} fullWidth={isSmall}>Payer</Button>
+              <Button variant="outlined" onClick={()=>setOpenAdd(false)} fullWidth={isSmall}>Annuler</Button>
             </div>
           </div>
         </Modal>
@@ -283,9 +286,9 @@ export default function OwnerWallet(){
             <h5>Retirer des fonds</h5>
             <div className="mb-2 small text-muted">Simulation de retrait</div>
             <input className="form-control mb-2" placeholder="Montant en USD" id="withdrawAmount" type="number" />
-            <div className="d-flex gap-2">
-              <button className="btn owner-btn-primary" onClick={()=>{ const v = document.getElementById('withdrawAmount').value || 0; withdrawFunds(Number(v)); }}>Retirer</button>
-              <button className="btn btn-outline-secondary" onClick={()=>setOpenWithdraw(false)}>Annuler</button>
+            <div className="d-flex gap-2" style={{marginTop:8}}>
+              <Button variant="contained" className="owner-btn-primary" onClick={()=>{ const v = document.getElementById('withdrawAmount').value || 0; withdrawFunds(Number(v)); }} fullWidth={isSmall}>Retirer</Button>
+              <Button variant="outlined" onClick={()=>setOpenWithdraw(false)} fullWidth={isSmall}>Annuler</Button>
             </div>
           </div>
         </Modal>
@@ -299,9 +302,9 @@ export default function OwnerWallet(){
               <input className="form-control mb-2" placeholder="MM/AA" value={cardForm.exp} onChange={e=>setCardForm({...cardForm, exp:e.target.value})} />
               <input className="form-control mb-2" placeholder="CVV" value={cardForm.cvv} onChange={e=>setCardForm({...cardForm, cvv:e.target.value})} />
             </div>
-            <div className="d-flex gap-2">
-              <button className="btn owner-btn-primary" onClick={()=>saveCardWithValidation(cardForm)}>Enregistrer</button>
-              <button className="btn btn-outline-secondary" onClick={()=>setOpenCardModal(false)}>Annuler</button>
+            <div className="d-flex gap-2" style={{marginTop:8}}>
+              <Button variant="contained" className="owner-btn-primary" onClick={()=>saveCardWithValidation(cardForm)} fullWidth={isSmall}>Enregistrer</Button>
+              <Button variant="outlined" onClick={()=>setOpenCardModal(false)} fullWidth={isSmall}>Annuler</Button>
             </div>
           </div>
         </Modal>

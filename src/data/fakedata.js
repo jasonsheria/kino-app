@@ -10,7 +10,8 @@ export const properties = [
     images: [require('../img/property-1.jpg'), require('../img/property-2.jpg')],
   agentId: 1,
   geoloc: { lat: -4.3386, lng: 15.2986 },
-    status: "vente",
+  status: "vente",
+  visitFee: 5000,
     chambres: 3,
     douches: 2,
     salon: 1,
@@ -27,7 +28,8 @@ export const properties = [
     images: [require('../img/property-3.jpg'), require('../img/property-4.jpg')],
   agentId: 2,
   geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
+  status: "vente",
+  visitFee: 8000,
     chambres: 5,
     douches: 3,
     salon: 2,
@@ -44,7 +46,8 @@ export const properties = [
     images: [require('../img/property-5.jpg')],
   agentId: 3,
   geoloc: { lat: -4.4841, lng: 15.2471 },
-    status: "vente",
+  status: "vente",
+  visitFee: 3000,
   },
   {
     id: 9,
@@ -56,7 +59,8 @@ export const properties = [
     images: [require('../img/property-4.jpg'), require('../img/property-3.jpg')],
   agentId: 1,
   geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
+  status: "vente",
+  visitFee: 15000,
     superficie: 350,
   },
   {
@@ -69,7 +73,8 @@ export const properties = [
     images: [require('../img/property-5.jpg')],
   agentId: 3,
   geoloc: { lat: -4.4841, lng: 15.2471 },
-    status: "vente",
+  status: "vente",
+  visitFee: 7000,
     superficie: 800,
   },
   {
@@ -231,6 +236,11 @@ export const agents = [
     status: "Actif",
     subscription: "Pro",
     geoloc: { lat: -4.325, lng: 15.322 },
+    // busyDates should be array of ISO date strings (YYYY-MM-DD)
+    busyDates: [
+      new Date(Date.now() + 2*24*3600*1000).toISOString().slice(0,10),
+      new Date(Date.now() + 5*24*3600*1000).toISOString().slice(0,10)
+    ],
     properties: [1, 4, 7],
   },
   {
@@ -245,6 +255,10 @@ export const agents = [
     status: "Actif",
     subscription: "Pro",
     geoloc: { lat: -4.320, lng: 15.300 },
+    busyDates: [
+      new Date(Date.now() + 1*24*3600*1000).toISOString().slice(0,10),
+      new Date(Date.now() + 7*24*3600*1000).toISOString().slice(0,10)
+    ],
     properties: [2, 5, 8],
   },
   {
@@ -259,6 +273,9 @@ export const agents = [
     status: "Actif",
     subscription: "Basic",
     geoloc: { lat: -4.350, lng: 15.280 },
+    busyDates: [
+      new Date(Date.now() + 3*24*3600*1000).toISOString().slice(0,10)
+    ],
     properties: [3, 6],
   },
 ];

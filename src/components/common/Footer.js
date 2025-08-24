@@ -42,8 +42,8 @@ const Footer = () => {
     <Box
       component="footer"
       sx={{
-        bgcolor: isDark ? 'background.paper' : '#f8f9fa',
-        borderTop: '4px solid #13c296',
+  bgcolor: isDark ? 'background.paper' : '#f8f9fa',
+  borderTop: '4px solid var(--ndaku-primary)',
         mt: 'auto',
         position: 'relative',
         '&::before': {
@@ -68,9 +68,9 @@ const Footer = () => {
               <Box>
                 <Typography 
                   variant="h4"
-                  sx={{ 
+                    sx={{ 
                     fontWeight: 800,
-                    color: '#13c296',
+                    color: 'var(--ndaku-primary)',
                     letterSpacing: 2,
                     mb: 1
                   }}
@@ -79,8 +79,8 @@ const Footer = () => {
                 </Typography>
                 <Typography 
                   variant="subtitle2"
-                  sx={{ 
-                    color: isDark ? '#13c296' : '#10a37f',
+                  sx={{
+                    color: isDark ? 'var(--ndaku-primary)' : '#10a37f',
                     letterSpacing: 3,
                     textTransform: 'uppercase'
                   }}
@@ -102,8 +102,8 @@ const Footer = () => {
               <Button 
                 variant="contained"
                 startIcon={<FaHome />}
-                sx={{
-                  bgcolor: '#13c296',
+                  sx={{
+                  bgcolor: 'var(--ndaku-primary)',
                   color: 'white',
                   alignSelf: 'flex-start',
                   textTransform: 'none',
@@ -138,13 +138,13 @@ const Footer = () => {
                   key={index}
                   href={link.link}
                   underline="none"
-                  sx={{
+                    sx={{
                     display: 'flex',
                     alignItems: 'center',
                     color: 'text.secondary',
                     transition: 'all 0.2s',
                     '&:hover': {
-                      color: '#13c296',
+                      color: 'var(--ndaku-primary)',
                       transform: 'translateX(8px)'
                     }
                   }}
@@ -190,7 +190,7 @@ const Footer = () => {
                         bgcolor: isDark ? 'rgba(19,194,150,0.1)' : 'rgba(19,194,150,0.1)',
                       }}
                     >
-                      <info.icon style={{ color: '#13c296', fontSize: '1.2rem' }} />
+                      <info.icon style={{ color: 'var(--ndaku-primary)', fontSize: '1.2rem' }} />
                     </Box>
                     <Typography 
                       variant="body2"
@@ -203,7 +203,7 @@ const Footer = () => {
                     href={info.link}
                     underline="none"
                     sx={{
-                      color: '#13c296',
+                      color: 'var(--ndaku-primary)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       ml: 7,
@@ -251,11 +251,11 @@ const Footer = () => {
                 <IconButton 
                   key={i}
                   size={isMobile ? "small" : "medium"}
-                  sx={{
+                      sx={{
                     color: 'text.secondary',
                     transition: 'all 0.3s',
                     '&:hover': {
-                      color: '#13c296',
+                      color: 'var(--ndaku-primary)',
                       transform: 'translateY(-3px)',
                       bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(19,194,150,0.1)'
                     }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { agents } from '../../data/fakedata';
 import AgentContactModal from '../common/AgentContactModal';
+import VisitUnlockModal from '../common/VisitUnlockModal';
 import { FaWhatsapp } from 'react-icons/fa';
 import { FaCar, FaTachometerAlt, FaPalette, FaCalendarAlt, FaGasPump, FaCogs, FaUserTie, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 
@@ -11,10 +12,14 @@ const VehicleCard = ({ vehicle }) => {
   const nextImg = () => setImgIdx((imgIdx + 1) % vehicle.images.length);
   const prevImg = () => setImgIdx((imgIdx - 1 + vehicle.images.length) % vehicle.images.length);
   const [showContact, setShowContact] = useState(false);
+  const [showUnlock, setShowUnlock] = useState(false);
+  const [unlocked, setUnlocked] = useState(()=>{
+    try{ const raw = localStorage.getItem('unlocked_contacts'); return raw ? JSON.parse(raw).includes(vehicle.id) : false; }catch(e){return false}
+  });
   const navigate = useNavigate();
 
   return (
-    <div className="card shadow-lg border-0 mb-4 vehicle-card animate__animated animate__fadeInUp" style={{ borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(120deg, #f8f9fa 60%, #e9f7f3 100%)', minHeight: 160 }}>
+  <div className="card shadow-lg border-0 mb-4 vehicle-card animate__animated animate__fadeInUp" style={{ borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(120deg, rgba(19,194,150,0.03) 40%, rgba(25,118,210,0.03) 100%)', minHeight: 160 }}>
       <div className="position-relative">
         <img
           src={vehicle.images[imgIdx]}
@@ -29,8 +34,8 @@ const VehicleCard = ({ vehicle }) => {
             <button className="btns btn-light position-absolute top-50 end-0 translate-middle-y me-2 shadow" style={{zIndex:2}} onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
           </>
         )}
-        <span className="badge bg-success position-absolute top-0 end-0 m-2 fs-6 shadow">{vehicle.type}</span>
-        <span className="badge bg-primary position-absolute top-0 start-0 m-2 fs-6 shadow">{vehicle.status}</span>
+  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'#13c296', color:'#fff'}}>{vehicle.type}</span>
+  <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{vehicle.status}</span>
       </div>
       <div className="card-body">
         <h6 className="card-title fw-bold text-primary mb-1">{vehicle.name}</h6>
@@ -51,17 +56,37 @@ const VehicleCard = ({ vehicle }) => {
           <span className="badge bg-light text-dark border me-1" title="Places"><FaUsers className="me-1 text-secondary" /> {vehicle.places}</span>
         </div>
   {agent && (
-          <div className="d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s" style={{ boxShadow: '0 2px 8px #0001' }}>
-            <img src={agent.photo} alt={agent.name} className="rounded-circle me-2 border" style={{ width: 38, height: 38, objectFit: 'cover', border: '2px solid #13c296' }} />
-            <div className="flex-grow-1">
-              <div className="fw-semibold text-success small">{agent.name}</div>
-              <div className="small text-muted">{agent.phone}</div>
+          <div className="d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s" style={{ boxShadow: '0 2px 8px #0001', position:'relative' }}>
+            <div style={{position:'relative', display:'flex', alignItems:'center', gap:12, width:'100%'}}>
+              <div style={{display:'flex',alignItems:'center',gap:12, flex:1}}>
+                <div style={{width:38, height:38, borderRadius:999, overflow:'hidden', border:'2px solid var(--ndaku-primary)', flex:'0 0 38px', filter: unlocked ? 'none' : 'blur(4px) grayscale(.15)', transition:'filter .32s ease'}}>
+                  <img src={agent.photo} alt={agent.name} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                </div>
+                <div style={{flex:1}}>
+                  <div className="fw-semibold small" style={{color: unlocked ? 'var(--ndaku-primary)' : 'rgba(0,0,0,0.6)', fontWeight:700}}>{agent.name}</div>
+                  <div className="small text-muted" style={{filter: unlocked ? 'none' : 'blur(3px)'}}>{unlocked ? agent.phone : '••• ••• •••'}</div>
+                </div>
+              </div>
+              <div style={{display:'flex', alignItems:'center', gap:8}}>
+                {!unlocked ? (
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <div style={{width:42,height:42, borderRadius:8, background:'var(--ndaku-primary-100)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="var(--ndaku-primary)" d="M12 17a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+                    </div>
+                    <button className="btns btn-primary btn-sm" title="Réserver" onClick={()=>setShowUnlock(true)} style={{padding:'6px 10px', borderRadius:8, fontWeight:700, transform:'translateY(0)', transition:'transform .18s'}} onMouseEnter={(e)=>e.currentTarget.style.transform='translateY(-3px)'} onMouseLeave={(e)=>e.currentTarget.style.transform='translateY(0)'}>Réserver</button>
+                  </div>
+                ) : (
+                  <>
+                    <button className="btns btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, vehicleId: vehicle.id } } }))}><FaUserTie /></button>
+                    <button className="btns btn-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
+                    {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
+                  </>
+                )}
+              </div>
             </div>
-            <button className="btns btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, vehicleId: vehicle.id } } }))}><FaUserTie /></button>
-            <button className="btns btn-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
-            {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
           </div>
         )}
+      {showUnlock && <VisitUnlockModal open={showUnlock} onClose={()=>setShowUnlock(false)} agent={agent} property={vehicle} onUnlocked={(pid)=>{ setUnlocked(true); setShowUnlock(false); }} />}
         {/* Bouton Visiter (comme pour les biens immobiliers) */}
         <div className="d-flex justify-content-end mt-3">
           <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>

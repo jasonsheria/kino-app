@@ -466,3 +466,232 @@ html, body, #root { height:100%; }
   .owner-msg-list{ max-width:100%; }
   .owner-messages-search .form-control{ min-width:120px; }
 }
+
+/* OwnerProfile improvements */
+.profile-card { display: grid; grid-template-columns: 280px 1fr; gap:20px; align-items:start; }
+.profile-avatar { width:100%; height:260px; border-radius:12px; overflow:hidden; box-shadow:0 12px 30px rgba(12,30,60,0.06); }
+.profile-meta { display:flex; flex-direction:column; gap:12px; }
+.profile-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+.profile-grid .form-label{ font-weight:700; }
+.profile-action-row { display:flex; gap:10px; justify-content:flex-end; }
+.profile-section { background:#fff; border-radius:10px; padding:12px; box-shadow:0 8px 20px rgba(12,30,60,0.04); }
+.profile-rating { display:flex; align-items:center; gap:10px; }
+.reviews-list { display:flex; flex-direction:column; gap:10px; }
+.review-item { padding:12px; border-radius:8px; border:1px solid #eef4f7; background: #fff; }
+
+/* Sticky actions for small screens */
+.sticky-actions { position: sticky; bottom: 12px; z-index: 40; background: transparent; padding-top:8px; }
+
+@media (max-width: 900px){
+  .profile-card { grid-template-columns: 1fr; }
+  .profile-avatar { height:200px; }
+}
+
+/* ---------------- Professional redesign overrides ---------------- */
+:root{
+  --pro-bg: #f7faf9;
+  --pro-surface: #ffffff;
+  --pro-muted: #6b7280;
+  --pro-heading: #0f172a;
+  --pro-accent: #0ea5a3; /* refined teal */
+  --pro-accent-2: #06b6a4;
+  --pro-radius: 14px;
+  --pro-shadow-1: 0 10px 30px rgba(8,20,40,0.06);
+  --pro-shadow-2: 0 18px 50px rgba(6,18,40,0.08);
+}
+
+html, body { background: var(--pro-bg); color: var(--pro-heading); font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+
+/* Card refinements */
+.owner-card { background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,251,252,0.99)); box-shadow: var(--pro-shadow-2); border-radius: var(--pro-radius); padding: 22px; }
+.center-card { padding: 28px; }
+
+/* Tighter, more readable top-row */
+.top-row h4{ font-size:1.3rem; color:var(--pro-heading); margin:0 0 6px; font-weight:800; }
+.top-row .text-muted{ color:var(--pro-muted); font-size:0.95rem; }
+
+/* Profile grid adjustments */
+.profile-card { grid-template-columns: 320px 1fr; gap:28px; align-items:start; }
+.profile-avatar { height: 320px; border-radius: 12px; overflow:hidden; background: linear-gradient(180deg, #f8fafb, #ffffff); display:block; box-shadow: var(--pro-shadow-1); }
+.profile-avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.profile-section{ padding:18px; border-radius:12px; background:var(--pro-surface); box-shadow:var(--pro-shadow-1); }
+
+/* Form controls */
+.form-control, .form-select, textarea.form-control{ border:1px solid #e6eef3; padding:12px 14px; border-radius:10px; background:transparent; box-shadow:none; transition: box-shadow .16s ease, border-color .12s ease; }
+.form-control:focus, .form-select:focus, textarea.form-control:focus{ outline:none; border-color: var(--pro-accent); box-shadow: 0 6px 20px rgba(6,182,163,0.06); }
+.form-label{ font-weight:700; color:var(--pro-heading); margin-bottom:6px; display:block; }
+
+/* Buttons */
+.owner-btn-primary{ background: linear-gradient(90deg,var(--pro-accent), var(--pro-accent-2)); color:white; border:none; padding:10px 16px; border-radius:10px; box-shadow: 0 8px 22px rgba(6,182,163,0.12); font-weight:800; transition: transform .12s ease, box-shadow .12s ease; }
+.owner-btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 20px 44px rgba(6,182,163,0.12); }
+.owner-btn-outline{ border:1px solid rgba(15,115,117,0.08); color:var(--pro-accent); background:transparent; padding:9px 14px; border-radius:10px; }
+
+.profile-action-row{ gap:12px; }
+
+/* Sticky actions with frosted backdrop on small screens */
+.sticky-actions{ position: sticky; bottom: 12px; z-index:60; display:flex; justify-content:center; padding:10px; }
+.sticky-actions .profile-action-row{ background: rgba(255,255,255,0.88); padding:10px 14px; border-radius:12px; box-shadow: 0 8px 30px rgba(8,20,40,0.06); }
+
+/* Rating block */
+.profile-rating { gap:14px; }
+.profile-rating > div:first-child{ font-size:34px; font-weight:900; color:var(--pro-heading); }
+.profile-rating .small{ color:var(--pro-muted); }
+
+/* Reviews */
+.review-item{ border:1px solid #eef4f7; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdff); }
+.review-item .meta{ display:flex; justify-content:space-between; gap:12px; align-items:center; }
+.review-item .meta .date{ color:var(--pro-muted); font-size:0.9rem; }
+.review-item .text{ margin-top:8px; color:#24303a; line-height:1.45; }
+
+/* Avatar controls */
+.profile-avatar .avatar-actions{ display:flex; gap:8px; margin-top:12px; }
+.profile-avatar .avatar-actions .btn{ padding:8px 12px; border-radius:10px; }
+
+/* Messages and thread subtle polish */
+.owner-msg-card{ border-radius:12px; background: linear-gradient(180deg,#ffffff,#fbfdff); border: 1px solid #eef4f7; }
+.owner-msg-body{ padding:14px; }
+.owner-msg-avatar{ border-radius:10px; background:linear-gradient(180deg,#f3faf8,#ffffff); box-shadow: inset 0 -6px 18px rgba(6,182,163,0.02); }
+
+/* Thread area */
+.owner-thread-card{ border-radius:12px; overflow:hidden; }
+.owner-thread-header{ background:transparent; padding:14px 16px; }
+.owner-thread-messages{ padding:16px; background: linear-gradient(180deg,#ffffff,#fbfdff); }
+.owner-thread-message .bubble{ padding:12px 14px; border-radius:12px; box-shadow:0 6px 20px rgba(8,20,40,0.04); }
+.owner-thread-message.outgoing .bubble{ background: linear-gradient(180deg,#e6fffb,#d1fff2); }
+.owner-thread-message.incoming .bubble{ background:#f8fafc; }
+
+/* Responsive tweaks */
+@media (max-width: 1000px){
+  .profile-card{ grid-template-columns: 1fr; }
+  .profile-avatar{ height:220px; }
+  .center-card{ padding:18px; }
+}
+
+@media (max-width: 640px){
+  .top-row h4{ font-size:1.15rem; }
+  .owner-btn-primary{ width:100%; }
+  .sticky-actions{ padding:8px; }
+  .sticky-actions .profile-action-row{ width:100%; }
+}
+
+/* small UI helpers */
+.muted-small{ color:var(--pro-muted); font-size:0.92rem; }
+.section-title{ font-weight:800; color:var(--pro-heading); margin-bottom:8px; }
+
+/* end professional redesign overrides */
+
+/* ---------------- OwnerSettings specific styles ---------------- */
+.settings-card{ padding:18px; border-radius:12px; box-shadow:0 12px 36px rgba(6,18,40,0.06); background:linear-gradient(180deg,#ffffff,#fbfdff); }
+.settings-grid{ display:grid; gap:18px; align-items:start; }
+.settings-left{ padding:6px; }
+.settings-right{ padding:6px; border-left: 1px dashed rgba(14,165,164,0.06); }
+
+.section-title{ font-size:1rem; font-weight:800; color:var(--pro-heading); margin-bottom:8px; }
+.settings-card label{ display:flex; align-items:center; gap:10px; color:var(--pro-heading); }
+
+/* style MUI Buttons to match owner theme */
+.MuiButton-root.owner-btn-primary{ background: linear-gradient(90deg,var(--pro-accent), var(--pro-accent-2)); color:#fff; box-shadow:0 10px 30px rgba(6,182,163,0.12); }
+.MuiButton-root.owner-btn-primary:hover{ box-shadow:0 18px 44px rgba(6,182,163,0.18); }
+
+@media (max-width: 900px){
+  .settings-right{ border-left:none; border-top: 1px dashed rgba(14,165,164,0.06); padding-top:12px; }
+}
+
+@media (max-width: 640px){
+  .settings-card{ padding:14px; }
+  .section-title{ font-size:0.96rem; }
+}
+
+/* End OwnerSettings styles */
+
+/* Prevent overflow and ensure spacing/structure */
+.settings-card{ box-sizing: border-box; max-width: 980px; width: calc(100% - 32px); margin: 0 auto; }
+.settings-grid{ width:100%; grid-template-columns: 1fr 320px; }
+.settings-left, .settings-right{ min-width:0; }
+
+/* Make form controls respect container width and not overflow */
+.settings-left .MuiFormControl-root, .settings-left .form-control, .settings-left .form-select, .settings-left .MuiInputBase-root{ width:100%; max-width:100%; box-sizing:border-box; }
+.settings-right .MuiButton-root, .settings-left .MuiButton-root{ box-sizing:border-box; }
+
+/* Ensure labels and long text wrap instead of overflowing */
+.settings-card, .settings-card *{ word-wrap: break-word; overflow-wrap: break-word; }
+
+@media (max-width: 900px){
+  .settings-grid{ grid-template-columns: 1fr; }
+  .settings-card{ width: calc(100% - 20px); padding:14px; }
+  .settings-right{ border-left:none; border-top:1px dashed rgba(14,165,164,0.06); padding-top:14px; }
+  .settings-left .MuiFormControl-root, .settings-left .form-control, .settings-left .form-select{ max-width:100%; }
+  .settings-left .MuiButton-root, .settings-right .MuiButton-root{ width:100%; }
+}
+
+@media (max-width: 480px){
+  .settings-card{ padding:12px; }
+  .section-title{ font-size:0.95rem; }
+}
+
+/* Ensure action buttons in settings and security stack and don't overflow */
+.settings-left .MuiButton-root, .settings-right .MuiButton-root, .settings-section .MuiButton-root, .owner-btn-primary.MuiButton-root{
+  min-width: 0; /* prevent long intrinsic widths */
+}
+
+@media (max-width: 900px){
+  .settings-left .MuiButton-root, .settings-right .MuiButton-root, .settings-section .MuiButton-root, .owner-btn-primary.MuiButton-root{
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box;
+  }
+  /* add small vertical spacing between stacked buttons */
+  .settings-left .MuiButton-root + .MuiButton-root, .settings-section .MuiButton-root + .MuiButton-root{
+    margin-top: 8px !important;
+  }
+  /* ensure the button container doesn't force horizontal scroll */
+  .settings-left, .settings-right, .settings-section{ min-width:0; overflow:visible; }
+}
+
+/* Security page buttons */
+.owner-security .MuiButton-root, .owner-security .MuiButton-root.owner-btn-primary{ min-width:0; }
+@media (max-width:900px){
+  .owner-security .MuiButton-root{ width:100% !important; display:block !important; }
+}
+
+/* Privacy page specific styles */
+.privacy-toc{
+  padding:12px;
+  position: sticky;
+  top: 88px;
+  max-height: calc(100vh - 120px);
+  overflow:auto;
+}
+
+.privacy-content .privacy-section{
+  margin-bottom:18px;
+}
+
+.muted-small{
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px){
+  .privacy-toc{ position: relative; top: 0; max-height: none; }
+}
+
+/* Visit unlock UI */
+.visit-lock { display:flex; align-items:center; gap:10px; }
+.visit-lock .lock-icon { width:42px; height:42px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; }
+.visit-lock .lock-label { font-weight:700; color:#0f172a; }
+.agent-contact-modal-bg .agent-contact-modal{ max-width:420px; }
+
+/* ensure VisitUnlock Modal elements look good */
+.MuiDialog-root .MuiDialog-paper{ border-radius:12px; }
+
+
+/* Ensure privacy header action buttons stack cleanly on small screens */
+.privacy-header-actions{ min-width:0; }
+.privacy-header-actions .MuiButton-root{ box-sizing:border-box; min-width:0; }
+@media (max-width: 900px){
+  .privacy-header-actions{ width:100%; display:block; }
+  .privacy-header-actions .MuiButton-root{ width:100% !important; display:block !important; }
+  .privacy-header-actions .MuiButton-root + .MuiButton-root{ margin-top:8px !important; }
+}

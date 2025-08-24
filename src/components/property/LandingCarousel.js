@@ -229,7 +229,7 @@ const LandingCarousel = () => {
         }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M15 18l-6-6 6-6" stroke="#13c296" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M15 18l-6-6 6-6" stroke="var(--ndaku-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
@@ -260,7 +260,7 @@ const LandingCarousel = () => {
         }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" stroke="#13c296" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 6l6 6-6 6" stroke="var(--ndaku-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
@@ -284,7 +284,7 @@ const LandingCarousel = () => {
               padding: 0,
               borderRadius: '50%',
               border: 'none',
-              background: i === index ? '#13c296' : 'rgba(255,255,255,0.8)',
+              background: i === index ? 'var(--ndaku-primary)' : 'rgba(255,255,255,0.8)',
               cursor: isTransitioning ? 'default' : 'pointer',
               transition: 'all 0.3s ease',
               opacity: isTransitioning ? 0.6 : 1,
