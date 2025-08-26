@@ -3,10 +3,10 @@
   --owner-accent: #059e8a; /* richer teal */
   --owner-accent-2: #0fbf9a;
   --owner-muted: #536070;
-  --owner-bg: #f6fbfa;
+  --owner-bg: #ffffff;
 }
 .owner-hero {
-  background: linear-gradient(180deg, rgba(6,182,163,0.03), rgba(15,191,154,0.02));
+  background: var(--owner-bg);
   min-height: 100vh;
   width: 100%;
   display: flex;

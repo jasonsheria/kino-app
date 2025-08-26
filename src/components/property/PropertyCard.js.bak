@@ -1,0 +1,242 @@
+
+
+
+
+import React, { useState } from 'react';
+import { agents, properties } from '../../data/fakedata';
+import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaMapMarkerAlt, FaRegMoneyBillAlt } from 'react-icons/fa';
+import VisitBookingModal from '../common/VisitBookingModal';
+import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import VisitBookingModal from '../common/VisitBookingModal';
+import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+const PropertyCard = ({ property }) => {
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const agent = agents.find(a => a.id === property.agentId);
+  const [showBooking, setShowBooking] = useState(false);
+  const [unlocked, setUnlocked] = useState(()=>{
+    try{ const raw = localStorage.getItem('unlocked_contacts'); return raw ? JSON.parse(raw).includes(property.id) : false; }catch(e){return false}
+  });
+  const navigate = useNavigate();
+
+  // safe images array (fallback to property.image or a bundled placeholder)
+  const imgs = Array.isArray(property.images) && property.images.length
+    ? property.images
+    : (property.image ? [property.image] : [require('../../img/property-1.jpg')]);
+  const displayName = property.name || property.title || 'Bien immobilier';
+
+  // Suggestions (autres biens, exclure le courant)
+  const suggestions = properties.filter(p => p.id !== property.id).slice(0, 3);
+
+  // Custom marker icons
+  const redIcon = new L.Icon({
+    iconUrl: require('../../img/leaflet/marker-icon-2x-red.png'),
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: require('../../img/leaflet/marker-shadow.png'),
+    shadowSize: [41, 41]
+  });
+  const blueIcon = new L.Icon({
+      iconUrl: require('../../img/leaflet/marker-icon-2x-blue.png'),
+  shadowUrl: require('../../img/leaflet/marker-shadow.png'),
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  const openLightbox = (idx) => {
+    setLightboxIndex(idx);
+    setShowLightbox(true);
+  };
+  const closeLightbox = () => setShowLightbox(false);
+  const nextImg = () => { const l = imgs.length || 1; setLightboxIndex((lightboxIndex + 1) % l); };
+  const prevImg = () => { const l = imgs.length || 1; setLightboxIndex((lightboxIndex - 1 + l) % l); };
+
+  // Pour la map, on prend la géoloc de l'agent (sinon défaut Kinshasa)
+  const mainPos = agent?.geoloc || { lat: -4.325, lng: 15.322 };
+
+  return (
+    <div className="card shadow-lg border-0 mb-4 property-card animate__animated animate__fadeInUp" 
+      style={{
+        borderRadius: 20,
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        transform: 'translateY(0)',
+        ':hover': {
+          transform: 'translateY(-5px)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.12)'
+        }
+      }}>
+      <div className="position-relative overflow-hidden">
+          <img
+            src={imgs[0]}
+            alt={displayName}
+            className="card-img-top property-img animate__animated animate__zoomIn"
+            style={{
+              height: 240,
+              objectFit: 'cover',
+              cursor: 'pointer',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              transition: 'all 0.5s ease',
+              transform: 'scale(1)',
+              ':hover': {
+                transform: 'scale(1.05)'
+              }
+            }}
+            onClick={() => imgs.length && openLightbox(0)}
+          />
+  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'var(--ndaku-primary)', color:'#fff'}}>{property.type}</span>
+  <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{property.status}</span>
+      </div>
+      <div className="card-body">
+  <h6 className="card-title fw-bold text-primary mb-1">{displayName}</h6>
+        <div className="mb-2 text-muted small"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
+        <div className="mb-2">
+            <span className="d-block fs-6 text-dark mb-1" style={{fontWeight:500}}>
+            <FaRegMoneyBillAlt className="me-2 text-success" style={{fontSize:22}}/>
+            <span className="fs-5 text-success fw-bold">{(property.price || 0).toLocaleString()} $</span>
+          </span>
+          <span className="text-secondary small">{property.description}</span>
+        </div>
+        {/* Spécificités pour Appartement, Studio, Maison */}
+  {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
+          <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
+            <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary"/> {property.chambres}</span>
+            <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info"/> {property.douches}</span>
+            <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning"/> {property.salon}</span>
+            <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success"/> {property.cuisine}</span>
+            <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger"/> {property.sdb}</span>
+          </div>
+        )}
+        {/* Bouton Voir plus */}
+        <div className="d-flex justify-content-end mb-2">
+          <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>
+            Visiter <FaMapMarkerAlt className="ms-1"/>
+          </button>
+        </div>
+        {/* Agent lié */}
+        {agent && (
+          <div className="d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s" style={{boxShadow:'0 2px 8px #0001', position:'relative'}}>
+            <div style={{position:'relative', display:'flex', alignItems:'center', gap:12, width:'100%'}}>
+              <div style={{display:'flex',alignItems:'center',gap:12, flex:1}}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '2px solid var(--ndaku-primary)',
+                  flex: '0 0 44px',
+                  filter: unlocked ? 'none' : 'blur(5px) grayscale(0.2)',
+                  transition: 'all 0.4s ease',
+                  boxShadow: unlocked ? '0 3px 12px rgba(var(--ndaku-primary-rgb), 0.2)' : 'none'
+                }}>
+                  <img src={agent.photo} alt={agent.name} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                </div>
+                <div style={{flex:1, position:'relative'}}>
+                  <div className="fw-semibold small" style={{
+                    color: unlocked ? 'var(--ndaku-primary)' : '#555',
+                    fontWeight: 700,
+                    filter: unlocked ? 'none' : 'blur(4px)',
+                    transition: 'all 0.4s ease'
+                  }}>{agent.name}</div>
+                  <div className="small" style={{
+                    color: unlocked ? '#666' : '#999',
+                    filter: unlocked ? 'none' : 'blur(4px)',
+                    transition: 'all 0.4s ease',
+                    position: 'relative'
+                  }}>
+                    {unlocked ? agent.phone : '+243 XXX XXX XXX'}
+                  </div>
+                  {!unlocked && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      transform: 'translateY(-50%)',
+                      color: '#666',
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      pointerEvents: 'none'
+                    }}>
+                      <span role="img" aria-label="lock" style={{fontSize: '14px'}}>🔒</span> 
+                      Réserver pour débloquer
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{display:'flex', alignItems:'center', gap:8}}>
+                <button 
+                  className="btns btn-primary btn-sm"
+                  title="Réserver une visite"
+                  onClick={() => setShowBooking(true)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    transform: 'translateY(0)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7V11C2 16.55 6.84 21.74 12 23C17.16 21.74 22 16.55 22 11V7L12 2ZM12 13L17 15.55V13.55L12 11L7 13.55V15.55L12 13Z" fill="currentColor"/>
+                  </svg>
+                  Réserver une visite
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {showBooking && (
+          <VisitBookingModal
+            open={showBooking}
+            onClose={() => setShowBooking(false)}
+            onSubmit={({ phoneNumber }) => {
+              // Save unlocked state
+              try {
+                const raw = localStorage.getItem('unlocked_contacts') || '[]';
+                const unlocked = JSON.parse(raw);
+                if (!unlocked.includes(property.id)) {
+                  unlocked.push(property.id);
+                  localStorage.setItem('unlocked_contacts', JSON.stringify(unlocked));
+                }
+                setUnlocked(true);
+              } catch(e) {
+                console.error('Failed to save unlock state:', e);
+              }
+            }}
+          />
+        )}
+      </div>
+      {/* Lightbox */}
+      {showLightbox && imgs.length > 0 && (
+        <div className="lightbox position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center animate__animated animate__fadeIn" style={{background:'rgba(0,0,0,0.8)',zIndex:2000}}>
+          <button className="btns btn-light position-absolute top-0 end-0 m-3" onClick={closeLightbox}>&times;</button>
+          <button className="btns btn-light position-absolute start-0 top-50 translate-middle-y ms-3" onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
+          <img src={imgs[lightboxIndex % imgs.length]} alt="" style={{maxHeight:'80vh', maxWidth:'90vw', borderRadius:8, boxShadow:'0 4px 32px #0008'}} />
+          <button className="btns btn-light position-absolute end-0 top-50 translate-middle-y me-3" onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
+        </div>
+      )}
+
+  {/* ...aucune carte ni suggestions ici, à déplacer dans PropertyDetails... */}
+    </div>
+  );
+};
+
+export default PropertyCard;

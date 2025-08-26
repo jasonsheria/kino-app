@@ -119,11 +119,24 @@ export default function AgencyDashboard() {
     return {
       labels,
       datasets: [
-        { label: 'Produits', data: prodCounts, borderColor: '#13c296', backgroundColor: '#13c29633', tension: 0.3 },
-        { label: 'Publicités', data: adCounts, borderColor: '#ff8a65', backgroundColor: '#ff8a6533', tension: 0.3 }
+        {
+          label: 'Produits',
+          data: prodCounts,
+          borderColor: theme.palette.primary.main,
+          backgroundColor: alpha(theme.palette.primary.main, 0.18),
+          tension: 0.3
+        },
+        {
+          label: 'Publicités',
+          data: adCounts,
+          borderColor: theme.palette.warning.main,
+          backgroundColor: alpha(theme.palette.warning.main, 0.18),
+          tension: 0.3
+        }
       ]
     };
   }, [stats]);
+
 
   return (
     <AgencyLayout>

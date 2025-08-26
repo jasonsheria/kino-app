@@ -2,11 +2,13 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { showToast } from '../common/ToastManager';
 import { agents, properties } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
-import VisitUnlockModal from '../common/VisitUnlockModal';
+import './PropertyCard.css';
+import VisitBookingModal from '../common/VisitBookingModal';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,11 +19,63 @@ const PropertyCard = ({ property }) => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const agent = agents.find(a => a.id === property.agentId);
   const [showContact, setShowContact] = useState(false);
-  const [showUnlock, setShowUnlock] = useState(false);
-  const [unlocked, setUnlocked] = useState(()=>{
-    try{ const raw = localStorage.getItem('unlocked_contacts'); return raw ? JSON.parse(raw).includes(property.id) : false; }catch(e){return false}
+  const [showBooking, setShowBooking] = useState(false);
+  const [isReserved, setIsReserved] = useState(() => {
+    try {
+  const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+  return reserved.includes(String(property.id)) || Boolean(property.isReserved);
+    } catch (e) {
+      return Boolean(property.isReserved);
+    }
   });
+
+  useEffect(() => {
+    console.log(`PropertyCard mounted for ${property.id} - initial isReserved:`, isReserved);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const reservedId = e?.detail?.propertyId;
+      if (String(reservedId) === String(property.id)) {
+        console.log('PropertyCard received property-reserved event for', reservedId);
+        setIsReserved(true);
+      }
+    };
+    window.addEventListener('property-reserved', handler);
+    const storageHandler = (e) => {
+      if (e.key === 'reserved_properties') {
+        try {
+          const reserved = JSON.parse(e.newValue || '[]').map(String);
+          if (reserved.includes(String(property.id))) setIsReserved(true);
+        } catch (err) { /* ignore */ }
+      }
+    };
+    window.addEventListener('storage', storageHandler);
+    return () => window.removeEventListener('property-reserved', handler);
+    // cleanup storage listener too
+    return () => {
+      window.removeEventListener('property-reserved', handler);
+      window.removeEventListener('storage', storageHandler);
+    };
+  }, [property.id]);
   const navigate = useNavigate();
+
+  const handleReservationSuccess = () => {
+  console.log('Reservation success callback received for property', property.id);
+  setIsReserved(true);
+  setShowBooking(false);
+    // Optionnel: Mettre à jour le statut dans le localStorage pour persistance
+    try {
+      const reservedProperties = JSON.parse(localStorage.getItem('reserved_properties') || '[]');
+      if (!reservedProperties.includes(property.id)) {
+        reservedProperties.push(property.id);
+        localStorage.setItem('reserved_properties', JSON.stringify(reservedProperties));
+      }
+    } catch (e) {
+      console.error('Erreur lors de la sauvegarde du statut de réservation:', e);
+    }
+  showToast('Visite réservée — contact agent disponible', 'success');
+  };
 
   // safe images array (fallback to property.image or a bundled placeholder)
   const imgs = Array.isArray(property.images) && property.images.length
@@ -71,7 +125,7 @@ const PropertyCard = ({ property }) => {
           style={{height: 200, objectFit: 'cover', cursor: 'pointer', borderTopLeftRadius:18, borderTopRightRadius:18, transition:'transform .4s'}}
           onClick={() => imgs.length && openLightbox(0)}
         />
-  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'#13c296', color:'#fff'}}>{property.type}</span>
+  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'var(--ndaku-primary)', color:'#fff'}}>{property.type}</span>
   <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{property.status}</span>
       </div>
       <div className="card-body">
@@ -102,38 +156,45 @@ const PropertyCard = ({ property }) => {
         </div>
         {/* Agent lié */}
         {agent && (
-          <div className="d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s" style={{boxShadow:'0 2px 8px #0001', position:'relative'}}>
-            <div style={{position:'relative', display:'flex', alignItems:'center', gap:12, width:'100%'}}>
-              <div style={{display:'flex',alignItems:'center',gap:12, flex:1}}>
-                <div style={{width:38, height:38, borderRadius:999, overflow:'hidden', border:'2px solid var(--ndaku-primary)', flex:'0 0 38px', filter: unlocked ? 'none' : 'blur(4px) grayscale(.15)', transition:'filter .32s ease'}}>
-                  <img src={agent.photo} alt={agent.name} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+          <div className="property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s">
+            <div className="property-agent-inner">
+              <div className="agent-left">
+                <div className="agent-avatar-wrapper">
+                  <img src={agent.photo} alt={agent.name} className="agent-thumb" />
                 </div>
-                <div style={{flex:1}}>
-                  <div className="fw-semibold small" style={{color: unlocked ? 'var(--ndaku-primary)' : 'rgba(0,0,0,0.6)', fontWeight:700}}>{agent.name}</div>
-                  <div className="small text-muted" style={{filter: unlocked ? 'none' : 'blur(3px)'}}>{unlocked ? agent.phone : '••• ••• •••'}</div>
+                <div className="agent-meta">
+                  <div className="agent-name fw-semibold small">{agent.name}</div>
+                  <div className="agent-phone small text-muted">{agent.phone}</div>
                 </div>
               </div>
-              <div style={{display:'flex', alignItems:'center', gap:8}}>
-                {!unlocked ? (
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <div style={{width:42,height:42, borderRadius:8, background:'var(--ndaku-primary-100)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="var(--ndaku-primary)" d="M12 17a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
-                    </div>
-                    <button className="btns btn-primary btn-sm" title="Réserver" onClick={()=>setShowUnlock(true)} style={{padding:'6px 10px', borderRadius:8, fontWeight:700, transform:'translateY(0)', transition:'transform .18s'}} onMouseEnter={(e)=>e.currentTarget.style.transform='translateY(-3px)'} onMouseLeave={(e)=>e.currentTarget.style.transform='translateY(0)'}>Réserver</button>
+              <div className="agent-right">
+                {!isReserved ? (
+                  <div className="agent-action-wrap">
+                    <button 
+                      className="btns btn-primary reserve-btn"
+                      title="Réserver une visite"
+                      onClick={()=>setShowBooking(true)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7.5M19 21v-6m-3 3h6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Réserver une visite
+                    </button>
                   </div>
                 ) : (
-                  <>
-                    <button className="btns btn-outline-success btn-sm ms-2" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
+                  <div className="agent-contact-buttons">
+                    <span className="badge bg-success reserve-badge">Réservé</span>
+                    <button className="btns btn-outline-success ms-2 contact-icon" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
                     {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-                    <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary btn-sm ms-2" title="Facebook"><FaFacebook /></a>
-                    <button className="btns btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
-                  </>
+                    <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary ms-2 contact-icon" title="Facebook"><FaFacebook /></a>
+                    <button className="btns btn-outline-dark ms-2 contact-icon" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         )}
-      {showUnlock && <VisitUnlockModal open={showUnlock} onClose={()=>setShowUnlock(false)} agent={agent} property={property} onUnlocked={(pid)=>{ setUnlocked(true); setShowUnlock(false); }} />}
+      {showBooking && <VisitBookingModal open={showBooking} onClose={()=>setShowBooking(false)} onSuccess={handleReservationSuccess} agent={agent} property={property} />}
       </div>
       {/* Lightbox */}
       {showLightbox && imgs.length > 0 && (

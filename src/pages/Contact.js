@@ -80,7 +80,7 @@ const Contact = () => {
 
             {/* Hero Section */}
             <section className="position-relative py-5" style={{
-                background: 'linear-gradient(135deg, #13c296 0%, #0ea67e 100%)',
+                background: `linear-gradient(135deg, var(--ndaku-primary) 0%, #0ea67e 100%)`,
                 color: 'white'
             }}>
                 <div className="container py-5">
@@ -117,7 +117,7 @@ const Contact = () => {
                                     }
                                 }}>
                                     <div className="d-flex align-items-center mb-4">
-                                        <div className="me-3" style={{ color: '#13c296' }}>
+                                        <div className="me-3" style={{ color: 'var(--ndaku-primary)' }}>
                                             {info.icon}
                                         </div>
                                         <h3 className="h5 mb-0">{info.title}</h3>
@@ -219,12 +219,12 @@ const Contact = () => {
                                         variant="contained"
                                         disabled={loading}
                                         sx={{
-                                            bgcolor: '#13c296',
+                                            bgcolor: 'var(--ndaku-primary)',
                                             color: 'white',
                                             py: 1.5,
                                             px: 4,
                                             '&:hover': {
-                                                bgcolor: '#0ea67e'
+                                                bgcolor: 'rgba(14,166,126,0.92)'
                                             }
                                         }}
                                     >

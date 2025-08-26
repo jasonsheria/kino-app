@@ -2,12 +2,12 @@
   background: linear-gradient(120deg, #232526 60%, #0f2027 100%);
 }
 .footer-pro .btn-outline-light:hover {
-  background: #13c296;
-  border-color: #13c296;
-  color: #fff;
+  background: var(--ndaku-primary);
+  border-color: var(--ndaku-primary);
+  color: var(--ndaku-primary) !important;
 }
 .footer-pro a.text-white:hover {
-  color: #13c296 !important;
+  color: var(--ndaku-primary) !important;
 }
 
 @media (max-width: 767.98px) {

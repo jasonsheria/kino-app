@@ -9,7 +9,11 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../pages/HomeSection.css';
 import ChatWidget from '../components/common/ChatWidget';
+import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
+import '../components/property/PropertyCard.css';
+import VisitBookingModal from '../components/common/VisitBookingModal';
+import VirtualTourModal from '../components/common/VirtualTourModal';
 
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '' }) {
@@ -228,7 +232,7 @@ const PropertyDetails = () => {
 
                 <div className="d-flex justify-content-end gap-2 mb-3">
                   <button className="btn btn-outline-secondary btn-sm px-3 fw-bold" onClick={() => navigate(-1)}>Retour</button>
-                  <button className="btn btn-success btn-sm px-3 fw-bold" onClick={() => setShowVirtual(true)}>Visite virtuelle</button>
+                  <button className="btn btn-success btn-sm px-3 fw-bold" onClick={() => setShowVirtual(true)} aria-haspopup="dialog">Visite virtuelle</button>
                 </div>
 
                 {/* Neighborhood indices */}
@@ -240,7 +244,7 @@ const PropertyDetails = () => {
                       <div key={item.key}>
                         <div className="d-flex justify-content-between small mb-1"><div>{item.label}</div><div className="text-muted">{neighborhood[item.key]}%</div></div>
                         <div className="progress" style={{height:8}}>
-                          <div className="progress-bar" role="progressbar" style={{width:`${neighborhood[item.key]}%`, background:'#13c296'}} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
+                          <div className="progress-bar" role="progressbar" style={{width:`${neighborhood[item.key]}%`, background:'var(--ndaku-primary)'}} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                       </div>
                     ))}
@@ -256,18 +260,9 @@ const PropertyDetails = () => {
                   </div>
                 )}
 
-                {/* Agent block */}
+                {/* Agent block (responsive, reuse property styles) */}
                 {agent && (
-                  <div className="d-flex align-items-center mt-3 p-2 rounded-3 bg-light" style={{boxShadow:'0 2px 8px #0001'}}>
-                    <img src={agent.photo} alt={agent.name} className="rounded-circle me-2 border" style={{width:44, height:44, objectFit:'cover', border:'2px solid #13c296'}} />
-                    <div className="flex-grow-1">
-                      <div className="fw-semibold text-success small">{agent.name}</div>
-                      <div className="small text-muted">{agent.phone}</div>
-                    </div>
-                    <a href={`https://wa.me/${agent.whatsapp.replace('+','')}`} target="_blank" rel="noopener noreferrer" className="btn btn-outline-success btn-sm ms-2" title="WhatsApp"><FaWhatsapp /></a>
-                    <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary btn-sm ms-2" title="Facebook"><FaFacebook /></a>
-                    <button className="btn btn-outline-dark btn-sm ms-2" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
-                  </div>
+                  <AgentBlockWithReservation agent={agent} property={property} />
                 )}
               </div>
             </div>
@@ -347,6 +342,9 @@ const PropertyDetails = () => {
         )}
       </div>
   <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
+  {showVirtual && (
+    <VirtualTourModal open={showVirtual} onClose={() => setShowVirtual(false)} videos={videos} initialIndex={selectedVideo} />
+  )}
    {/* Call to action */}
               <div className="bg-success text-white text-center py-5">
                   <div className="container">
@@ -363,6 +361,53 @@ const PropertyDetails = () => {
               <FooterPro />
     </div>
 
+  );
+};
+
+// Local helper component for agent block with reservation logic
+const AgentBlockWithReservation = ({ agent, property }) => {
+  const [showContact, setShowContact] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
+  const [isReserved, setIsReserved] = useState(() => {
+    try { const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String); return reserved.includes(String(property.id)) || Boolean(property.isReserved); } catch(e){ return Boolean(property.isReserved); }
+  });
+
+  useEffect(() => {
+    const handler = (e) => { const reservedId = e?.detail?.propertyId; if (String(reservedId) === String(property.id)) setIsReserved(true); };
+    const storageHandler = (e) => { if (e.key === 'reserved_properties') { try { const reserved = JSON.parse(e.newValue || '[]').map(String); if (reserved.includes(String(property.id))) setIsReserved(true); } catch(_){} } };
+    window.addEventListener('property-reserved', handler); window.addEventListener('storage', storageHandler);
+    return () => { window.removeEventListener('property-reserved', handler); window.removeEventListener('storage', storageHandler); };
+  }, [property.id]);
+
+  const handleSuccess = () => {
+    setIsReserved(true);
+    setShowBooking(false);
+    try { const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]'); if (!reserved.includes(property.id)) { reserved.push(property.id); localStorage.setItem('reserved_properties', JSON.stringify(reserved)); } } catch(e){}
+  };
+
+  return (
+    <div className="property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light">
+      <div className="property-agent-inner">
+        <div className="agent-left">
+          <div className="agent-avatar-wrapper"><img src={agent.photo} alt={agent.name} className="agent-thumb" /></div>
+          <div className="agent-meta"><div className="fw-semibold small agent-name">{agent.name}</div><div className="small text-muted agent-phone">{agent.phone}</div></div>
+        </div>
+        <div className="agent-right">
+          {!isReserved ? (
+            <button className="btns btn-primary reserve-btn" onClick={()=>setShowBooking(true)}>Réserver une visite</button>
+          ) : (
+            <div className="agent-contact-buttons">
+              <span className="badge bg-success reserve-badge">Réservé</span>
+              <button className="btns btn-outline-success ms-2 contact-icon" onClick={()=>setShowContact(true)} title="WhatsApp"><FaWhatsapp /></button>
+              <a href={agent.facebook} className="btns btn-outline-primary ms-2 contact-icon" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
+              <button className="btns btn-outline-dark ms-2 contact-icon" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
+            </div>
+          )}
+        </div>
+      </div>
+  {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
+  {showBooking && <VisitBookingModal open={showBooking} onClose={()=>setShowBooking(false)} onSuccess={handleSuccess} agent={agent} property={property} />}
+    </div>
   );
 };
 

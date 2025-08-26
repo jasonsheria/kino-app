@@ -62,11 +62,11 @@ function App() {
             zIndex: 9999,
             background: theme.palette.background.paper,
             color: theme.palette.text.primary,
-            border: '2px solid #13c296',
+            border: '2px solid var(--ndaku-primary)',
             borderRadius: '50%',
             width: 48,
             height: 48,
-            boxShadow: '0 2px 8px #13c29622',
+            boxShadow: '0 2px 8px var(--ndaku-primary-22)',
             transition: 'background 0.3s, color 0.3s',
           }}
           aria-label="Changer le mode de couleur"

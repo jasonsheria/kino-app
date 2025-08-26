@@ -61,7 +61,7 @@ const Voitures = () => {
                   <p className="mb-2 text-muted">Profitez d'une remise exceptionnelle cette semaine sur notre Toyota RAV4 : location et vente disponibles.</p>
                   <div className="d-flex align-items-baseline gap-3">
                     <div style={{textDecoration:'line-through', color:'#888', fontSize:18}}>15 000 $</div>
-                    <div style={{fontSize:28, color:'#13c296', fontWeight:900}}>12 000 $</div>
+                    <div style={{fontSize:28, color:'var(--ndaku-primary)', fontWeight:900}}>12 000 $</div>
                     <span className="badge bg-danger ms-2" style={{fontSize:16, fontWeight:700}}> -20% </span>
                   </div>
                 </div>

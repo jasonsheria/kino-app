@@ -12,9 +12,9 @@ function formatTime(date) {
 // Message status: sent, delivered, read, pending
 function getStatusIcon(status) {
   if (status === 'pending') return <span title="En attente" style={{color:'#aaa'}}>⏳</span>;
-  if (status === 'sent') return <span title="Envoyé" style={{color:'#13c296'}}>✓</span>;
-  if (status === 'delivered') return <span title="Reçu" style={{color:'#13c296'}}>✓✓</span>;
-  if (status === 'read') return <span title="Lu" style={{color:'#13c296',fontWeight:700}}>✓✓</span>;
+  if (status === 'sent') return <span title="Envoyé" style={{color:'var(--ndaku-primary)'}}>✓</span>;
+  if (status === 'delivered') return <span title="Reçu" style={{color:'var(--ndaku-primary)'}}>✓✓</span>;
+  if (status === 'read') return <span title="Lu" style={{color:'var(--ndaku-primary)',fontWeight:700}}>✓✓</span>;
   return null;
 }
 
@@ -25,6 +25,7 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
   const [theme, setTheme] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const fileInput = useRef();
   const bodyRef = useRef();
+  const inputRef = useRef();
   // Simuler messages par agent
   const agentMessages = allMessages.filter(m => m.fromId === selectedAgentId || m.toId === selectedAgentId);
 
@@ -40,6 +41,10 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [selectedAgentId, agentMessages]);
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, [selectedAgentId]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -57,8 +62,8 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
       status: 'pending',
     });
     setInput('');
-    setNotif('Message envoyé');
-    setTimeout(() => setNotif(null), 1200);
+  // Prefer global toast if available
+  if (window.showToast) window.showToast('Message envoyé', 'success'); else { setNotif('Message envoyé'); setTimeout(() => setNotif(null), 1200); }
   };
 
   const handleAttach = e => {
@@ -88,7 +93,7 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
       <div style={{display:'flex',height:'540px',minWidth: '680px',maxWidth:'98vw'}}>
         {/* Sidebar contacts */}
         <div className="messenger-sidebar" style={{width:260,background:'#f7f7f7',borderRight:'1.5px solid #e9f7f3',display:'flex',flexDirection:'column'}}>
-          <div className="sidebar-header" style={{padding:'18px 16px',fontWeight:800,fontSize:'1.15rem',color:'#13c296'}}>Contacts</div>
+          <div className="sidebar-header" style={{padding:'18px 16px',fontWeight:800,fontSize:'1.15rem',color:'var(--ndaku-primary)'}}>Contacts</div>
           <div className="sidebar-list" style={{flex:1,overflowY:'auto'}}>
             {agents.map(agent => {
               // Dernier message
@@ -110,12 +115,12 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
         {/* Zone de chat */}
         <div className="messenger-chat" style={{flex:1,display:'flex',flexDirection:'column',position:'relative',background:'#fff'}}>
           {/* Header chat */}
-          <div className="messenger-header" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1.5px solid #e9f7f3'}}>
+            <div className="messenger-header" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1.5px solid #e9f7f3'}}>
             <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12}}>
               <img src={agents.find(a=>a.id===selectedAgentId)?.photo} alt="avatar" className="agent-avatar" style={{width:44,height:44}} />
               <div>
                 <div className="agent-name" style={{fontWeight:700,fontSize:'1.1em'}}>{agents.find(a=>a.id===selectedAgentId)?.name}</div>
-                <div className="agent-role" style={{fontSize:'0.92em',color:'#13c296'}}>Agent immobilier</div>
+                <div className="agent-role" style={{fontSize:'0.92em',color:'var(--ndaku-primary)'}}>Agent immobilier</div>
               </div>
             </div>
             <button onClick={onClose} className="close-btn">&times;</button>
@@ -136,14 +141,15 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
           </div>
           {/* Footer chat */}
           <div className="messenger-footer" style={{display:'flex',alignItems:'center',padding:'12px 18px',borderTop:'1.5px solid #e9f7f3',background:'#fff'}}>
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Votre message..."
-              onKeyDown={e => e.key === 'Enter' && handleSend()}
-              style={{flex:1,marginRight:8,padding:'8px 12px',borderRadius:8,border:'1.5px solid #13c296',fontSize:'1em'}}
-            />
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Demandez une visite, posez une question ou signalez un problème..."
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                style={{flex:1,marginRight:8,padding:'8px 12px',borderRadius:8,border:'1.5px solid var(--ndaku-primary)',fontSize:'1em'}}
+              />
             <input
               type="file"
               style={{ display: 'none' }}

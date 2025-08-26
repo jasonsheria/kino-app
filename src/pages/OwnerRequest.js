@@ -10,15 +10,15 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTheme } from '@mui/material/styles';
-import { 
-  Box, 
-  Container, 
-  Grid, 
-  Stack, 
-  Typography, 
-  IconButton, 
-  Button, 
-  useMediaQuery, 
+import {
+  Box,
+  Container,
+  Grid,
+  Stack,
+  Typography,
+  IconButton,
+  Button,
+  useMediaQuery,
   Link,
   Paper,
   TextField,
@@ -57,7 +57,7 @@ const FilePreview = ({ file, onDelete }) => {
         <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {file.name}
         </Typography>
-        <Chip 
+        <Chip
           label={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
           size="small"
           variant="outlined"
@@ -218,13 +218,13 @@ export default function OwnerRequest() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       <Box sx={{ mb: { xs: 3, md: 4 }, textAlign: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ 
+        <Typography variant="h4" component="h1" gutterBottom sx={{
           fontSize: { xs: '1.5rem', md: '2rem' },
-          fontWeight: 600 
+          fontWeight: 600
         }}>
           Demande de partenariat propriétaire
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ 
+        <Typography variant="body1" color="text.secondary" sx={{
           maxWidth: '600px',
           mx: 'auto',
           px: { xs: 2, md: 0 }
@@ -238,7 +238,7 @@ export default function OwnerRequest() {
         <Grid item xs={12} md={4} lg={3} order={{ xs: 2, md: 1 }}>
           <Stack spacing={{ xs: 2, md: 3 }}>
             {/* Benefits card */}
-            <Paper elevation={0} sx={{ 
+            <Paper elevation={0} sx={{
               p: 3,
               border: '1px solid',
               borderColor: 'divider',
@@ -259,17 +259,17 @@ export default function OwnerRequest() {
                   'Statistiques avancées'
                 ].map((benefit, index) => (
                   <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <CheckCircleIcon sx={{ color: '#13c296', fontSize: 20, mt: 0.3 }} />
+                    <CheckCircleIcon sx={{ color: 'primary.main', fontSize: 20, mt: 0.3 }} />
                     <Typography variant="body2">{benefit}</Typography>
                   </Box>
                 ))}
               </Stack>
-              <Button 
+              <Button
                 fullWidth
                 variant="contained"
                 onClick={() => navigate('/owner/subscribe')}
                 sx={{
-                  bgcolor: '#13c296',
+                  bgcolor: 'primary.main',
                   color: 'white',
                   py: 1.5,
                   textTransform: 'none',
@@ -284,7 +284,7 @@ export default function OwnerRequest() {
               </Button>
             </Paper>
             {/* Status card */}
-            <Paper elevation={0} sx={{ 
+            <Paper elevation={0} sx={{
               p: 3,
               border: '1px solid',
               borderColor: 'divider',
@@ -307,11 +307,11 @@ export default function OwnerRequest() {
                 sx={{
                   py: 1.5,
                   textTransform: 'none',
-                  borderColor: '#13c296',
-                  color: '#13c296',
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
                   '&:hover': {
                     borderColor: '#10a37f',
-                    bgcolor: 'rgba(19, 194, 150, 0.04)',
+                    bgcolor: 'primary.100',
                     transform: 'translateY(-2px)',
                     transition: 'all 0.2s'
                   }
@@ -337,21 +337,21 @@ export default function OwnerRequest() {
                 </Typography>
               </Box>
               <Box sx={{ height: 8, bgcolor: '#eef9f6', borderRadius: 1, overflow: 'hidden' }}>
-                <Box 
-                  sx={{ 
-                    width: `${completion}%`, 
-                    height: '100%', 
-                    background: 'linear-gradient(90deg, #13c296, #10a37f)'
-                  }} 
+                <Box
+                  sx={{
+                    width: `${completion}%`,
+                    height: '100%',
+                    background: 'linear-gradient(90deg, var(--ndaku-primary), #10a37f)'
+                  }}
                 />
               </Box>
               {completion < 70 && (
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    mt: 1, 
-                    p: 1, 
-                    bgcolor: 'warning.light', 
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mt: 1,
+                    p: 1,
+                    bgcolor: 'warning.light',
                     color: 'warning.dark',
                     borderRadius: 1
                   }}
@@ -374,16 +374,16 @@ export default function OwnerRequest() {
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
                   {['Voiture', 'Terrain', 'Appartement', 'Salle de fête'].map(t => (
-                    <Button 
-                      key={t} 
+                    <Button
+                      key={t}
                       variant={types.includes(t) ? "contained" : "outlined"}
                       onClick={() => toggleType(t)}
                       sx={{
                         mb: 1,
-                        bgcolor: types.includes(t) ? '#13c296' : 'transparent',
+                        bgcolor: types.includes(t) ? 'var(--ndaku-primary)' : 'transparent',
                         color: types.includes(t) ? 'white' : 'text.primary',
                         '&:hover': {
-                          bgcolor: types.includes(t) ? '#0ea67e' : 'rgba(19, 194, 150, 0.04)'
+                          bgcolor: types.includes(t) ? 'var(--ndaku-primary-dark)' : 'var(--ndaku-primary-11)'
                         }
                       }}
                     >
@@ -396,7 +396,7 @@ export default function OwnerRequest() {
                     variant="contained"
                     onClick={() => types.length ? setStep(2) : setValidationError('Sélectionnez au moins un type de bien')}
                     sx={{
-                      bgcolor: '#13c296',
+                      bgcolor: 'primary.main',
                       color: 'white',
                       textTransform: 'none',
                       '&:hover': {
@@ -425,12 +425,12 @@ export default function OwnerRequest() {
                   </Button>
                 </Stack>
                 {validationError && (
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mt: 2, 
-                      p: 1, 
-                      bgcolor: 'error.light', 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mt: 2,
+                      p: 1,
+                      bgcolor: 'error.light',
                       color: 'error.dark',
                       borderRadius: 1
                     }}
@@ -588,12 +588,12 @@ export default function OwnerRequest() {
                 </Box>
 
                 {validationError && (
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 2, 
-                      p: 1, 
-                      bgcolor: 'error.light', 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 2,
+                      p: 1,
+                      bgcolor: 'error.light',
                       color: 'error.dark',
                       borderRadius: 1
                     }}
@@ -622,7 +622,7 @@ export default function OwnerRequest() {
                     variant="contained"
                     onClick={submitApplication}
                     sx={{
-                      bgcolor: '#13c296',
+                      bgcolor: 'var(--ndaku-primary)',
                       color: 'white',
                       textTransform: 'none',
                       '&:hover': {

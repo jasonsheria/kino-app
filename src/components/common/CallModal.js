@@ -67,7 +67,7 @@ export default function CallModal({ open, onClose, agent, status = 'connecting',
           <div className="call-modal-name">{agent?.name || 'Agent inconnu'}</div>
           <div className="call-modal-company">{agent?.company || ''}</div>
           <div className="call-modal-status">
-            {status === 'connecting' && <span className="call-anim">Connexion... <span style={{fontSize:'1.1em',color:'#13c296',marginLeft:8}}>&#128222;</span></span>}
+            {status === 'connecting' && <span className="call-anim">Connexion... <span style={{fontSize:'1.1em',color:'var(--ndaku-primary)',marginLeft:8}}>&#128222;</span></span>}
             {status === 'in-call' && <span>En appel</span>}
             {status === 'ended' && <span>Appel terminé</span>}
             {status === 'error' && <span>Erreur d'appel</span>}

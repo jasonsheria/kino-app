@@ -68,7 +68,7 @@ const TestimonialSlider = () => {
             >
               {extended.map((t, idx) => (
                 <div key={idx} className="testimonial-card shadow-lg border-0 rounded-4 p-0 d-flex flex-column align-items-center position-relative" style={{maxWidth:340, minWidth:240, flex:1, background:'#fff', overflow:'hidden', border:'none'}}>
-                  <div className="w-100 d-flex flex-column align-items-center justify-content-center" style={{background:'#13c296',padding:'1.2rem 0 0.7rem 0',borderBottomLeftRadius:32,borderBottomRightRadius:32}}>
+                  <div className="w-100 d-flex flex-column align-items-center justify-content-center" style={{background:'var(--ndaku-primary)',padding:'1.2rem 0 0.7rem 0',borderBottomLeftRadius:32,borderBottomRightRadius:32}}>
                     <FaQuoteLeft className="text-white mb-2" size={32}/>
                     <div className="d-flex align-items-center gap-1 mb-2">
                       {[...Array(5)].map((_,i)=>(
@@ -79,7 +79,7 @@ const TestimonialSlider = () => {
                   <div className="p-4 d-flex flex-column align-items-center w-100" style={{minHeight:160}}>
                     <p className="fs-5 text-center mb-3" style={{color:'#222',fontWeight:500}}>&ldquo;{t.comment}&rdquo;</p>
                     <div className="d-flex align-items-center gap-2 mt-2">
-                      <img src={t.avatar} alt={t.name} className="rounded-circle border shadow" style={{width:54,height:54,objectFit:'cover',border:'3px solid #13c296'}} />
+                      <img src={t.avatar} alt={t.name} className="rounded-circle border shadow" style={{width:54,height:54,objectFit:'cover',border:'3px solid var(--ndaku-primary)'}} />
                       <div>
                         <div className="fw-bold text-success" style={{fontSize:'1.1rem'}}>{t.name}</div>
                         <div className="small text-muted">{t.city}</div>

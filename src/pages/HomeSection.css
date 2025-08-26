@@ -56,7 +56,7 @@
 }
 .promo-salle-newprice {
   font-size: 2rem;
-  color: #13c296;
+  color: var(--ndaku-primary);
   font-weight: 900;
 }
 
@@ -127,7 +127,7 @@
   height: 120px;
   object-fit: cover;
   border-radius: 10px;
-  box-shadow: 0 1.5px 8px #13c29611;
+  box-shadow: 0 1.5px 8px var(--ndaku-primary-11);
 }
 @media (max-width: 767.98px) {
   .promo-card {
@@ -186,7 +186,7 @@
   .property-card, .vehicle-card {
     border-radius: 12px;
     margin-bottom: 1.1rem;
-    box-shadow: 0 1.5px 8px #13c29611;
+    box-shadow: 0 1.5px 8px var(--ndaku-primary-11);
   }
   .property-card .card-img-top,
   .vehicle-card .card-img-top {
@@ -240,7 +240,7 @@ html, body {
     /* Optimisation mobile de la première section : titre, carousel, texte, bouton */
     .hero-section {
       min-height: auto;
-      background: linear-gradient(135deg, #fff 0%, #f8fdfb 100%);
+      background: white;
     }
 
     .hero-section .row {
@@ -255,7 +255,7 @@ html, body {
       order: 1;
       margin-bottom: 1.2rem;
       line-height: 1.18;
-      background: linear-gradient(90deg, #13c296 0%, #0a223a 50%, #d7263d 100%);
+  background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 50%, #d7263d 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -276,7 +276,7 @@ html, body {
       transform: translateX(-50%);
       position: relative;
       border-radius: 18px;
-      box-shadow: 0 4px 24px rgba(19, 194, 150, 0.08);
+  box-shadow: 0 4px 24px var(--ndaku-primary-100);
       overflow: hidden;
     }
 
@@ -311,9 +311,9 @@ html, body {
       justify-content: center;
       font-weight: 800;
       border-radius: 999px;
-      background: linear-gradient(90deg, #13c296 0%, #0a223a 100%);
+  background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 100%);
       color: #fff !important;
-      box-shadow: 0 6px 24px rgba(19, 194, 150, 0.18);
+  box-shadow: 0 6px 24px var(--ndaku-primary-33);
       border: none;
       letter-spacing: 0.5px;
       transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
@@ -324,8 +324,8 @@ html, body {
 
     .hero-btn:hover, .hero-btn:focus {
       transform: translateY(-2px) scale(1.04);
-      box-shadow: 0 10px 32px rgba(19, 194, 150, 0.22);
-      background: linear-gradient(90deg, #0a223a 0%, #13c296 100%);
+  box-shadow: 0 10px 32px var(--ndaku-primary-44);
+  background: linear-gradient(90deg, #0a223a 0%, var(--ndaku-primary) 100%);
       color: #fff;
     }
 @media (min-width: 768px) {
@@ -365,7 +365,7 @@ html, body {
 
 .animate-card:active {
   transform: scale(0.98) translateY(2px);
-  box-shadow: 0 2px 8px #13c29622;
+  box-shadow: 0 2px 8px var(--ndaku-primary-22);
 }
 
 /* Disable heavy hover effects on touch devices (avoid jumpy interactions) */
@@ -397,13 +397,13 @@ html, body {
 
 .btn:hover,
 .btn:focus-visible {
-  box-shadow: 0 2px 12px #13c29633;
+  box-shadow: 0 2px 12px var(--ndaku-primary-33);
   transform: translateY(-2px) scale(1.03);
 }
 
 .btn:active {
   transform: scale(0.97);
-  box-shadow: 0 1px 4px #13c29622;
+  box-shadow: 0 1px 4px var(--ndaku-primary-22);
 }
 
 /* Make default bootstrap-like buttons more consistent and responsive */
@@ -434,7 +434,7 @@ html, body {
   font-size: clamp(1.3rem, 3vw, 2.2rem);
   text-align: center;
   font-weight: 900;
-  background: linear-gradient(90deg, #13c296 0%, #0a223a 60%, #d7263d 100%);
+  background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 60%, #d7263d 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -448,7 +448,7 @@ html, body {
   height: 54px;
   border-radius: 50%;
   font-size: 2rem;
-  box-shadow: 0 2px 12px #13c29622;
+  box-shadow: 0 2px 12px var(--ndaku-primary-22);
   margin-bottom: 0.2rem;
 }
 
@@ -495,7 +495,7 @@ html, body {
 }
 
 .hero-highlight {
-  color: #13c296;
+  color: var(--ndaku-primary);
   font-weight: 800;
 }
 
@@ -513,7 +513,7 @@ html, body {
 }
 
 .custom-navbar {
-  box-shadow: 0 4px 24px rgba(19, 194, 150, 0.08);
+  box-shadow: 0 4px 24px var(--ndaku-primary-100);
   min-height: 48px;
   padding-top: 0.3rem;
   padding-bottom: 0.3rem;
@@ -532,7 +532,7 @@ html, body {
 }
 
 .navbar .btn-success {
-  background: #13c296;
+  background: var(--ndaku-primary);
   border: none;
 }
 
@@ -542,7 +542,7 @@ html, body {
 
 .navbar-nav .nav-link.active,
 .navbar-nav .nav-link.show {
-  color: #13c296 !important;
+  color: var(--ndaku-primary) !important;
   font-weight: 700;
 }
 
@@ -556,7 +556,7 @@ html, body {
 }
 
 .navbar-nav .nav-link:hover {
-  color: #13c296;
+  color: var(--ndaku-primary);
 }
 
 /* Dropdown caret animation for custom controlled dropdown */
@@ -614,7 +614,7 @@ html, body {
 .page-underline {
   height: 4px;
   width: 60px;
-  background: linear-gradient(90deg, #13c296, #d7263d);
+  background: linear-gradient(90deg, var(--ndaku-primary), #d7263d);
   border-radius: 4px;
   margin-top: 10px;
   transform-origin: left;
@@ -650,7 +650,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   border-radius: 0;
-  box-shadow: 0 4px 24px rgba(19, 194, 150, 0.08);
+  box-shadow: 0 4px 24px var(--ndaku-primary-100);
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -708,7 +708,7 @@ html, body {
   }
 
   .carousel-box .carousel-indicators .active {
-    background-color: #13c296;
+  background-color: var(--ndaku-primary);
   }
 }
 
@@ -812,7 +812,7 @@ img {
 
   .promotion-price {
     font-size: 1.5rem;
-    color: #13c296;
+  color: var(--ndaku-primary);
     font-weight: 900;
     text-align: center;
   }
@@ -837,7 +837,7 @@ img {
     font-weight: 700;
     background: linear-gradient(90deg, #7be2c2 0%, #b2d6f6 100%);
     color: #f0f5ff !important;
-    box-shadow: 0 2px 10px 0 #b2d6f655, 0 1.5px 8px #13c29611;
+  box-shadow: 0 2px 10px 0 #b2d6f655, 0 1.5px 8px var(--ndaku-primary-11);
     border: none;
     letter-spacing: 0.18px;
     transition: transform 0.16s, box-shadow 0.16s, background 0.16s, color 0.16s;
@@ -1043,7 +1043,7 @@ img {
 
 /* Footer design et responsive */
 .footer-pro {
-  background: linear-gradient(90deg, #0a223a 0%, #13c296 100%);
+  background: linear-gradient(90deg, #0a223a 0%, var(--ndaku-primary) 100%);
   color: #fff;
   padding: 2.5rem 0 1.2rem 0;
   font-size: 1.05rem;
@@ -1064,14 +1064,14 @@ img {
   margin: 0.5rem auto 0.5rem auto;
   display: block;
   background: #fff;
-  color: #13c296 !important;
-  border: 2px solid #13c296;
+  color: var(--ndaku-primary) !important;
+  border: 2px solid var(--ndaku-primary);
   font-weight: 800;
   border-radius: 999px;
   transition: background 0.18s, color 0.18s, border 0.18s;
 }
 .footer-pro .btn-outline-light:hover, .footer-pro .btn:hover {
-  background: #13c296;
+  background: var(--ndaku-primary);
   color: #fff !important;
   border: 2px solid #fff;
 }

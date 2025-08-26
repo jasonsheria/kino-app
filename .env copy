@@ -1,0 +1,5 @@
+# Copy to .env and set real values
+REACT_APP_GOOGLE_CLIENT_ID=900358554333-g3k99qk3da90po7cc3ajm5cv8oq2dkda.apps.googleusercontent.com
+
+# Optional: backend token exchange endpoint if you perform server-side exchange
+# NDaku_BACKEND_TOKEN_EXCHANGE=https://your-backend.example.com/auth/google/exchange

@@ -60,7 +60,7 @@ export default function AgencyAds(){
     // fake timeseries from ad.views (if array present or generate sample)
     const labels = ['J-6','J-5','J-4','J-3','J-2','J-1','Aujourd\'hui'];
     const data = Array.from({length:7}, (_,i)=> Math.max(0, Math.floor((ad.views||0)/7) + Math.floor(Math.random()*5)));
-    return { labels, datasets: [{ label: 'Vues', data, borderColor: '#13c296', backgroundColor: '#13c29633', tension:0.3 }] };
+  return { labels, datasets: [{ label: 'Vues', data, borderColor: 'var(--ndaku-primary)', backgroundColor: 'var(--ndaku-primary-33)', tension:0.3 }] };
   };
 
   return (

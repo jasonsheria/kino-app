@@ -6,7 +6,7 @@
   font-weight: 700;
   padding: 0.68rem 1.45rem;
   color: #0a223a !important;
-  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px #13c29611;
+  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px var(--ndaku-primary-11);
   position: relative;
   overflow: hidden;
   border: none;
@@ -24,7 +24,7 @@
   font-weight: 700;
   padding: 0.68rem 1.45rem;
   color: #0a223a !important;
-  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px #13c29611;
+  box-shadow: 0 2px 12px 0 #b2d6f655, 0 1.5px 8px var(--ndaku-primary-11);
   position: relative;
   overflow: hidden;
   border: none;
@@ -49,13 +49,13 @@
 
 .ndaku-btn:focus {
   outline: none;
-  box-shadow: 0 8px 28px #b2d6f655, 0 1.5px 8px #13c29622;
+  box-shadow: 0 8px 28px #b2d6f655, 0 1.5px 8px var(--ndaku-primary-22);
 }
 
 @media (hover: hover) {
   .ndaku-btn:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 10px 32px #b2d6f655, 0 2px 10px #b2d6f655;
+    box-shadow: 0 10px 32px #b2d6f655, 0 2px 10px var(--ndaku-primary-11);
     color: #0a223a;
   }
   .ndaku-btn:hover:before {
@@ -65,13 +65,13 @@
 
 .ndaku-btn:active {
   transform: scale(0.98);
-  box-shadow: 0 1px 4px #b2d6f644;
+  box-shadow: 0 1px 4px var(--ndaku-primary-11);
   color: #0a223a;
 }
 
 .ndaku-btn:focus {
   outline: none;
-  box-shadow: 0 6px 18px rgba(19,194,150,0.12);
+  box-shadow: 0 6px 18px var(--ndaku-primary-11);
 }
 
 /* subtle lift on hover for pointer devices */

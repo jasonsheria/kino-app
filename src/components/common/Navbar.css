@@ -1,9 +1,9 @@
 /* Theme Variables */
 :root {
   --header-height: 72px;
-  --primary: #13c296;
+  --primary: var(--ndaku-primary);
   --primary-dark: #0d9c78;
-  --primary-light: rgba(19, 194, 150, 0.08);
+  --primary-light: var(--ndaku-primary-100);
   --secondary: #1e293b;
   --danger: #dc3545;
   --success: #28a745;
@@ -271,7 +271,7 @@
 .kn-cta-filled:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(19, 194, 150, 0.2);
+  box-shadow: 0 4px 12px var(--ndaku-primary-33);
 }
 
 /* Mobile Menu Button */

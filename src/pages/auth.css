@@ -19,7 +19,7 @@
 
 .auth-illustration {
     flex: 1;
-    background: linear-gradient(135deg, #13c296 0%, #0ea5a3 100%);
+    background: linear-gradient(135deg, var(--ndaku-primary) 0%, #0ea5a3 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -85,9 +85,9 @@
 }
 
 .auth-form .form-control:focus {
-    border-color: #13c296;
+    border-color: var(--ndaku-primary);
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(19, 194, 150, 0.1);
+    box-shadow: 0 0 0 4px var(--ndaku-primary-22);
     outline: none;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .auth-form .btn-primary {
-    background: linear-gradient(90deg, #13c296, #0ea5a3);
+    background: linear-gradient(90deg, var(--ndaku-primary), #0ea5a3);
     border: 0;
     padding: 10px 12px;
     font-size: 0.95rem

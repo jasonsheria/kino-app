@@ -2,8 +2,14 @@
   --ndaku-primary: #13c296;
   --ndaku-primary-100: rgba(19,194,150,0.08);
   --ndaku-secondary: #1976d2;
-  --ndaku-bg: #f4f6f8;
+  --ndaku-bg: #ffffff;
   --ndaku-text: #222222;
+  /* helpful alpha variants (hex 11/22/33/44/55 approximations) */
+  --ndaku-primary-11: rgba(19,194,150,0.07);
+  --ndaku-primary-22: rgba(19,194,150,0.13);
+  --ndaku-primary-33: rgba(19,194,150,0.2);
+  --ndaku-primary-44: rgba(19,194,150,0.27);
+  --ndaku-primary-55: rgba(19,194,150,0.33);
 }
 
 body {

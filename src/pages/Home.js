@@ -1,5 +1,5 @@
 import React from 'react';
-import ChatWidget from '../components/common/ChatWidget';
+import MessengerWidget from '../components/common/Messenger';
 import { useTheme } from '@mui/material/styles';
 import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
@@ -7,7 +7,8 @@ import InfoModal from '../components/common/InfoModal';
 import MapView from '../components/property/MapView';
 import FooterPro from '../components/common/Footer';
 import LandingCarousel from '../components/property/LandingCarousel';
-import Buttons from '../components/common/Button';
+import CustomButton from '../components/common/Button';
+import { Button as MuiButton } from '@mui/material';
 import { properties, agents } from '../data/fakedata';
 import { vehicles } from '../data/fakedataVehicles';
 import recService from '../services/recommendationService';
@@ -21,7 +22,7 @@ import AgentCard from '../components/agent/AgentCard';
 import ScrollReveal from '../components/common/ScrollReveal';
 import AgentContactModal from '../components/common/Messenger';
 import { Link, useNavigate } from 'react-router-dom';
-import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery } from '@mui/material';
+import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 // --- PKCE helpers (browser) ---
 async function sha256(plain) {
     const encoder = new TextEncoder();
@@ -136,39 +137,22 @@ const Home = () => {
         };
     }, []);
 
-    // Google sign-in toast on first visit (shows once, auto-dismiss)
-    const [showGooglePrompt, setShowGooglePrompt] = React.useState(false);
+    // Auto-start Google OAuth if user not authenticated and not on callback
     React.useEffect(() => {
         try {
             const params = new URLSearchParams(window.location.search);
-            const force = params.get('ndaku_force_google');
-            console.log('ndaku: google prompt init, force=', force);
-            // Determine if user is authenticated by checking common localStorage auth keys
+            const hasCode = params.has('code');
             const authKeys = ['ndaku_user', 'ndaku_auth_token', 'token', 'auth_token'];
             const isAuthed = authKeys.some(k => !!localStorage.getItem(k));
-            console.log('ndaku: auth detected=', isAuthed);
-            if (isAuthed) return; // don't show when logged in
-            if (force === '1') {
-                console.log('ndaku: forcing google prompt via URL param');
-                setShowGooglePrompt(true);
-                return;
+            // avoid redirect when already on callback or code present
+            if (!isAuthed && !hasCode && !window.location.pathname.includes('/auth/callback')) {
+                startGoogleOAuth((errMsg) => {
+                    setInfoMsg(errMsg || 'Impossible de démarrer l’authentification Google.');
+                    setInfoOpen(true);
+                });
             }
-            const t = setTimeout(() => {
-                console.log('ndaku: showing google prompt (timeout)');
-                setShowGooglePrompt(true);
-            }, 800);
-            return () => clearTimeout(t);
         } catch (e) { /* ignore storage errors */ }
     }, []);
-
-    // auto-hide after 4s when visible (but do not persist seen flag — show again until user logs in)
-    React.useEffect(() => {
-        if (!showGooglePrompt) return;
-        const h = setTimeout(() => {
-            setShowGooglePrompt(false);
-        }, 4000);
-        return () => clearTimeout(h);
-    }, [showGooglePrompt]);
 
     // fetch recommendations on mount and when filters change
     const [recommendedProperties, setRecommendedProperties] = React.useState([]);
@@ -206,18 +190,11 @@ const Home = () => {
     }, [propsLoaded, vehLoaded]);
 
     const acceptGoogleSign = () => {
-        console.log('ndaku: acceptGoogleSign clicked');
-        setShowGooglePrompt(false);
-        // Start Google OAuth (Authorization Code + PKCE)
+        // kept for backward compatibility if other code calls it via ref; starts OAuth flow
         startGoogleOAuth((errMsg) => {
             setInfoMsg(errMsg || 'Erreur inconnue lors du démarrage de Google OAuth.');
             setInfoOpen(true);
         });
-    };
-
-    const dismissGooglePrompt = () => {
-        console.log('ndaku: dismissGooglePrompt clicked');
-        setShowGooglePrompt(false);
     };
 
     // Configuration des catégories et filtres
@@ -449,12 +426,12 @@ const Home = () => {
                                 <span>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
                             </p>
                             <div className='align-items-center justify-content-center' style={{ display: "flex" }}>
-                                <Button
+                                <MuiButton
                                     onClick={() => scrollToId('biens')}
                                     variant="contained"
                                     startIcon={<FaHome />}
                                     sx={{
-                                        bgcolor: '#13c296',
+                                        bgcolor: 'var(--ndaku-primary)',
                                         color: 'white',
                                         alignSelf: 'flex-start',
                                         textTransform: 'none',
@@ -467,14 +444,14 @@ const Home = () => {
                                     }}
                                 >
                                     Voir les biens
-                                </Button>
+                                </MuiButton>
                             </div>
 
                         </div>
                     </div>
                     <div className="col-12 col-md-6 d-flex align-items-stretch carousel-section p-0">
                         <div className="w-100 h-100 carousel-box d-flex align-items-center justify-content-center">
-                            <LandingCarousel controlsOnSeparator color="#13c296" />
+                            <LandingCarousel controlsOnSeparator color="var(--ndaku-primary)" />
                         </div>
                     </div>
                 </div>
@@ -492,7 +469,7 @@ const Home = () => {
                     </div>
                     <div className="d-flex gap-2 mt-3 mt-md-0">
                         <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                           <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'> Agence</Button>
+                           <MuiButton variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'> Agence</MuiButton>
                         </Link>
                         <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
                            <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Propriétaire</Button>
@@ -572,7 +549,7 @@ const Home = () => {
                                         transform: cat.name === filter ? 'translateY(-4px)' : 'none',
                                         '&:hover': {
                                             transform: 'translateY(-4px)',
-                                            bgcolor: cat.name === filter ? '#13c296' : 'rgba(19, 194, 150, 0.08)'
+                                            bgcolor: cat.name === filter ? 'var(--ndaku-primary)' : 'var(--ndaku-primary-100)'
                                         }
                                     }}
                                 >
@@ -619,7 +596,7 @@ const Home = () => {
                         </div>
                         <style jsx>{`
                             .filter-stats-container {
-                                background: linear-gradient(to right, rgba(19, 194, 150, 0.03), rgba(19, 194, 150, 0.01));
+                                background: linear-gradient(to right, var(--ndaku-primary-11), var(--ndaku-primary-11));
                                 padding: 1.5rem;
                                 border-radius: 16px;
                                 box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
@@ -637,12 +614,12 @@ const Home = () => {
                                 padding: 1rem;
                                 background: white;
                                 border-radius: 12px;
-                                box-shadow: 0 2px 8px rgba(19, 194, 150, 0.08);
+                                box-shadow: 0 2px 8px var(--ndaku-primary-22);
                                 transition: all 0.2s ease;
                             }
                             .filter-stat-card:hover {
                                 transform: translateY(-2px);
-                                box-shadow: 0 4px 12px rgba(19, 194, 150, 0.12);
+                                box-shadow: 0 4px 12px var(--ndaku-primary-33);
                             }
                             .stat-icon {
                                 width: 40px;
@@ -650,7 +627,7 @@ const Home = () => {
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                background: rgba(19, 194, 150, 0.1);
+                                background: var(--ndaku-primary-100);
                                 border-radius: 10px;
                                 font-size: 1.2rem;
                             }
@@ -695,7 +672,7 @@ const Home = () => {
                         </div>
                         <style jsx>{`
                             .commune-filter-container {
-                                background: linear-gradient(to right, rgba(19, 194, 150, 0.05), rgba(19, 194, 150, 0.02));
+                                background: linear-gradient(to right, var(--ndaku-primary-11), var(--ndaku-primary-11));
                                 padding: 1.5rem;
                                 border-radius: 16px;
                             }
@@ -727,13 +704,13 @@ const Home = () => {
                                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
                             }
                             .custom-select-pro:hover {
-                                border-color: #13c296;
-                                box-shadow: 0 2px 12px rgba(19, 194, 150, 0.1);
+                                border-color: var(--ndaku-primary);
+                                box-shadow: 0 2px 12px var(--ndaku-primary-22);
                             }
                             .custom-select-pro:focus {
                                 outline: none;
-                                border-color: #13c296;
-                                box-shadow: 0 0 0 3px rgba(19, 194, 150, 0.1);
+                                border-color: var(--ndaku-primary);
+                                box-shadow: 0 0 0 3px var(--ndaku-primary-22);
                             }
                             .select-icon {
                                 position: absolute;
@@ -760,12 +737,12 @@ const Home = () => {
                         align-items: center;
                         justify-content: center;
                         border-radius: 12px;
-                        background: rgba(19, 194, 150, 0.1);
-                        color: #13c296;
+                        background: var(--ndaku-primary-100);
+                        color: var(--ndaku-primary);
                         transition: all 0.3s ease;
                     }
                     .icon-wrapper.active {
-                        background: #13c296;
+                        background: var(--ndaku-primary);
                         color: white;
                     }
                     .filter-card-title {
@@ -779,8 +756,8 @@ const Home = () => {
                         color: #64748b;
                     }
                     .custom-select:focus {
-                        border-color: #13c296;
-                        box-shadow: 0 0 0 2px rgba(19, 194, 150, 0.2);
+                        border-color: var(--ndaku-primary);
+                        box-shadow: 0 0 0 2px var(--ndaku-primary-33);
                     }
                 `}</style>
                 <div className="row justify-content-center">
@@ -846,12 +823,12 @@ const Home = () => {
                                     <Button
                                         variant="contained"
                                         sx={{
-                                            bgcolor: '#13c296',
+                                            bgcolor: 'var(--ndaku-primary)',
                                             color: 'white',
                                             '&:hover': {
                                                 bgcolor: '#0ea67e',
                                                 transform: 'translateY(-2px)',
-                                                boxShadow: '0 4px 12px rgba(19, 194, 150, 0.2)'
+                                                boxShadow: '0 4px 12px var(--ndaku-primary-33)'
                                             },
                                             transition: 'all 0.2s ease',
                                             borderRadius: '12px',
@@ -980,7 +957,7 @@ const Home = () => {
                                         <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{promo.excerpt}</p>
                                         <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
                                             <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{promo.oldPrice} $</span>
-                                            <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: '#13c296', fontWeight: 900 }}>{promo.newPrice} $</span>
+                                            <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: 'var(--ndaku-primary)', fontWeight: 900 }}>{promo.newPrice} $</span>
                                             <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-30%</span>
                                         </div>
                                         <div className="mb-3">
@@ -1084,7 +1061,7 @@ const Home = () => {
                                             <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{p.address || p.excerpt || ''}</p>
                                             <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
                                                 {p.oldPrice && <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{p.oldPrice} $</span>}
-                                                {p.newPrice && <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: '#13c296', fontWeight: 900 }}>{p.newPrice} $</span>}
+                                                {p.newPrice && <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: 'var(--ndaku-primary)', fontWeight: 900 }}>{p.newPrice} $</span>}
                                                 {p._promoMeta && p._promoMeta.discountPercent && <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-{p._promoMeta.discountPercent}%</span>}
                                             </div>
                                             {p.description && <div className="mb-2 text-secondary small">{p.description}</div>}
@@ -1191,45 +1168,7 @@ const Home = () => {
             </div >
 
             {/* Footer pro et interactif */}
-            {/* Google sign-in dialog (moderne, centré en bas) */}
-            {
-                showGooglePrompt && (
-                    <div style={{
-                        position: 'fixed',
-                        left: '50%',
-                        bottom: '2.5vh',
-                        transform: 'translateX(-50%)',
-                        zIndex: 3000,
-                        minWidth: 320,
-                        maxWidth: '95vw',
-                        boxShadow: '0 8px 32px rgba(19,194,150,0.13)',
-                        borderRadius: '18px',
-                        background: 'linear-gradient(90deg, #fff 60%, #e0f7fa 100%)',
-                        padding: '1.3rem 1.5rem 1.1rem 1.5rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        border: '1.5px solid #e0f7fa',
-                        animation: 'fadeInUp 0.5s cubic-bezier(.23,1.02,.47,.98)'
-                    }}
-                        aria-modal="true"
-                        role="dialog"
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                            {/* <img src={require('../img/logo192.png')} alt="Ndaku" style={{ width: 38, height: 38, borderRadius: 8, boxShadow: '0 2px 8px #13c29622' }} /> */}
-                            <span style={{ fontWeight: 800, fontSize: '1.18rem', color: '#0a223a' }}>Connexion rapide</span>
-                        </div>
-                        <div style={{ textAlign: 'center', color: '#0a223a', fontSize: '1.05rem', marginBottom: 18, maxWidth: 320 }}>
-                            Connectez-vous avec Google pour un accès facilité et sécurisé à toutes les fonctionnalités Ndaku.
-                        </div>
-                       <Button className="btn ndaku-btn" style={{ minWidth: 180, marginBottom: 8 }} onClick={acceptGoogleSign}>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{ width: 22, height: 22, marginRight: 8, verticalAlign: 'middle', borderRadius: 4 }} />
-                            Se connecter avec Google
-                       </Button>
-                       <Button className="btn btn-outline-secondary" style={{ minWidth: 120 }} onClick={dismissGooglePrompt}>Plus tard</Button>
-                    </div>
-                )
-            }
+            {/* Google OAuth auto-start is handled on mount for unauthenticated users */}
 
             {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
 
@@ -1237,7 +1176,7 @@ const Home = () => {
             <FooterPro />
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
             {/* ChatWidget MongoDB-style, always present */}
-            <ChatWidget />
+            <MessengerWidget />
         </>
     );
 };

@@ -100,14 +100,14 @@ const About = () => {
                                 />
                                 <div 
                                     className="position-absolute" 
-                                    style={{
+                                    style={{ 
                                         bottom: '-2rem',
                                         right: '-2rem',
-                                        background: '#13c296',
+                                        background: 'var(--ndaku-primary)',
                                         padding: '2rem',
                                         borderRadius: '1rem',
                                         color: 'white',
-                                        boxShadow: '0 10px 30px rgba(19, 194, 150, 0.2)'
+                                        boxShadow: '0 10px 30px var(--ndaku-primary-33)'
                                     }}
                                 >
                                     <h3 className="h2 mb-0">7+ ans</h3>
@@ -120,7 +120,7 @@ const About = () => {
             </section>
 
             {/* Statistics Section */}
-            <section className="py-5" style={{ background: 'linear-gradient(135deg, #13c296 0%, #0ea67e 100%)' }}>
+            <section className="py-5" style={{ background: `linear-gradient(135deg, var(--ndaku-primary) 0%, #0ea67e 100%)` }}>
                 <div className="container py-4">
                     <div className="row g-4">
                         {stats.map((stat, index) => (
@@ -226,30 +226,20 @@ const About = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-8 text-center">
                             <h2 className="mb-4">Contactez-nous</h2>
-                            <p className="mb-5">
-                                Notre équipe est disponible pour répondre à toutes vos questions 
-                                et vous accompagner dans vos projets immobiliers.
-                            </p>
-                            <div className="row g-4">
-                                <div className="col-md-4">
-                                    <div className="d-flex flex-column align-items-center">
-                                        <FaMapMarkerAlt className="text-success mb-3" size={24} />
-                                        <h5 className="h6 mb-2">Adresse</h5>
-                                        <p className="text-muted mb-0">10 Avenue du Commerce, Gombe, Kinshasa</p>
+                            <p className="mb-3">Notre équipe est disponible pour répondre à toutes vos questions et vous accompagner dans vos projets immobiliers.</p>
+                            <div className="row g-4 mt-3">
+                                <div className="col-md-6">
+                                    <div className="d-flex flex-column align-items-start">
+                                        <h5 className="h6 mb-2"><FaMapMarkerAlt className="text-success" /> Siège social</h5>
+                                        <p className="text-muted mb-1">Immeuble Ndaku, Avenue A, Quartier Gombe, Kinshasa, République Démocratique du Congo</p>
+                                        <p className="text-muted mb-0"><strong>Heures:</strong> Lun-Ven 08:30 - 17:30</p>
                                     </div>
                                 </div>
-                                <div className="col-md-4">
-                                    <div className="d-flex flex-column align-items-center">
-                                        <FaPhoneAlt className="text-success mb-3" size={24} />
-                                        <h5 className="h6 mb-2">Téléphone</h5>
-                                        <p className="text-muted mb-0">+243 900 000 000</p>
-                                    </div>
-                                </div>
-                                <div className="col-md-4">
-                                    <div className="d-flex flex-column align-items-center">
-                                        <FaEnvelope className="text-success mb-3" size={24} />
-                                        <h5 className="h6 mb-2">Email</h5>
-                                        <p className="text-muted mb-0">contact@ndaku.cd</p>
+                                <div className="col-md-6">
+                                    <div className="d-flex flex-column align-items-start">
+                                        <h5 className="h6 mb-2"><FaMapMarkerAlt className="text-success" /> Bureau</h5>
+                                        <p className="text-muted mb-1">3ème étage, Bureau 305 — Centre d'affaires Kin, Gombe</p>
+                                        <p className="text-muted mb-0"><FaPhoneAlt /> +243 900 000 000 &nbsp; <FaEnvelope /> contact@ndaku.cd</p>
                                     </div>
                                 </div>
                             </div>
