@@ -4,6 +4,8 @@ import { useTheme } from '@mui/material/styles';
 import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
+import { useAuth } from '../contexts/AuthContext';
+import GoogleOneTap from '../components/GoogleOneTap';
 import MapView from '../components/property/MapView';
 import FooterPro from '../components/common/Footer';
 import LandingCarousel from '../components/property/LandingCarousel';
@@ -23,65 +25,7 @@ import ScrollReveal from '../components/common/ScrollReveal';
 import AgentContactModal from '../components/common/Messenger';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
-// --- PKCE helpers (browser) ---
-async function sha256(plain) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    const hash = await window.crypto.subtle.digest('SHA-256', data);
-    return new Uint8Array(hash);
-}
-function base64UrlEncode(buffer) {
-    let str = '';
-    const bytes = new Uint8Array(buffer);
-    const chunkSize = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        str += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-    }
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-function randomString(length = 64) {
-    const arr = new Uint8Array(length);
-    window.crypto.getRandomValues(arr);
-    return Array.from(arr, dec => ('0' + dec.toString(16)).slice(-2)).join('');
-}
-async function pkceChallengeFromVerifier(verifier) {
-    const hashed = await sha256(verifier);
-    return base64UrlEncode(hashed);
-}
-
-function startGoogleOAuth(onError) {
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || window.__env?.REACT_APP_GOOGLE_CLIENT_ID;
-    const redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
-    if (!clientId) {
-        const msg = 'Google client ID not set. Define REACT_APP_GOOGLE_CLIENT_ID in your environment.';
-        if (typeof onError === 'function') return onError(msg);
-        console.warn(msg);
-        return;
-    }
-    const state = randomString(16);
-    const codeVerifier = randomString(64);
-    pkceChallengeFromVerifier(codeVerifier).then(codeChallenge => {
-        try { localStorage.setItem('ndaku_pkce_code_verifier', codeVerifier); } catch (e) { }
-        const params = new URLSearchParams({
-            client_id: clientId,
-            redirect_uri: redirectUri,
-            response_type: 'code',
-            scope: 'openid profile email',
-            include_granted_scopes: 'true',
-            state,
-            code_challenge: codeChallenge,
-            code_challenge_method: 'S256',
-            access_type: 'offline'
-        });
-        const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-        window.location.href = url;
-    }).catch(err => {
-        console.error('ndaku: pkce error', err);
-        const msg = 'Impossible de démarrer l’authentification Google. Voir console.';
-        if (typeof onError === 'function') return onError(msg);
-        console.warn(msg);
-    });
-}
+import authService from '../services/authService';
 
 const Home = () => {
     const [contactOpen, setContactOpen] = React.useState(false);
@@ -137,22 +81,10 @@ const Home = () => {
         };
     }, []);
 
-    // Auto-start Google OAuth if user not authenticated and not on callback
-    React.useEffect(() => {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const hasCode = params.has('code');
-            const authKeys = ['ndaku_user', 'ndaku_auth_token', 'token', 'auth_token'];
-            const isAuthed = authKeys.some(k => !!localStorage.getItem(k));
-            // avoid redirect when already on callback or code present
-            if (!isAuthed && !hasCode && !window.location.pathname.includes('/auth/callback')) {
-                startGoogleOAuth((errMsg) => {
-                    setInfoMsg(errMsg || 'Impossible de démarrer l’authentification Google.');
-                    setInfoOpen(true);
-                });
-            }
-        } catch (e) { /* ignore storage errors */ }
-    }, []);
+    // Utilisation du composant GoogleOneTap
+    const { isAuthenticated } = useAuth();
+
+
 
     // fetch recommendations on mount and when filters change
     const [recommendedProperties, setRecommendedProperties] = React.useState([]);
@@ -189,13 +121,7 @@ const Home = () => {
         if (propsLoaded && vehLoaded) setLoading(false);
     }, [propsLoaded, vehLoaded]);
 
-    const acceptGoogleSign = () => {
-        // kept for backward compatibility if other code calls it via ref; starts OAuth flow
-        startGoogleOAuth((errMsg) => {
-            setInfoMsg(errMsg || 'Erreur inconnue lors du démarrage de Google OAuth.');
-            setInfoOpen(true);
-        });
-    };
+
 
     // Configuration des catégories et filtres
     const propertyConfig = React.useMemo(() => ({
@@ -1168,7 +1094,7 @@ const Home = () => {
             </div >
 
             {/* Footer pro et interactif */}
-            {/* Google OAuth auto-start is handled on mount for unauthenticated users */}
+            {!isAuthenticated && <GoogleOneTap />}
 
             {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
 

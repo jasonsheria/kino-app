@@ -13,7 +13,6 @@ import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
-import VirtualTourModal from '../components/common/VirtualTourModal';
 
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '' }) {
@@ -232,7 +231,7 @@ const PropertyDetails = () => {
 
                 <div className="d-flex justify-content-end gap-2 mb-3">
                   <button className="btn btn-outline-secondary btn-sm px-3 fw-bold" onClick={() => navigate(-1)}>Retour</button>
-                  <button className="btn btn-success btn-sm px-3 fw-bold" onClick={() => setShowVirtual(true)} aria-haspopup="dialog">Visite virtuelle</button>
+                  <button className="btn btn-success btn-sm px-3 fw-bold" onClick={() => setShowVirtual(true)}>Visite virtuelle</button>
                 </div>
 
                 {/* Neighborhood indices */}
@@ -342,9 +341,6 @@ const PropertyDetails = () => {
         )}
       </div>
   <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
-  {showVirtual && (
-    <VirtualTourModal open={showVirtual} onClose={() => setShowVirtual(false)} videos={videos} initialIndex={selectedVideo} />
-  )}
    {/* Call to action */}
               <div className="bg-success text-white text-center py-5">
                   <div className="container">
@@ -405,8 +401,8 @@ const AgentBlockWithReservation = ({ agent, property }) => {
           )}
         </div>
       </div>
-  {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-  {showBooking && <VisitBookingModal open={showBooking} onClose={()=>setShowBooking(false)} onSuccess={handleSuccess} agent={agent} property={property} />}
+      {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
+      {showBooking && <VisitBookingModal open={showBooking} onClose={()=>setShowBooking(false)} onSuccess={handleSuccess} agent={agent} property={property} />}
     </div>
   );
 };

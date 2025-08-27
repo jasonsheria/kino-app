@@ -9,9 +9,7 @@ export default function ChatWidget({ user = null }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [unread, setUnread] = useState(0);
-  const [sending, setSending] = useState(false);
   const listRef = useRef(null);
-  const inputRef = useRef(null);
 
   useEffect(() => {
     // load persisted messages per user
@@ -25,11 +23,8 @@ export default function ChatWidget({ user = null }) {
 
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages, open]);
 
-  useEffect(() => { if (open && inputRef.current) { inputRef.current.focus(); } }, [open]);
-
   const sendMessage = () => {
     if (!text.trim()) return;
-    setSending(true);
     const item = { from: 'me', text, ts: Date.now() };
     setMessages(m => {
       const next = [...m, item];
@@ -41,11 +36,6 @@ export default function ChatWidget({ user = null }) {
       return next;
     });
     setText('');
-    // small simulated send delay
-    setTimeout(() => {
-      setSending(false);
-      if (window.showToast) window.showToast('Message envoyé', 'success');
-    }, 300);
   };
 
   // Pour toutes les pages : floating button + widget
@@ -66,8 +56,8 @@ export default function ChatWidget({ user = null }) {
           ))}
         </div>
         <div className="mongo-chat-input">
-          <input ref={inputRef} type="text" value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }} placeholder="Posez votre question, demande de visite, plainte..." aria-label="Message" />
-          <button className="mongo-chat-send" onClick={sendMessage} disabled={sending || !text.trim()}>{sending ? 'Envoi...' : 'Envoyer'}</button>
+          <input type="text" value={text} onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }} placeholder="Votre message..." />
+          <button className="mongo-chat-send" onClick={sendMessage}>Envoyer</button>
         </div>
       </div>
       <button className="mongo-chat-fab" title="Chat Ndaku" onClick={() => { setOpen(true); setUnread(0); }}>

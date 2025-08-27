@@ -226,20 +226,30 @@ const About = () => {
                     <div className="row justify-content-center">
                         <div className="col-lg-8 text-center">
                             <h2 className="mb-4">Contactez-nous</h2>
-                            <p className="mb-3">Notre équipe est disponible pour répondre à toutes vos questions et vous accompagner dans vos projets immobiliers.</p>
-                            <div className="row g-4 mt-3">
-                                <div className="col-md-6">
-                                    <div className="d-flex flex-column align-items-start">
-                                        <h5 className="h6 mb-2"><FaMapMarkerAlt className="text-success" /> Siège social</h5>
-                                        <p className="text-muted mb-1">Immeuble Ndaku, Avenue A, Quartier Gombe, Kinshasa, République Démocratique du Congo</p>
-                                        <p className="text-muted mb-0"><strong>Heures:</strong> Lun-Ven 08:30 - 17:30</p>
+                            <p className="mb-5">
+                                Notre équipe est disponible pour répondre à toutes vos questions 
+                                et vous accompagner dans vos projets immobiliers.
+                            </p>
+                            <div className="row g-4">
+                                <div className="col-md-4">
+                                    <div className="d-flex flex-column align-items-center">
+                                        <FaMapMarkerAlt className="text-success mb-3" size={24} />
+                                        <h5 className="h6 mb-2">Adresse</h5>
+                                        <p className="text-muted mb-0">10 Avenue du Commerce, Gombe, Kinshasa</p>
                                     </div>
                                 </div>
-                                <div className="col-md-6">
-                                    <div className="d-flex flex-column align-items-start">
-                                        <h5 className="h6 mb-2"><FaMapMarkerAlt className="text-success" /> Bureau</h5>
-                                        <p className="text-muted mb-1">3ème étage, Bureau 305 — Centre d'affaires Kin, Gombe</p>
-                                        <p className="text-muted mb-0"><FaPhoneAlt /> +243 900 000 000 &nbsp; <FaEnvelope /> contact@ndaku.cd</p>
+                                <div className="col-md-4">
+                                    <div className="d-flex flex-column align-items-center">
+                                        <FaPhoneAlt className="text-success mb-3" size={24} />
+                                        <h5 className="h6 mb-2">Téléphone</h5>
+                                        <p className="text-muted mb-0">+243 900 000 000</p>
+                                    </div>
+                                </div>
+                                <div className="col-md-4">
+                                    <div className="d-flex flex-column align-items-center">
+                                        <FaEnvelope className="text-success mb-3" size={24} />
+                                        <h5 className="h6 mb-2">Email</h5>
+                                        <p className="text-muted mb-0">contact@ndaku.cd</p>
                                     </div>
                                 </div>
                             </div>

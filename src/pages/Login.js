@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import ChatWidget from '../components/common/ChatWidget';
 import { FaEnvelope, FaLock, FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
 import '../components/common/fonts.css';
 import '../pages/auth.css';
 
+// PKCE Utils
+function pkceChallengeFromVerifier(v) {
+  return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
+    .then(h => {
+      return btoa(String.fromCharCode(...new Uint8Array(h)))
+        .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    });
+}
+
+function randomString(length) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let text = '';
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  const from = location.state?.from?.pathname || '/dashboard';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,9 +38,10 @@ const Login = () => {
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     setError('');
+    
     if (!validateEmail(email)) {
       setError('Veuillez entrer un email valide');
       return;
@@ -26,15 +50,51 @@ const Login = () => {
       setError('Veuillez saisir votre mot de passe');
       return;
     }
-    setLoading(true);
-    setTimeout(function() {
+
+    try {
+      setLoading(true);
+      await login({ email, password });
+      navigate(from, { replace: true });
+    } catch (error) {
+      setError(error.message || 'Échec de la connexion');
+    } finally {
       setLoading(false);
-      if (password.length < 4) {
-        setError('Mot de passe incorrect');
-        return;
-      }
-      navigate('/user');
-    }, 800);
+    }
+  }
+
+  const startGoogleOAuth = async () => {
+    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const REDIRECT_URI = process.env.REACT_APP_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
+
+    if (!GOOGLE_CLIENT_ID) {
+      setError('Configuration Google manquante');
+      return;
+    }
+
+    try {
+      const state = randomString(16);
+      const codeVerifier = randomString(64);
+      const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
+
+      // Store PKCE verifier
+      localStorage.setItem('ndaku_pkce_code_verifier', codeVerifier);
+
+      const params = new URLSearchParams({
+        client_id: GOOGLE_CLIENT_ID,
+        redirect_uri: REDIRECT_URI,
+        response_type: 'code',
+        scope: 'openid profile email',
+        state,
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+        access_type: 'offline'
+      });
+
+      // Redirect to Google OAuth
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    } catch (error) {
+      setError('Erreur lors de la connexion avec Google');
+    }
   }
 
   return (
@@ -54,7 +114,7 @@ const Login = () => {
 
           <form onSubmit={submit} className="fade-in">
             <div className="social-auth">
-              <button type="button" className="social-btn google">
+              <button type="button" className="social-btn google" onClick={startGoogleOAuth} disabled={loading}>
                 <FaGoogle /> Continuer avec Google
               </button>
             </div>

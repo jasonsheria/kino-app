@@ -25,7 +25,6 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
   const [theme, setTheme] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const fileInput = useRef();
   const bodyRef = useRef();
-  const inputRef = useRef();
   // Simuler messages par agent
   const agentMessages = allMessages.filter(m => m.fromId === selectedAgentId || m.toId === selectedAgentId);
 
@@ -41,10 +40,6 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [selectedAgentId, agentMessages]);
-
-  useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
-  }, [selectedAgentId]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -62,8 +57,8 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
       status: 'pending',
     });
     setInput('');
-  // Prefer global toast if available
-  if (window.showToast) window.showToast('Message envoyé', 'success'); else { setNotif('Message envoyé'); setTimeout(() => setNotif(null), 1200); }
+    setNotif('Message envoyé');
+    setTimeout(() => setNotif(null), 1200);
   };
 
   const handleAttach = e => {
@@ -141,15 +136,14 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
           </div>
           {/* Footer chat */}
           <div className="messenger-footer" style={{display:'flex',alignItems:'center',padding:'12px 18px',borderTop:'1.5px solid #e9f7f3',background:'#fff'}}>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Demandez une visite, posez une question ou signalez un problème..."
-                onKeyDown={e => e.key === 'Enter' && handleSend()}
-                style={{flex:1,marginRight:8,padding:'8px 12px',borderRadius:8,border:'1.5px solid var(--ndaku-primary)',fontSize:'1em'}}
-              />
+            <input
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Votre message..."
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              style={{flex:1,marginRight:8,padding:'8px 12px',borderRadius:8,border:'1.5px solid var(--ndaku-primary)',fontSize:'1em'}}
+            />
             <input
               type="file"
               style={{ display: 'none' }}

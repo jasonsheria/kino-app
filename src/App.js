@@ -9,6 +9,8 @@ import AppRoutes from './routes';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { startEventSync } from './services/recommendationService';
 import { useGlobalCallModal } from './components/common/useGlobalCallModal';
+import { AuthProvider } from './contexts/AuthContext';
+import NotificationProvider from './contexts/NotificationContext';
 
 
 function App() {
@@ -50,10 +52,12 @@ function App() {
   const { CallModal } = useGlobalCallModal();
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Tooltip title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}>
-        <IconButton
+    <AuthProvider>
+      <NotificationProvider>
+        <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Tooltip title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}>
+          <IconButton
           onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
           style={{
             position: 'fixed',
@@ -78,8 +82,10 @@ function App() {
         <AppRoutes />
       </HashRouter>
       {/* Global Call Modal (always present) */}
-      <CallModal />
-    </ThemeProvider>
+        <CallModal />
+        </ThemeProvider>
+      </NotificationProvider>
+    </AuthProvider>
   );
 }
 

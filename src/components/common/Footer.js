@@ -221,48 +221,6 @@ const Footer = () => {
           </Grid>
         </Grid>
 
-        {/* Suggestion / plainte form */}
-        <Box sx={{ mt: 4 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Envoyez-nous une suggestion ou plainte</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>Votre retour nous aide à améliorer nos services. Typez votre message ci-dessous.</Typography>
-              <form id="ndaku-suggestion-form" onSubmit={(e) => {
-                e.preventDefault();
-                try{
-                  const data = new FormData(e.target);
-                  const name = data.get('sugg_name') || 'Anonyme';
-                  const email = data.get('sugg_email') || '';
-                  const message = data.get('sugg_message') || '';
-                  if(!message || message.trim().length < 5){ alert('Veuillez entrer un message d\'au moins 5 caractères.'); return; }
-                  const raw = localStorage.getItem('ndaku_suggestions') || '[]';
-                  const arr = JSON.parse(raw);
-                  arr.unshift({ name, email, message, ts: Date.now() });
-                  localStorage.setItem('ndaku_suggestions', JSON.stringify(arr));
-                  // Prefer app toast if available
-                  if(window.showToast) window.showToast('Merci pour votre message. Nous le traiterons bientôt.', 'success'); else alert('Merci pour votre message. Nous le traiterons bientôt.');
-                  e.target.reset();
-                }catch(err){ console.error(err); alert('Une erreur est survenue, réessayez.'); }
-              }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={4}>
-                    <input name="sugg_name" type="text" placeholder="Votre nom (facultatif)" className="form-control" />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <input name="sugg_email" type="email" placeholder="Email (facultatif)" className="form-control" />
-                  </Grid>
-                  <Grid item xs={12} sm={4} sx={{ display: 'flex', alignItems: 'center' }}>
-                    <button type="submit" className="btn btn-success w-100" style={{ textTransform: 'none' }}>Envoyer</button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <textarea name="sugg_message" placeholder="Votre suggestion ou plainte" className="form-control" rows={3} required />
-                  </Grid>
-                </Grid>
-              </form>
-            </Grid>
-          </Grid>
-        </Box>
-
         {/* Footer Bottom */}
         <Box
           sx={{
