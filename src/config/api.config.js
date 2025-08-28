@@ -11,7 +11,7 @@ export const config = {
     AUTH: {
       LOGIN: `${API_URL}/api/auth/login`,
       REGISTER: `${API_URL}/api/auth/register`,
-      GOOGLE_LOGIN: `${API_URL}/api/auth/google/static`,
+      GOOGLE_LOGIN: `${API_URL}/api/auth/google`,
       GOOGLE_EXCHANGE: `${API_URL}/api/auth/google/exchange`,
       PROFILE: `${API_URL}/api/auth/profile`,
     },

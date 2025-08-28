@@ -107,18 +107,26 @@ class AuthService {
     }
   }
 
-  async loginWithGoogle(credential) {
+  async loginWithGoogle(code) {
     try {
-      const response = await authAPI.googleLogin(credential);
-      if (response.data.token) {
-        this.setAuthToken(response.data.token);
+      const response = await authAPI.googleLogin({
+        code,
+        redirect_uri: `${window.location.origin}/auth/callback`
+      });
+
+      if (response.data.accessToken) {
+        this.setAuthToken(response.data.accessToken);
       }
       if (response.data.user) {
         this.setUser(response.data.user);
       }
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to login with Google');
+      console.error('Erreur de connexion Google:', error);
+      throw new Error(
+        error.response?.data?.message || 
+        'Erreur de connexion avec Google. Veuillez réessayer.'
+      );
     }
   }
 

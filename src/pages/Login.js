@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import ChatWidget from '../components/common/ChatWidget';
 import { FaEnvelope, FaLock, FaGoogle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import '../components/common/fonts.css';
 import '../pages/auth.css';
-
+import authService from '../services/authService';
+import { useSocket } from '../contexts/SocketContext'
+import { useSnackbar } from 'notistack';
+import { GoogleLogin, googleLogout } from '@react-oauth/google';
 // PKCE Utils
 function pkceChallengeFromVerifier(v) {
   return window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(v))
@@ -27,75 +30,56 @@ function randomString(length) {
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
   const from = location.state?.from?.pathname || '/dashboard';
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isConnected } = useSocket();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const {loginWithGoogle, user, login} =useAuth();
+  useEffect(() => {
+     if (user && isConnected) {
+       // Émettre identify après login classique si userId existe
+       if (window && window.localStorage) {
+         const socket = require('socket.io-client').io(process.env.REACT_APP_SOCKET_URL, {
+           auth: { token: authService.getToken() },
+           transports: ['websocket']
+         });
+         if (user._id) {
+           socket.emit('identify', { userId: user._id });
+           console.log('[Login] Emission de identify après login classique:', user._id);
+           socket.disconnect();
+         }
+       }
+       const redirectPath = '/';
+       navigate(redirectPath, { replace: true });
+ 
+       setIsSubmitting(false); // Stop le preloader si user est défini
+       // Optionnel: délai pour l'effet de préchargement
+       // Rediriger vers la page appropriée
+     }
+   }, [user, isConnected, navigate]);
+ const handleSubmit = async (e) => {
+     e.preventDefault();
+     setError(null);
+     setIsSubmitting(true);
+     try {
+       await login(email, password);
+       // La redirection se fait dans useEffect quand user est défini
+     } catch (err) {
+       setError("Login failed. Please check your email and password.");
+       // eslint-disable-next-line no-console
+       console.error("Login error:", err);
+       setIsSubmitting(false);
+     }
+   };
 
-  async function submit(e) {
-    e.preventDefault();
-    setError('');
-    
-    if (!validateEmail(email)) {
-      setError('Veuillez entrer un email valide');
-      return;
-    }
-    if (!password) {
-      setError('Veuillez saisir votre mot de passe');
-      return;
-    }
 
-    try {
-      setLoading(true);
-      await login({ email, password });
-      navigate(from, { replace: true });
-    } catch (error) {
-      setError(error.message || 'Échec de la connexion');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const startGoogleOAuth = async () => {
-    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    const REDIRECT_URI = process.env.REACT_APP_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;
-
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Configuration Google manquante');
-      return;
-    }
-
-    try {
-      const state = randomString(16);
-      const codeVerifier = randomString(64);
-      const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
-
-      // Store PKCE verifier
-      localStorage.setItem('ndaku_pkce_code_verifier', codeVerifier);
-
-      const params = new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        redirect_uri: REDIRECT_URI,
-        response_type: 'code',
-        scope: 'openid profile email',
-        state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        access_type: 'offline'
-      });
-
-      // Redirect to Google OAuth
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-    } catch (error) {
-      setError('Erreur lors de la connexion avec Google');
-    }
-  }
 
   return (
     <div className="auth-page">
@@ -112,10 +96,30 @@ const Login = () => {
           <h3 className="fw-bold mb-1 text-center">Bienvenue sur Ndaku</h3>
           <p className="auth-small mb-3 text-center">Connectez-vous pour accéder à votre tableau de bord et gérer vos annonces.</p>
 
-          <form onSubmit={submit} className="fade-in">
+          <form onSubmit={handleSubmit} className="fade-in">
             <div className="social-auth">
-              <button type="button" className="social-btn google" onClick={startGoogleOAuth} disabled={loading}>
-                <FaGoogle /> Continuer avec Google
+              <button type="button" className="social-btn google" disabled={loading}>
+                {/* <FaGoogle /> Continuer avec Google */}
+                {/* Intégration directe du bouton GoogleLogin */}
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    // Envoie le token Google à ton backend pour login/register
+                    if (credentialResponse.credential) {
+                      try {
+                        await loginWithGoogle(credentialResponse.credential);
+                        enqueueSnackbar('Connexion Google réussie !', { variant: 'success' });
+                        closeSnackbar('google-auth-prompt'); // Ferme la notification persistante
+                      } catch (error) {
+                        enqueueSnackbar(error.message || 'Échec de la connexion Google côté serveur.', { variant: 'error' });
+                      }
+                    } else {
+                      enqueueSnackbar('Identifiant Google non reçu.', { variant: 'error' });
+                    }
+                  }}
+                  onError={() => setError("Erreur lors de la connexion Google.")}
+                  width="100%"
+                  useOneTap
+                />
               </button>
             </div>
 
@@ -153,9 +157,9 @@ const Login = () => {
                   placeholder="Mot de passe"
                   autoComplete="current-password"
                 />
-                <button 
-                  type="button" 
-                  className="password-toggle" 
+                <button
+                  type="button"
+                  className="password-toggle"
                   onClick={() => setShowPassword(s => !s)}
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >

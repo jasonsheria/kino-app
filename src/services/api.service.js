@@ -40,8 +40,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (credentials) => api.post(config.API_ENDPOINTS.AUTH.LOGIN, credentials),
   register: (data) => api.post(config.API_ENDPOINTS.AUTH.REGISTER, data),
-  googleLogin: (credential) => api.post(config.API_ENDPOINTS.AUTH.GOOGLE_LOGIN, { credential }),
-  googleExchange: (data) => api.post(config.API_ENDPOINTS.AUTH.GOOGLE_EXCHANGE, data),
+  googleLogin: (data) => api.post(config.API_ENDPOINTS.AUTH.GOOGLE_LOGIN, data),
   getProfile: () => api.get(config.API_ENDPOINTS.AUTH.PROFILE),
 };
 

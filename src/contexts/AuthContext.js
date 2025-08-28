@@ -1,9 +1,9 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+  import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import authService from '../services/authService';
 import WebSocketService from '../services/webSocketService';
 import { io } from 'socket.io-client';
 import { config } from '../config/api.config';
-
+import axios from 'axios';
 const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
@@ -13,6 +13,18 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(authService.getToken());
+  
+  // Additional state for page data
+  const [userId, setUserId] = useState(null);
+  const [pageDataLoading, setPageDataLoading] = useState(false);
+  const [usersites, setUsersites] = useState([]);
+  const [settings, setSettings] = useState([]);
+  const [configs, setConfigs] = useState([]);
+  const [texts, setTexts] = useState([]);
+  const [userthemes, setUserthemes] = useState([]);
+  const [userarticles, setUserarticles] = useState([]);
+  const [userprojects, setUserprojects] = useState([]);
+  const [comments, setComments] = useState([]);
 
   useEffect(() => {
     // Initialize authentication state
@@ -60,7 +72,16 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = useCallback(async (credential) => {
     try {
-      const response = await authService.loginWithGoogle(credential);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/auth/api/google/login`,
+        { token: credential },
+        {
+          withCredentials: true, // <-- Ajouté pour garantir la gestion CORS et cookies
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       setUser(response.user);
       setIsAuthenticated(true);
       setToken(response.accessToken);
@@ -106,6 +127,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+
+
   // WebSocket connection for logout notifications
   useEffect(() => {
     if (!token || !user) return;
@@ -139,7 +162,18 @@ export const AuthProvider = ({ children }) => {
     login,
     loginWithGoogle,
     register,
-    logout
+    logout,
+    userId,
+    pageDataLoading,
+    usersites,
+    settings,
+    configs,
+    texts,
+    userthemes,
+    userarticles,
+    userprojects,
+    comments,
+    setComments
   };
 
   return (

@@ -5,7 +5,6 @@ import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaM
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import { useAuth } from '../contexts/AuthContext';
-import GoogleOneTap from '../components/GoogleOneTap';
 import MapView from '../components/property/MapView';
 import FooterPro from '../components/common/Footer';
 import LandingCarousel from '../components/property/LandingCarousel';
@@ -1093,11 +1092,7 @@ const Home = () => {
                 </div>
             </div >
 
-            {/* Footer pro et interactif */}
-            {!isAuthenticated && <GoogleOneTap />}
-
-            {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
-
+          
 
             <FooterPro />
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
