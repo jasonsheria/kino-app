@@ -6,17 +6,16 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(180deg, rgba(20,20,20,0.06), rgba(255,255,255,0.02));
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(2px);
 }
 .preloader-card {
-  background: rgba(255, 255, 255, 0.495);
+  background: rgba(255, 255, 255, 0.283);
   border-radius: 14px;
   padding: 26px 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 10px 30px rgba(17,24,39,0.08);
   min-width: 240px;
 }
 .preloader-logo {

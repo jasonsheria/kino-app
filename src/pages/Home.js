@@ -79,22 +79,22 @@ const Home = () => {
             document.removeEventListener('click', handleAnchorClick);
         };
     }, []);
-
     // Utilisation du composant GoogleOneTap
     const { isAuthenticated } = useAuth();
-
-
-
     // fetch recommendations on mount and when filters change
     const [recommendedProperties, setRecommendedProperties] = React.useState([]);
     const [recommendedVehicles, setRecommendedVehicles] = React.useState([]);
     const loadRecommendations = React.useCallback(async (kind) => {
         if (kind === 'properties') {
+
             const recs = await recService.getRecommendations(properties.slice(0, 50), { kind: 'properties', limit: 12 });
             setRecommendedProperties(recs);
+
         } else {
+
             const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
             setRecommendedVehicles(recs);
+            
         }
     }, []);
 

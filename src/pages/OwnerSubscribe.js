@@ -51,45 +51,191 @@ export default function OwnerSubscribe(){
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
   const [searchParams] = useSearchParams();
-  const from = searchParams.get('from') || null;
+  const accountId = searchParams.get('id');
+  const accountType = searchParams.get('type');
   const [currentSub, setCurrentSub] = useState(null);
+  const [error, setError] = useState(null);
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Vérifier si les paramètres requis sont présents
+  useEffect(() => {
+    if (!accountId || !accountType) {
+      navigate('/');
+      return;
+    }
+    if (!['owner', 'agency', 'independent'].includes(accountType)) {
+      navigate('/');
+      return;
+    }
+  }, [accountId, accountType, navigate]);
 
   useEffect(()=>{
     try{ const raw = localStorage.getItem('owner_subscription'); if(raw) setCurrentSub(JSON.parse(raw)); }catch(e){}
   }, []);
 
-  const plans = [
-    { id: 'freemium', title: 'Freemium', price: 0, desc: 'Gratuit, fonctionnalités restreintes (max 2 biens).', bullets: ['Jusqu\'à 10 participants','Événements illimités','Organisateurs illimités'] },
-    { id: 'monthly', title: 'Premium', price: 9.99, desc: 'Accès complet à toutes les fonctionnalités.', bullets: ['Tout dans Gratuit','Jusqu\'à 200 participants','Export des données'] , featured:true},
-    { id: 'revshare', title: 'Rétro-commission', price: 0, desc: 'Paiement par commission sur ventes, achat via agent.', bullets: ['SSO (SAML 2.0)','Support personnalisé'] }
-  ];
+  // Plans en fonction du type de compte
+  const getPlansByAccountType = () => {
+    const basePlans = {
+      owner: [
+        { 
+          id: 'freemium', 
+          title: 'Freemium', 
+          price: 0, 
+          desc: 'Gratuit, fonctionnalités restreintes (max 2 biens).', 
+          bullets: ['Maximum 2 biens', 'Visibilité limitée', 'Support basique'] 
+        },
+        { 
+          id: 'monthly', 
+          title: 'Premium', 
+          price: 19.99, 
+          desc: 'Accès complet à toutes les fonctionnalités.', 
+          bullets: ['Biens illimités', 'Visibilité maximale', 'Support prioritaire'], 
+          featured: true 
+        },
+        {
+          id: 'commission',
+          title: 'Commission',
+          price: 0,
+          desc: 'Paiement par commission sur chaque transaction réussie.',
+          bullets: [
+            'Biens illimités',
+            'Commission de 5% sur les transactions',
+            'Support prioritaire',
+            'Visibilité premium',
+            'Statistiques avancées'
+          ]
+        }
+      ],
+      agency: [
+        { 
+          id: 'freemium', 
+          title: 'Freemium', 
+          price: 0, 
+          desc: 'Gratuit, fonctionnalités restreintes (max 5 biens).', 
+          bullets: ['Maximum 5 biens', 'Visibilité standard', 'Support basique'] 
+        },
+        { 
+          id: 'monthly', 
+          title: 'Premium', 
+          price: 49.99, 
+          desc: 'Accès complet pour agences.', 
+          bullets: ['Biens illimités', 'Visibilité premium', 'Support dédié'], 
+          featured: true 
+        },
+        {
+          id: 'commission',
+          title: 'Commission',
+          price: 0,
+          desc: 'Paiement par commission sur chaque transaction réussie.',
+          bullets: [
+            'Biens illimités',
+            'Commission de 3% sur les transactions',
+            'Support VIP',
+            'Visibilité premium+',
+            'Dashboard agence avancé'
+          ]
+        }
+      ],
+      independent: [
+        { 
+          id: 'freemium', 
+          title: 'Freemium', 
+          price: 0, 
+          desc: 'Gratuit, fonctionnalités de base.', 
+          bullets: ['Maximum 1 bien', 'Visibilité basique', 'Support communauté'] 
+        },
+        { 
+          id: 'monthly', 
+          title: 'Premium', 
+          price: 9.99, 
+          desc: 'Accès premium pour indépendants.', 
+          bullets: ['Maximum 3 biens', 'Visibilité améliorée', 'Support standard'], 
+          featured: true 
+        },
+        {
+          id: 'commission',
+          title: 'Commission',
+          price: 0,
+          desc: 'Paiement par commission sur chaque transaction réussie.',
+          bullets: [
+            'Maximum 5 biens',
+            'Commission de 7% sur les transactions',
+            'Support standard',
+            'Visibilité améliorée',
+            'Statistiques de base'
+          ]
+        }
+      ]
+    };
+    return basePlans[accountType] || [];
+  };
+
+  const plans = getPlansByAccountType();
 
   const choose = (p)=> setSelected(p);
 
-  const continueFlow = (planOverride) =>{
+  const continueFlow = async (planOverride) => {
     const sel = planOverride || selected;
     if(!sel) return alert('Veuillez choisir une formule');
 
-    if(from === 'dashboard'){
-      if(sel.id === 'monthly'){
-        navigate('/owner/pay?plan=monthly&from=dashboard');
-        return;
-      }
-      const entry = { type: sel.id, title: sel.title, chosenAt: Date.now(), paid: false, validUntil: null };
-      try{ localStorage.setItem('owner_subscription', JSON.stringify(entry)); }catch(e){}
-      navigate('/owner/dashboard');
-      return;
+    // Sauvegarder l'abonnement
+    const entry = { 
+      type: sel.id, 
+      title: sel.title, 
+      chosenAt: Date.now(),
+      accountType,
+      accountId,
+      paid: sel.id === 'monthly',
+      validUntil: sel.id === 'monthly' ? null : null 
+    };
+    try { 
+      localStorage.setItem(`${accountType}_subscription`, JSON.stringify(entry));
+    } catch(e) {
+      console.error('Erreur lors de la sauvegarde de l\'abonnement:', e);
     }
 
-    const entry = { type: sel.id, title: sel.title, chosenAt: Date.now(), validUntil: sel.id === 'monthly' ? null : null };
-    localStorage.setItem('owner_subscription', JSON.stringify(entry));
-    if(sel.id === 'monthly'){
-      navigate('/owner/pay?plan=monthly');
-    }else{
-      try{ localStorage.setItem('owner_resume_submission', 'true'); }catch(e){}
-      navigate('/owner/request');
+    // Redirection en fonction du type de compte et du plan
+    if(sel.id === 'freemium' || sel.id === 'commission') {
+      try {
+        // Activer le compte selon le type d'abonnement
+        const token = localStorage.getItem('ndaku_auth_token');
+        const endpoint = sel.id === 'freemium' ? 'activate-freemium' : 'activate-commission';
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/${accountId}/${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Erreur lors de l\'activation du compte');
+        }
+
+        const successMessage = `Votre compte ${accountType} a été activé avec l'abonnement ${sel.title}`;
+        
+        switch(accountType) {
+          case 'owner':
+            navigate(`/owner/dashboard?message=${encodeURIComponent(successMessage)}`);
+            break;
+          case 'agency':
+            navigate(`/agency/dashboard?message=${encodeURIComponent(successMessage)}`);
+            break;
+          case 'independent':
+            navigate(`/?message=${encodeURIComponent(successMessage)}`);
+            break;
+          default:
+            navigate('/');
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        setError('Erreur lors de l\'activation du compte. Veuillez réessayer.');
+      }
+    } else if(sel.id === 'monthly') {
+      // Pour l'abonnement monthly, rediriger vers le paiement
+      navigate(`/payment?plan=${sel.id}&type=${accountType}&id=${accountId}`);
     }
   };
 
@@ -98,6 +244,11 @@ export default function OwnerSubscribe(){
       <Box textAlign="center" mb={4}>
         <Typography variant="h4" sx={{fontWeight:900}}>Choisissez une formule</Typography>
         <Typography color="text.secondary">Sélectionnez le plan qui correspond le mieux à vos besoins. Vous pouvez le modifier à tout moment.</Typography>
+        {error && (
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', color: 'error.dark', borderRadius: 1 }}>
+            <Typography>{error}</Typography>
+          </Box>
+        )}
       </Box>
 
       {currentSub && (

@@ -58,6 +58,52 @@ class AuthService {
     }
   }
 
+  /**
+   * Refresh the current user using the stored token by calling the backend profile endpoint.
+   * Returns the user object on success or null on failure.
+   */
+  async refreshUser() {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const response = await authAPI.getProfile();
+      if (response.data) {
+        // support different shapes: { user } or direct user
+        const user = response.data.user || response.data;
+        if (user) {
+          this.setUser(user);
+          return user;
+        }
+      }
+      return null;
+    } catch (error) {
+      // If unauthorized, clear stored auth to avoid stuck state
+      if (error.response?.status === 401) {
+        this.logout();
+      }
+      return null;
+    }
+  }
+
+  async register(formData) {
+    try {
+      const response = await authAPI.register(formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.data.accessToken) {
+        this.setAuthToken(response.data.accessToken);
+      }
+      if (response.data.user) {
+        this.setUser(response.data.user);
+      }
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to register');
+    }
+  }
+
   async prepareGoogleOAuth() {
     const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
     const REDIRECT_URI = process.env.REACT_APP_GOOGLE_REDIRECT_URI || `${window.location.origin}/auth/callback`;

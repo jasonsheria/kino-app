@@ -95,117 +95,137 @@ export default function OwnerRequest() {
     try { localStorage.setItem('owner_profile_completion', JSON.stringify({ pct, updated: Date.now() })); } catch (e) { }
   }, [form, types, idFile, propTitleFiles]);
 
-  // on mount: restore draft if any
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('owner_request_draft');
-      if (raw) {
-        const draft = JSON.parse(raw || '{}');
-        if (draft.types) setTypes(draft.types);
-        if (draft.form) setForm(draft.form);
-        if (draft.propTitleFiles) setPropTitleFiles(draft.propTitleFiles);
-      }
-    } catch (e) { console.error('restore draft failed', e); }
-
-    // if we have a resume flag and a subscription, auto-continue
-    // DO NOT clear the resume flag here; only remove it when we actually submit to avoid losing state
-    try {
-      const resume = localStorage.getItem('owner_resume_submission');
-      const sub = JSON.parse(localStorage.getItem('owner_subscription') || 'null');
-      if (resume && sub && sub.type) {
-        // if form looks filled enough, open confirm directly to finalize
-        // Note: we restored draft above, but state updates are async, so allow a short timeout
-        setTimeout(() => {
-          const looksReady = (typeof form.nom === 'string' && form.nom.trim().length > 0) || (typeof form.prenom === 'string' && form.prenom.trim().length > 0) || (typeof form.email === 'string' && form.email.trim().length > 0) || types.length;
-          if (looksReady) {
-            setConfirmOpen(true);
-          }
-        }, 300);
-      }
-    } catch (e) { console.error('resume check failed', e); }
+    // Réinitialiser le formulaire au chargement
+    setTypes([]);
+    setForm({ nom: '', postnom: '', prenom: '', email: '', phone: '', address: '' });
+    setIdFile(null);
+    setPropTitleFiles([]);
+    setValidationError('');
   }, []);
 
   const toggleType = (t) => setTypes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
 
   const submitApplication = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!form.nom || !form.prenom || !form.email) { setValidationError('Veuillez remplir les champs obligatoires'); return; }
-    setValidationError('');
-    // check subscription: if owner hasn't chosen subscription, save draft and redirect to subscription page
-    try {
-      const sub = JSON.parse(localStorage.getItem('owner_subscription') || 'null');
-      if (!sub || !sub.type) {
-        // save draft (files cannot be serialized fully) - keep meta and ids
-        const draft = { types, form, propTitleFiles: propTitleFiles.map(f => f.name), savedAt: Date.now() };
-        localStorage.setItem('owner_request_draft', JSON.stringify(draft));
-        // navigate to subscription selection before final submit
-        navigate('/owner/subscribe');
-        return;
-      }
-    } catch (e) { console.error('subscription check failed', e); }
+    
+    // Validation de base
+    if (!form.nom || !form.prenom || !form.email) { 
+      setValidationError('Veuillez remplir les champs obligatoires'); 
+      return; 
+    }
 
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setValidationError('Veuillez entrer un email valide');
+      return;
+    }
+
+    // Validation téléphone
+    if (!form.phone || form.phone.length < 8) {
+      setValidationError('Veuillez entrer un numéro de téléphone valide');
+      return;
+    }
+
+    // Validation types de biens
+    if (types.length === 0) {
+      setValidationError('Veuillez sélectionner au moins un type de bien');
+      return;
+    }
+
+    // Validation documents
+    if (!idFile) {
+      setValidationError('Veuillez fournir une pièce d\'identité');
+      return;
+    }
+    if (propTitleFiles.length === 0) {
+      setValidationError('Veuillez fournir au moins un titre de propriété');
+      return;
+    }
+
+    setValidationError('');
     setConfirmOpen(true);
   };
 
   const doSubmit = async () => {
-    // prevent double execution
+    // Éviter la double soumission
     if (sessionStorage.getItem('owner_submission_lock') === '1') {
-      // already submitting
       return;
     }
     sessionStorage.setItem('owner_submission_lock', '1');
     setConfirmOpen(false);
-    const payload = new FormData();
-    payload.append('meta', JSON.stringify({ types, form, propTitleFiles: propTitleFiles.map(file => file.name) }));
-    if (idFile) payload.append('idFile', idFile);
-    let saveStatus = 'pending';
-    let serverMessage = 'Votre demande a été envoyée avec succès. Vous recevrez un code sous 48h.';
-    try {
-      const res = await fetch('/api/owner/apply', { method: 'POST', body: payload });
-      if (!res.ok) { saveStatus = 'submitted_local'; serverMessage = 'Demande enregistrée localement (serveur indisponible).'; }
-    } catch (e) { console.error(e); saveStatus = 'submitted_local'; serverMessage = 'Demande enregistrée localement (erreur réseau).'; }
 
-    // persist a local application record so OwnerOnboard can display status/message
     try {
-      const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-      let subscription = null;
-      try { subscription = JSON.parse(localStorage.getItem('owner_subscription') || 'null'); } catch (e) { }
+      console.log('=== Début de la soumission ===');
+      console.log('Types de biens:', types);
+      console.log('Données du formulaire:', form);
+      console.log('Fichier d\'identité:', idFile);
+      console.log('Fichiers de propriété:', propTitleFiles);
 
-      // Create FormData for files
+      // Créer le FormData avec tous les fichiers et données
       const formData = new FormData();
-      formData.append('idFile', idFile);
-      propTitleFiles.forEach((file, index) => {
-        formData.append(`propertyTitle${index}`, file);
-      });
 
-      // dedupe: avoid creating duplicates if a very recent application with same email+name exists
-      const existingRaw = localStorage.getItem('owner_application');
-      let existing = existingRaw ? JSON.parse(existingRaw) : [];
-      if (!Array.isArray(existing)) existing = [existing];
-      const now = Date.now();
-      const similar = existing.find(it => it && it.meta && it.meta.form && it.meta.form.email === form.email && it.meta.form.nom === form.nom && (now - it.submittedAt) < (15 * 1000));
-      if (similar) {
-        // cleanup lock but keep draft removal as it was already submitted
-        try { localStorage.removeItem('owner_request_draft'); localStorage.removeItem('owner_resume_submission'); } catch (e) { }
-        sessionStorage.removeItem('owner_submission_lock');
-        // show modal informing user that submission already recorded (avoid duplicate code spam)
-        setInfoTitle('Demande déjà envoyée');
-        setInfoMessage('Une demande similaire a été enregistrée il y a quelques instants. Si vous pensez que c\'est une erreur, contactez le support.');
-        setInfoOpen(true);
-        return;
+      // Ajouter les métadonnées
+      const metaData = {
+        types,
+        form,
+        propTitleFiles: propTitleFiles.map(file => file.name)
+      };
+      console.log('Métadonnées à envoyer:', metaData);
+      formData.append('meta', JSON.stringify(metaData));
+
+      // Ajouter la pièce d'identité
+      formData.append('idFile', idFile);
+
+      // Ajouter les titres de propriété
+      propTitleFiles.forEach(file => {
+        formData.append('propertyTitle', file);
+      });
+      //ajouter le token du user au form pour la protection des données
+      const token = localStorage.getItem('ndaku_auth_token');
+      if (token) {
+        formData.append('userToken', token);
       }
 
-      const app = { id: Date.now(), status: saveStatus, message: serverMessage, code, submittedAt: now, subscription, meta: { types, form, propTitleFiles: propTitleFiles.map(file => file.name) } };
-      existing.unshift(app);
-      localStorage.setItem('owner_application', JSON.stringify(existing));
-      // cleanup draft and resume flag after successful save
-      try { localStorage.removeItem('owner_request_draft'); localStorage.removeItem('owner_resume_submission'); } catch (e) { }
-      // show info modal
-      setInfoTitle('Demande envoyée');
-      setInfoMessage(serverMessage + ` Votre code d'application: ${code}`);
+      console.log('Token d\'authentification:', token ? 'Présent' : 'Absent');
+      
+      // Envoyer la requête à l'API avec le token dans les headers
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token || ''}`
+        },
+        body: formData
+      });
+
+      console.log('Statut de la réponse:', response.status);
+      const responseText = await response.text();
+      console.log('Réponse du serveur:', responseText);
+
+      if (!response.ok) {
+        throw new Error(responseText);
+      }
+
+      // Convertir le texte en JSON si c'est un JSON valide
+      const result = responseText ? JSON.parse(responseText) : {};
+
+      // Afficher le succès
+      setInfoTitle('Demande envoyée avec succès');
+      setInfoMessage(`Votre demande a été enregistrée. Vous serez redirigé vers la page de choix d'abonnement.`);
       setInfoOpen(true);
+
+      // Redirection après 2 secondes
+      setTimeout(() => {
+        navigate('/owner/subscribe');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Erreur lors de la soumission:', error);
+      setValidationError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.');
+    } finally {
       sessionStorage.removeItem('owner_submission_lock');
-    } catch (e) { console.error('local save failed', e); setValidationError('Erreur lors de l\'enregistrement local'); sessionStorage.removeItem('owner_submission_lock'); }
+    }
   };
 
   const [infoOpen, setInfoOpen] = useState(false);

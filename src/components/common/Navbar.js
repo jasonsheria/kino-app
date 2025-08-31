@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaCar, FaTree, FaBuilding, FaGlassCheers, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
+import { FaCar, FaTree, FaBuilding, FaGlassCheers, FaBars, FaTimes, FaChevronDown, FaBell, FaUserCircle } from 'react-icons/fa';
 import './Navbar.css';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 const Navbar = () => {
   const location = useLocation();
@@ -9,6 +12,9 @@ const Navbar = () => {
   const [isHidden, setIsHidden] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
   
   const lastScrollY = useRef(0);
   const headerRef = useRef(null);
@@ -71,6 +77,16 @@ const Navbar = () => {
   useEffect(() => {
     setIsDrawerOpen(false);
   }, [location]);
+
+  // close notification dropdown on navigation
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [location]);
+
+  const { user } = useAuth();
+  const { notifications, removeNotification } = useNotifications();
+  const { isConnected } = useWebSocket();
+  const socketConnected = isConnected();
 
   return (
     <header className={`kn-header ${isSticky ? 'sticky' : ''} ${isHidden ? 'hidden' : ''}`} ref={headerRef}>
@@ -136,13 +152,73 @@ const Navbar = () => {
         </div>
 
         {/* Boutons d'action */}
-        <div className="kn-cta-group ct-1">
+  <div className="kn-cta-group ct-1">
+          {/* Notifications & user status */}
+          <div className="kn-notif-wrap">
+            <button
+              className="kn-notif-btn"
+              aria-label="Afficher les notifications"
+              onClick={() => setNotifOpen(!notifOpen)}
+            >
+              <FaBell />
+              {notifications?.length > 0 && (
+                <span className="kn-notif-badge">{notifications.length}</span>
+              )}
+            </button>
+
+            <div className={`kn-notif-menu ${notifOpen ? 'show' : ''}`} role="menu">
+              {notifications?.length > 0 ? (
+                notifications.slice().reverse().map((n) => (
+                  <div key={n.id || n._id} className="kn-notif-item">
+                    <div className="kn-notif-item-body">
+                      <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
+                      <div className="kn-notif-text">{n.message || n.details || n.text}</div>
+                    </div>
+                    <div className="kn-notif-actions">
+                      <button onClick={() => removeNotification(n.id || n._id)} aria-label="Supprimer">✕</button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="kn-notif-empty">Aucune notification</div>
+              )}
+            </div>
+          </div>
+
           <Link to="/owner/onboard" className="kn-cta kn-cta-outline">
             Devenir propriétaire
           </Link>
-          <Link to="/login" className="kn-cta kn-cta-filled">
-            Connexion
-          </Link>
+          {user ? (
+            <div className="kn-user-wrap" ref={userMenuRef}>
+              <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
+                <FaUserCircle className="kn-user-icon" />
+                <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
+              </button>
+
+              <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
+                <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
+                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); /* call logout from context */ window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
+              </div>
+            </div>
+          ) : (
+            <Link to="/login" className="kn-cta kn-cta-filled">Connexion</Link>
+          )}
+        </div>
+
+        {/* Compact actions shown on mobile (notification + user) */}
+        <div className="kn-compact-actions">
+          <button className="kn-notif-btn kn-compact" aria-label="Afficher les notifications" onClick={() => setNotifOpen(!notifOpen)}>
+            <FaBell />
+            {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
+          </button>
+          {user ? (
+            <button className="kn-user-compact" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen}>
+              <FaUserCircle />
+              <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
+            </button>
+          ) : (
+            <Link to="/login" className="kn-compact-login">Connexion</Link>
+          )}
         </div>
 
         {/* Bouton menu mobile */}

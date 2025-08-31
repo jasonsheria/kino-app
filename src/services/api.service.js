@@ -39,7 +39,11 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: (credentials) => api.post(config.API_ENDPOINTS.AUTH.LOGIN, credentials),
-  register: (data) => api.post(config.API_ENDPOINTS.AUTH.REGISTER, data),
+  register: (formData) => api.post(config.API_ENDPOINTS.AUTH.REGISTER, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
   googleLogin: (data) => api.post(config.API_ENDPOINTS.AUTH.GOOGLE_LOGIN, data),
   getProfile: () => api.get(config.API_ENDPOINTS.AUTH.PROFILE),
 };

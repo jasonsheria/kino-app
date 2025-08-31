@@ -1,7 +1,7 @@
 .auth-page {
     min-height: 100vh;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    padding: 20px;
+    padding: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -9,12 +9,12 @@
 
 .auth-card {
     width: 100%;
-    max-width: 1000px;
-    border-radius: 24px;
+    max-width: 900px;
+    border-radius: 18px;
     background: #ffffff;
     display: flex;
     overflow: hidden;
-    box-shadow: 0 20px 48px -16px rgba(0, 0, 0, 0.1), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.08), 0 6px 12px -6px rgba(0, 0, 0, 0.06);
 }
 
 .auth-illustration {
@@ -24,7 +24,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 28px;
     position: relative;
     overflow: hidden;
 }
@@ -41,14 +41,14 @@
 }
 
 .auth-illustration img {
-    max-width: 88%;
+    max-width: 78%;
     height: auto;
-    border-radius: 10px
+    border-radius: 8px;
 }
 
 .auth-form {
     flex: 1;
-    padding: 48px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
 }
@@ -61,13 +61,13 @@
 
 .input-icon {
     position: absolute;
-    left: 16px;
+    left: 12px;
     color: #94a3b8;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .input-with-icon .form-control {
-    padding-left: 48px;
+    padding-left: 44px;
 }
 
 .auth-form h3 {
@@ -75,11 +75,11 @@
 }
 
 .auth-form .form-control {
-    border-radius: 12px;
-    border: 2px solid #e2e8f0;
-    padding: 14px 16px;
-    font-size: 1rem;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    border: 1.5px solid #e6eef2;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    transition: all 0.18s ease;
     background: #f8fafc;
     width: 100%;
 }
@@ -87,7 +87,7 @@
 .auth-form .form-control:focus {
     border-color: var(--ndaku-primary);
     background: #ffffff;
-    box-shadow: 0 0 0 4px var(--ndaku-primary-22);
+    box-shadow: 0 0 0 4px rgba(14,165,163,0.08);
     outline: none;
 }
 
@@ -100,22 +100,22 @@
 .auth-form .btn-primary {
     background: linear-gradient(90deg, var(--ndaku-primary), #0ea5a3);
     border: 0;
-    padding: 10px 12px;
-    font-size: 0.95rem
+    padding: 9px 10px;
+    font-size: 0.92rem;
 }
 
 .auth-small {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     color: #6b7280
 }
 
 @media (max-width: 1024px) {
     .auth-card {
-        max-width: 800px;
+    max-width: 760px;
     }
     
     .auth-form {
-        padding: 32px;
+    padding: 20px;
     }
     
     .illustration-caption {
@@ -128,16 +128,17 @@
 @media (max-width: 768px) {
     .auth-card {
         flex-direction: column;
-        max-width: 480px;
+        max-width: 420px;
     }
 
+    /* make the illustration smaller and reduce padding */
     .auth-illustration {
-        padding: 24px;
-        min-height: 240px;
+        padding: 16px;
+        min-height: 160px;
     }
 
     .auth-form {
-        padding: 24px;
+        padding: 16px;
     }
 
     .auth-form h3 {
@@ -159,30 +160,31 @@
 
 @media (max-width: 480px) {
     .auth-page {
-        padding: 16px;
+        padding: 10px;
+        align-items: flex-start;
+        justify-content: flex-start;
     }
 
     .auth-card {
-        border-radius: 16px;
+        border-radius: 12px;
+        max-width: 100%;
     }
 
-    .auth-illustration {
-        padding: 16px;
-        min-height: 200px;
-    }
+    /* hide illustration on very small screens to avoid vertical scroll */
+    .auth-illustration { display: none; }
 
     .auth-form {
-        padding: 20px;
+        padding: 14px;
     }
 
     .auth-form h3 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 
     .form-control,
     .social-btn {
-        font-size: 0.95rem;
-        padding: 12px;
+        font-size: 0.92rem;
+        padding: 10px;
     }
 }
 
@@ -255,6 +257,64 @@
 
 .social-btn svg {
     font-size: 1.2rem;
+}
+
+/* Register-specific compact tweaks */
+.auth-page .social-row {
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.auth-page .social-row .social-btn {
+    padding: 10px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+}
+
+.profile-upload-area {
+    border-radius: 8px;
+    padding: 12px;
+    max-width: 100%;
+}
+
+.profile-upload-area .image-preview {
+    max-width: 120px;
+    margin: 0 auto;
+}
+
+.input-group .form-select {
+    padding: 8px 10px;
+    font-size: 0.92rem;
+}
+
+.input-group .form-control {
+    padding: 8px 10px;
+}
+
+.compact-toggle-btn {
+    background: transparent;
+    border: 1px dashed rgba(0,0,0,0.08);
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    cursor: pointer;
+}
+
+/* Reduce vertical spacing in register form rows */
+.auth-form .mb-4, .auth-form .mb-3 {
+    margin-bottom: 10px;
+}
+
+@media (max-width: 420px) {
+    .compact-toggle-btn { width: 100%; text-align: center; }
+    .auth-form .mb-4, .auth-form .mb-3 { margin-bottom: 8px; }
+}
+
+/* make profile upload area collapsible-looking on very small screens */
+@media (max-width: 420px) {
+    .profile-upload-area { padding: 8px; }
+    .profile-upload-area p { font-size: 0.9rem; }
+    .profile-upload-area small { display: block; margin-top: 6px; }
 }
 
 .or-divider {

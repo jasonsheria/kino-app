@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import '../components/common/fonts.css';
 import '../pages/auth.css';
 import authService from '../services/authService';
+import WebSocketService from '../services/webSocketService';
 import { useSocket } from '../contexts/SocketContext'
 import { useSnackbar } from 'notistack';
 import { GoogleLogin, googleLogout } from '@react-oauth/google';
@@ -30,7 +31,7 @@ function randomString(length) {
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isConnected } = useSocket();
   const [email, setEmail] = useState('');
@@ -43,27 +44,57 @@ const Login = () => {
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   const {loginWithGoogle, user, login} =useAuth();
   useEffect(() => {
-     if (user && isConnected) {
-       // Émettre identify après login classique si userId existe
-       if (window && window.localStorage) {
-         const socket = require('socket.io-client').io(process.env.REACT_APP_SOCKET_URL, {
-           auth: { token: authService.getToken() },
-           transports: ['websocket']
-         });
-         if (user._id) {
-           socket.emit('identify', { userId: user._id });
-           console.log('[Login] Emission de identify après login classique:', user._id);
-           socket.disconnect();
-         }
-       }
-       const redirectPath = '/';
-       navigate(redirectPath, { replace: true });
- 
-       setIsSubmitting(false); // Stop le preloader si user est défini
-       // Optionnel: délai pour l'effet de préchargement
-       // Rediriger vers la page appropriée
-     }
-   }, [user, isConnected, navigate]);
+    const handleSuccessfulLogin = async () => {
+      if (user && authService.isAuthenticated()) {
+        try {
+          // Log the authentication state
+          console.log('Authentication state:', {
+            user: user,
+            isConnected: isConnected,
+            token: authService.getToken()
+          });
+
+          // Set loading state
+          setIsSubmitting(true);
+
+          // Ensure WebSocket connection
+          // Ensure singleton WebSocketService is connected with the current token
+          if (!isConnected) {
+            try {
+              const token = authService.getToken();
+              console.log('Connecting singleton WebSocketService with token:', token);
+              WebSocketService.connect(token);
+
+              // identification will be sent by WebSocketService when connected (it reads localStorage user)
+            } catch (err) {
+              console.error('Failed to connect WebSocketService:', err);
+            }
+          }
+
+          // Show success message
+          enqueueSnackbar('Connexion réussie !', {
+            variant: 'success',
+            autoHideDuration: 3000
+          });
+
+          // Redirect after a small delay to ensure state updates are complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+          console.log('Redirecting to:', from);
+          navigate(from, { replace: true });
+
+        } catch (error) {
+          console.error('Error during post-login process:', error);
+          enqueueSnackbar('Erreur lors de la finalisation de la connexion', {
+            variant: 'error'
+          });
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+    };
+
+    handleSuccessfulLogin();
+  }, [user, isConnected, navigate, from, enqueueSnackbar]);
  const handleSubmit = async (e) => {
      e.preventDefault();
      setError(null);
@@ -103,20 +134,56 @@ const Login = () => {
                 {/* Intégration directe du bouton GoogleLogin */}
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
-                    // Envoie le token Google à ton backend pour login/register
                     if (credentialResponse.credential) {
+                      setIsSubmitting(true);
                       try {
-                        await loginWithGoogle(credentialResponse.credential);
-                        enqueueSnackbar('Connexion Google réussie !', { variant: 'success' });
-                        closeSnackbar('google-auth-prompt'); // Ferme la notification persistante
+                        // Clear any existing errors
+                        setError(null);
+                        
+                        console.log('Starting Google login process...');
+                        const response = await loginWithGoogle(credentialResponse.credential);
+                        console.log('Google login response:', response);
+
+                        if (response.user && response.accessToken) {
+                          // Show success message
+                          enqueueSnackbar('Connexion Google réussie !', {
+                            variant: 'success',
+                            autoHideDuration: 3000
+                          });
+                          
+                          // Close any existing notifications
+                          closeSnackbar('google-auth-prompt');
+                          
+                          // The useEffect will handle the redirection
+                        } else {
+                          throw new Error('Réponse invalide du serveur');
+                        }
                       } catch (error) {
-                        enqueueSnackbar(error.message || 'Échec de la connexion Google côté serveur.', { variant: 'error' });
+                        console.error('Google login error:', error);
+                        setError(error.response?.data?.message || 'Échec de la connexion avec Google');
+                        enqueueSnackbar(
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Échec de la connexion Google.', 
+                          { variant: 'error' }
+                        );
+                      } finally {
+                        setIsSubmitting(false);
                       }
                     } else {
-                      enqueueSnackbar('Identifiant Google non reçu.', { variant: 'error' });
+                      setError('Identifiant Google non reçu');
+                      enqueueSnackbar('Identifiant Google non reçu.', { 
+                        variant: 'error' 
+                      });
                     }
                   }}
-                  onError={() => setError("Erreur lors de la connexion Google.")}
+                  onError={(error) => {
+                    console.error('Google login error:', error);
+                    setError("Erreur lors de la connexion Google.");
+                    enqueueSnackbar('Erreur lors de la connexion Google.', { 
+                      variant: 'error' 
+                    });
+                  }}
                   width="100%"
                   useOneTap
                 />

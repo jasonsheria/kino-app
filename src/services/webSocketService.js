@@ -15,6 +15,8 @@ class WebSocketService {
       this.disconnect();
     }
 
+    console.log('Connecting WebSocket with token:', authToken);
+    // send raw token in auth object (server usually expects the raw token string)
     this.socket = io(this.wsUrl, {
       auth: { token: authToken },
       transports: ['websocket'],
@@ -65,6 +67,18 @@ class WebSocketService {
 
     this.socket.on('error', (error) => {
       console.error('WebSocket error:', error);
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('WebSocket connect_error:', error);
+    });
+
+    this.socket.on('auth_error', (error) => {
+      console.error('WebSocket auth_error:', error);
+    });
+
+    this.socket.on('unauthorized', (error) => {
+      console.error('WebSocket unauthorized:', error);
     });
 
     // Add admin chat room handlers

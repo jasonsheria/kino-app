@@ -1,0 +1,308 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import ChatWidget from '../components/common/ChatWidget';
+import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+import '../pages/auth.css';
+import { useAuth } from '../contexts/AuthContext';
+
+const countries = [
+  { code: '+243', name: 'DR Congo' },
+  { code: '+221', name: 'Senegal' },
+  { code: '+33', name: 'France' },
+  { code: '+1', name: 'USA' }
+];
+
+export default function Register() {
+  const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [selectedCountryCode, setSelectedCountryCode] = useState(countries[0].code);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [infoMessage, setInfoMessage] = useState(null);
+
+  const { register, socket, user } = useAuth();
+
+  const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImageUrl(URL.createObjectURL(file));
+      import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+      import '../pages/auth.css';
+      import { useAuth } from '../contexts/AuthContext';
+
+    } else {
+      setProfileImage(null);
+      setProfileImageUrl(null);
+    }
+
+      export default function Register() {
+        const navigate = useNavigate();
+        const { register, socket, user } = useAuth();
+
+        const [name, setName] = useState('');
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+        const [confirmPassword, setConfirmPassword] = useState('');
+        const [selectedCountryCode, setSelectedCountryCode] = useState(countries[0].code);
+        const [phoneNumber, setPhoneNumber] = useState('');
+        const [profileImage, setProfileImage] = useState(null);
+        const [profileImageUrl, setProfileImageUrl] = useState(null);
+        const [showPassword, setShowPassword] = useState(false);
+        const [showUpload, setShowUpload] = useState(false);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState('');
+        const [infoMessage, setInfoMessage] = useState(null);
+
+        const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+        const handleFileChange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            setProfileImage(file);
+            setProfileImageUrl(URL.createObjectURL(file));
+          } else {
+            setProfileImage(null);
+            setProfileImageUrl(null);
+          }
+        };
+
+        const handleDrop = (e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setProfileImage(e.dataTransfer.files[0]);
+            setProfileImageUrl(URL.createObjectURL(e.dataTransfer.files[0]));
+          }
+        };
+
+        const handleDragOver = (e) => e.preventDefault();
+
+        const handleSubmit = async (e) => {
+          e.preventDefault();
+          setError('');
+          setInfoMessage(null);
+
+          if (!name.trim()) return setError('Le nom est requis');
+          if (!validateEmail(email)) return setError('Email invalide');
+          if (password.length < 6) return setError('Mot de passe: minimum 6 caractères');
+          if (password !== confirmPassword) return setError('Les mots de passe ne correspondent pas');
+          if (!phoneNumber || phoneNumber.length < 6) return setError('Numéro de téléphone invalide');
+          if (profileImage && profileImage.size > 2 * 1024 * 1024) return setError('Image trop volumineuse (max 2Mo)');
+
+          setLoading(true);
+          try {
+            let fullPhone = selectedCountryCode + phoneNumber;
+            if (fullPhone.startsWith('+')) fullPhone = fullPhone.slice(1);
+            const numericPhone = Number(fullPhone);
+
+            await register(name, email, password, numericPhone, profileImage);
+            setInfoMessage('Inscription réussie');
+            if (socket && user && user._id) socket.emit('identify', { userId: user._id });
+            navigate('/login');
+          } catch (err) {
+            setError(err?.message || "Erreur lors de l'inscription");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        return (
+          <div className="auth-page">
+            <div className="auth-card compact">
+              <div className="auth-form compact-form">
+                <h3 className="fw-bold mb-1 text-center">Créer un compte</h3>
+                <p className="auth-small mb-2 text-center">Inscrivez-vous pour publier des annonces et contacter des agents.</p>
+
+                <div className="social-row compact">
+                  <button type="button" className="social-btn google compact"><FaGoogle /> Google</button>
+                  <button type="button" className="social-btn github compact"><FaGithub /> GitHub</button>
+                </div>
+
+                <div className="or-divider"><span>ou</span></div>
+
+                <form onSubmit={handleSubmit} className="fade-in compact">
+                  <div className="mb-2">
+                    import React, { useState } from 'react';
+                    import { Link, useNavigate } from 'react-router-dom';
+                    import ChatWidget from '../components/common/ChatWidget';
+                    import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+                    import '../pages/auth.css';
+                    import { useAuth } from '../contexts/AuthContext';
+
+                    const countries = [
+                      { code: '+243', name: 'DR Congo' },
+                      { code: '+221', name: 'Senegal' },
+                      { code: '+33', name: 'France' },
+                      { code: '+1', name: 'USA' }
+                    ];
+
+                    export default function Register() {
+                      const navigate = useNavigate();
+                      const { register, socket, user } = useAuth();
+
+                      const [name, setName] = useState('');
+                      const [email, setEmail] = useState('');
+                      const [password, setPassword] = useState('');
+                      const [confirmPassword, setConfirmPassword] = useState('');
+                      const [selectedCountryCode, setSelectedCountryCode] = useState(countries[0].code);
+                      const [phoneNumber, setPhoneNumber] = useState('');
+                      const [profileImage, setProfileImage] = useState(null);
+                      const [profileImageUrl, setProfileImageUrl] = useState(null);
+                      const [showPassword, setShowPassword] = useState(false);
+                      const [showUpload, setShowUpload] = useState(false);
+                      const [loading, setLoading] = useState(false);
+                      const [error, setError] = useState('');
+                      const [infoMessage, setInfoMessage] = useState(null);
+
+                      const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+                      const handleFileChange = (e) => {
+                        const file = e.target.files && e.target.files[0];
+                        if (file) {
+                          setProfileImage(file);
+                          setProfileImageUrl(URL.createObjectURL(file));
+                        } else {
+                          setProfileImage(null);
+                          setProfileImageUrl(null);
+                        }
+                      };
+
+                      const handleDrop = (e) => {
+                        e.preventDefault();
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          setProfileImage(e.dataTransfer.files[0]);
+                          setProfileImageUrl(URL.createObjectURL(e.dataTransfer.files[0]));
+                        }
+                      };
+
+                      const handleDragOver = (e) => e.preventDefault();
+
+                      const handleSubmit = async (e) => {
+                        e.preventDefault();
+                        setError('');
+                        setInfoMessage(null);
+
+                        if (!name.trim()) return setError('Le nom est requis');
+                        if (!validateEmail(email)) return setError('Email invalide');
+                        if (password.length < 6) return setError('Mot de passe: minimum 6 caractères');
+                        if (password !== confirmPassword) return setError('Les mots de passe ne correspondent pas');
+                        if (!phoneNumber || phoneNumber.length < 6) return setError('Numéro de téléphone invalide');
+                        if (profileImage && profileImage.size > 2 * 1024 * 1024) return setError('Image trop volumineuse (max 2Mo)');
+
+                        setLoading(true);
+                        try {
+                          let fullPhone = selectedCountryCode + phoneNumber;
+                          if (fullPhone.startsWith('+')) fullPhone = fullPhone.slice(1);
+                          const numericPhone = Number(fullPhone);
+
+                          await register(name, email, password, numericPhone, profileImage);
+                          setInfoMessage('Inscription réussie');
+                          if (socket && user && user._id) socket.emit('identify', { userId: user._id });
+                          navigate('/login');
+                        } catch (err) {
+                          setError(err?.message || "Erreur lors de l'inscription");
+                        } finally {
+                          setLoading(false);
+                        }
+                      };
+
+                      return (
+                        <div className="auth-page">
+                          <div className="auth-card compact">
+                            <div className="auth-form compact-form">
+                              <h3 className="fw-bold mb-1 text-center">Créer un compte</h3>
+                              <p className="auth-small mb-2 text-center">Inscrivez-vous pour publier des annonces et contacter des agents.</p>
+
+                              <div className="social-row compact">
+                                <button type="button" className="social-btn google compact"><FaGoogle /> Google</button>
+                                <button type="button" className="social-btn github compact"><FaGithub /> GitHub</button>
+                              </div>
+
+                              <div className="or-divider"><span>ou</span></div>
+
+                              <form onSubmit={handleSubmit} className="fade-in compact">
+                                <div className="mb-2">
+                                  <label htmlFor="register-name" className="form-label small">Nom complet</label>
+                                  <div className="input-with-icon small">
+                                    <FaUser className="input-icon" />
+                                    <input id="register-name" className="form-control" value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom" />
+                                  </div>
+                                </div>
+
+                                <div className="mb-2">
+                                  <label htmlFor="register-email" className="form-label small">Email</label>
+                                  <div className="input-with-icon small">
+                                    <FaEnvelope className="input-icon" />
+                                    <input id="register-email" type="email" className="form-control" value={email} onChange={e => setEmail(e.target.value)} placeholder="votre@email.com" />
+                                  </div>
+                                </div>
+
+                                <div className="mb-2 small-row">
+                                  <div style={{display:'flex', gap:6}}>
+                                    <div style={{flex:1}}>
+                                      <label className="form-label small">Mot de passe</label>
+                                      <div className="input-with-icon small">
+                                        <FaLock className="input-icon" />
+                                        <input id="register-password" type={showPassword ? 'text' : 'password'} className="form-control" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mot de passe" />
+                                        <button type="button" className="password-toggle" onClick={() => setShowPassword(s => !s)}>{showPassword ? <FaEyeSlash/> : <FaEye/>}</button>
+                                      </div>
+                                    </div>
+                                    <div style={{flex:1}}>
+                                      <label className="form-label small">Confirmer</label>
+                                      <div className="input-with-icon small">
+                                        <FaLock className="input-icon" />
+                                        <input id="register-confirm-password" type={showPassword ? 'text' : 'password'} className="form-control" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirmer" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mb-2">
+                                  <label className="form-label small">Téléphone</label>
+                                  <div className="input-group compact">
+                                    <select className="form-select compact" value={selectedCountryCode} onChange={e => setSelectedCountryCode(e.target.value)}>
+                                      {countries.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+                                    </select>
+                                    <input id="register-phone" type="tel" className="form-control" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} placeholder="Numéro" />
+                                  </div>
+                                </div>
+
+                                <div className="mb-2">
+                                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                                    <label className="form-label small">Photo (optionnel)</label>
+                                    <button type="button" className="compact-toggle-btn" onClick={() => setShowUpload(s => !s)}>{showUpload ? 'Cacher' : 'Ajouter'}</button>
+                                  </div>
+                                  {showUpload && (
+                                    <div className="profile-upload-area mt-1" onDrop={handleDrop} onDragOver={handleDragOver} onClick={() => document.getElementById('profile-image-input')?.click()}>
+                                      {profileImageUrl ? (<div className="image-preview"><img src={profileImageUrl} alt="Preview"/></div>) : (<div><p className="mb-0 small">Cliquez ou glissez une image</p><small className="text-muted">Max 2 Mo</small></div>)}
+                                      <input type="file" id="profile-image-input" accept="image/*" style={{display:'none'}} onChange={handleFileChange} />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {error && <div className="alert alert-danger py-1 mb-2 small">{error}</div>}
+                                {infoMessage && <div className="alert alert-success py-1 mb-2 small">{infoMessage}</div>}
+
+                                <div className="d-grid">
+                                  <button className="btn btn-success btn-sm" disabled={loading}>{loading ? 'Inscription...' : "S'inscrire"}</button>
+                                </div>
+                              </form>
+
+                              <div className="text-center mt-2 small text-muted">Déjà un compte ? <Link to="/login">Se connecter</Link></div>
+                            </div>
+                          </div>
+                          <ChatWidget />
+                        </div>
+                      );
+                    }
+                const [loading, setLoading] = useState(false);

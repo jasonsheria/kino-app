@@ -3,33 +3,41 @@ import '../styles/owner.css';
 import { useNavigate } from 'react-router-dom';
 
 export default function OwnerOnboard(){
-  const [hasCode, setHasCode] = useState(null);
-  const [code, setCode] = useState('');
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [ownerAccount, setOwnerAccount] = useState(null);
 
-  const [codeError, setCodeError] = useState('');
-  const [applicationSummary, setApplicationSummary] = useState(null);
+  useEffect(() => {
+    const checkOwnerAccount = async () => {
+      try {
+        const token = localStorage.getItem('ndaku_auth_token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
 
-  useEffect(()=>{
-    try{
-      const raw = localStorage.getItem('owner_application');
-      if(raw){
-        const arr = JSON.parse(raw);
-        if(Array.isArray(arr) && arr.length){ setApplicationSummary(arr[0]); }
-        else if(arr && arr.id) setApplicationSummary(arr);
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/check-account`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la vérification du compte');
+        }
+
+        const data = await response.json();
+        setOwnerAccount(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    }catch(e){ console.error(e); }
-  }, []);
-  const verifyCode = (e)=>{
-    e.preventDefault();
-    // mock verification - in real app call backend
-    if(code && code.trim().length>3){
-      // assume valid
-      navigate('/owner/dashboard');
-    } else {
-      setCodeError("Code invalide. Si vous n\'avez pas de code, choisissez 'Faire ma demande de partenariat'.");
-    }
-  };
+    };
+
+    checkOwnerAccount();
+  }, [navigate]);
 
   return (
   <div className="container owner-hero">
@@ -43,47 +51,58 @@ export default function OwnerOnboard(){
               <h2 className="mb-2 text-center">Devenir propriétaire partenaire</h2>
               <p className="text-center text-muted mb-4">Sélectionnez l'option la plus adaptée à votre situation pour commencer le processus — simple, sécurisé et rapide.</p>
 
-              <div className="owner-doors-wrapper mb-4">
-                <div className="owner-door" role="button" tabIndex={0} onClick={() => setHasCode(true)} onKeyDown={(e)=>{ if(e.key==='Enter') setHasCode(true); }}>
-                  <div className="door-panel left">
-                    <div className="door-content">
-                      <h4>J'ai un code</h4>
-                      <p className="small text-muted">Vous avez reçu un code partenaire ? Ouvrez la porte et accédez directement à votre espace.</p>
-                      <div className="door-cta">Entrer</div>
+              {loading ? (
+                <div className="text-center p-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Chargement...</span>
+                  </div>
+                  <p className="mt-2">Vérification de votre compte...</p>
+                </div>
+              ) : error ? (
+                <div className="alert alert-danger" role="alert">
+                  {error}
+                </div>
+              ) : ownerAccount?.hasAccount ? (
+                <div className="text-center p-4">
+                  {ownerAccount.owner.isActive ? (
+                    <>
+                      <div className="alert alert-success mb-4" role="alert">
+                        <h4 className="alert-heading">Compte propriétaire existant!</h4>
+                        <p>Votre compte est actif et vous pouvez y accéder.</p>
+                      </div>
+                      <button 
+                        className="btn btn-primary btn-lg"
+                        onClick={() => navigate('/owner/dashboard')}
+                      >
+                        Accéder à mon espace propriétaire
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="alert alert-warning mb-4" role="alert">
+                        <h4 className="alert-heading">Activation requise!</h4>
+                        <p>Votre compte propriétaire a été créé mais nécessite une activation via un abonnement.</p>
+                      </div>
+                      <button 
+                        className="btn btn-primary btn-lg"
+                        onClick={() => navigate(`/owner/subscribe?id=${ownerAccount.owner._id}&type=owner`)}
+                      >
+                        Choisir un abonnement pour activer mon compte
+                      </button>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="owner-doors-wrapper mb-4">
+                  <div className="owner-door" role="button" tabIndex={0} onClick={() => navigate('/owner/request')} onKeyDown={(e)=>{ if(e.key==='Enter') navigate('/owner/request'); }}>
+                    <div className="door-panel right">
+                      <div className="door-content">
+                        <h4>Faire ma demande</h4>
+                        <p className="small text-muted">Demandez à devenir partenaire et publiez vos biens en quelques étapes guidées.</p>
+                        <div className="door-cta owner-btn-primary">Commencer</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="owner-door" role="button" tabIndex={0} onClick={() => navigate('/owner/request')} onKeyDown={(e)=>{ if(e.key==='Enter') navigate('/owner/request'); }}>
-                  <div className="door-panel right">
-                    <div className="door-content">
-                      <h4>Faire ma demande</h4>
-                      <p className="small text-muted">Demandez à devenir partenaire et publiez vos biens en quelques étapes guidées.</p>
-                      <div className="door-cta owner-btn-primary">Demander</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {hasCode === true && (
-                <form onSubmit={verifyCode} className="mt-3">
-                  <div className="mb-3">
-                    <label className="form-label">Entrez votre code propriétaire</label>
-                    <input className="form-control" value={code} onChange={e=>setCode(e.target.value)} />
-                  </div>
-                  <div className="d-flex gap-2">
-                    <button className="btn btn-primary">Vérifier</button>
-                    <button type="button" className="btn btn-outline-secondary" onClick={() => setHasCode(null)}>Annuler</button>
-                  </div>
-                </form>
-              )}
-              {codeError && <div className="mt-2 alert alert-danger small">{codeError}</div>}
-
-              {applicationSummary && (
-                <div className="mt-3 alert alert-info">
-                  <strong>État de votre demande:</strong> <span className="fw-bold">{applicationSummary.status}</span>
-                  <div className="small text-muted">{applicationSummary.message}</div>
-                  <div className="mt-1">Code: <code>{applicationSummary.code}</code> • Envoyée le: {new Date(applicationSummary.submittedAt).toLocaleString()}</div>
                 </div>
               )}
 

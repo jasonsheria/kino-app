@@ -22,11 +22,14 @@ import Contact from './pages/Contact';
 import OwnerOnboard from './pages/OwnerOnboard';
 import OwnerRequest from './pages/OwnerRequest';
 import OwnerDashboard from './pages/OwnerDashboard';
+import PropertyCreate from './pages/PropertyCreate';
 import OwnerProperties from './pages/OwnerProperties';
 import OwnerMessages from './pages/OwnerMessages';
 import OwnerWallet from './pages/OwnerWallet';
 import OwnerSubscribe from './pages/OwnerSubscribe';
-import OwnerPay from './pages/OwnerPay';
+import Payment from './pages/Payment';
+import PaymentConfirm from './pages/PaymentConfirm';
+import PaymentCancel from './pages/PaymentCancel';
 import OwnerAgents from './pages/OwnerAgents';
 import OwnerAppointments from './pages/OwnerAppointments';
 import OwnerPrivacy from './pages/OwnerPrivacy';
@@ -65,9 +68,12 @@ const AppRoutes = () => (
   <Route path="/owner/onboard" element={<OwnerOnboard />} />
   <Route path="/owner/request" element={<OwnerRequest />} />
   <Route path="/owner/subscribe" element={<PrivateRoute><OwnerSubscribe /></PrivateRoute>} />
-  <Route path="/owner/pay" element={<PrivateRoute><OwnerPay /></PrivateRoute>} />
+  <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+  <Route path="/payment/confirm" element={<PrivateRoute><PaymentConfirm /></PrivateRoute>} />
+  <Route path="/payment/cancel" element={<PrivateRoute><PaymentCancel /></PrivateRoute>} />
   <Route path="/owner/dashboard" element={<PrivateRoute><OwnerDashboard /></PrivateRoute>} />
   <Route path="/owner/properties" element={<PrivateRoute><OwnerProperties /></PrivateRoute>} />
+  <Route path="/property/create" element={<PrivateRoute><PropertyCreate /></PrivateRoute>} />
   <Route path="/owner/agents" element={<PrivateRoute><OwnerAgents /></PrivateRoute>} />
   <Route path="/owner/appointments" element={<PrivateRoute><OwnerAppointments /></PrivateRoute>} />
   <Route path="/owner/messages" element={<PrivateRoute><OwnerMessages /></PrivateRoute>} />

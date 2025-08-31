@@ -31,13 +31,34 @@ export const AuthProvider = ({ children }) => {
     const initAuth = async () => {
       try {
         const storedToken = authService.getToken();
+        const storedUser = authService.getUser();
+        // If we have both token and user in localStorage, restore them immediately (optimistic)
+        if (storedToken && storedUser) {
+          setUser(storedUser);
+          setIsAuthenticated(true);
+          setToken(storedToken);
+          // connect socket immediately so UI remains realtime after reload
+          WebSocketService.connect(storedToken);
+        }
+
+        // In background, validate/refresh the user from server
         if (storedToken) {
-          const user = await authService.refreshUser();
-          if (user) {
-            setUser(user);
+          const refreshed = await authService.refreshUser();
+          if (refreshed) {
+            setUser(refreshed);
             setIsAuthenticated(true);
             setToken(storedToken);
-            WebSocketService.connect(storedToken);
+            // ensure socket connected with refreshed token
+            if (!WebSocketService.isConnected()) {
+              WebSocketService.connect(storedToken);
+            }
+          } else {
+            // token invalid/expired -> clear
+            authService.logout();
+            setUser(null);
+            setIsAuthenticated(false);
+            setToken(null);
+            WebSocketService.disconnect();
           }
         }
       } catch (error) {
@@ -53,6 +74,8 @@ export const AuthProvider = ({ children }) => {
 
     initAuth();
   }, []);
+
+ 
 
   const login = useCallback(async (credentials) => {
     try {
@@ -76,18 +99,41 @@ export const AuthProvider = ({ children }) => {
         `${process.env.REACT_APP_BACKEND_APP_URL}/auth/api/google/login`,
         { token: credential },
         {
-          withCredentials: true, // <-- Ajouté pour garantir la gestion CORS et cookies
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
-      setUser(response.user);
+      
+      // Extract data from response
+      const { accessToken, user } = response.data;
+      
+      // Save user and token in authService
+      authService.setAuthToken(accessToken);
+      authService.setUser(user);
+      
+      // Update context state
+      setUser(user);
       setIsAuthenticated(true);
-      setToken(response.accessToken);
-      WebSocketService.connect(response.accessToken);
-      return response;
+      setToken(accessToken);
+      
+      // Connect WebSocket and ensure it's properly connected
+      WebSocketService.connect(accessToken);
+      
+      // Wait a bit to ensure WebSocket connection is established
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (WebSocketService.isConnected()) {
+        console.log('WebSocket connected successfully after Google login');
+        WebSocketService.socket.emit('identify', { userId: user._id });
+      } else {
+        console.warn('WebSocket connection not established after Google login');
+      }
+      
+      return response.data;
     } catch (error) {
+      console.error('Google login error:', error);
       setUser(null);
       setIsAuthenticated(false);
       setToken(null);
@@ -95,9 +141,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (data) => {
+  const register = useCallback(async (name, email, password, phoneNumber, profileImage) => {
     try {
-      const response = await authService.register(data);
+      // Create FormData to handle file upload
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('phoneNumber', phoneNumber);
+      if (profileImage) {
+        formData.append('profileImage', profileImage);
+      }
+
+      const response = await authService.register(formData);
       setUser(response.user);
       setIsAuthenticated(true);
       setToken(response.accessToken);
@@ -126,6 +182,21 @@ export const AuthProvider = ({ children }) => {
       window.enqueueSnackbar('Vous avez été déconnecté(e) de la session.', { variant: 'info' });
     }
   }, []);
+
+  // Listen for global logout events (dispatched by UI components)
+  useEffect(() => {
+    const handleAppLogout = () => {
+      // call logout safely; if logout isn't available due to initialization order,
+      // defer the call to the next tick as a fallback.
+      try {
+        logout({ notify: true }).catch(() => {});
+      } catch (e) {
+        setTimeout(() => { try { logout({ notify: true }).catch(() => {}); } catch (_) {} }, 0);
+      }
+    };
+    window.addEventListener('appLogout', handleAppLogout);
+    return () => window.removeEventListener('appLogout', handleAppLogout);
+  }, [logout]);
 
 
 
