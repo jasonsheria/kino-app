@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = useCallback(async (credential) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/auth/api/google/login`,
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/auth/google/login`,
         { token: credential },
         {
           withCredentials: true,

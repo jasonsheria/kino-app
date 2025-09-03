@@ -103,8 +103,10 @@ const Login = () => {
        await login(email, password);
        // La redirection se fait dans useEffect quand user est défini
      } catch (err) {
-       setError("Login failed. Please check your email and password.");
-       // eslint-disable-next-line no-console
+       const errorMessage = err.response?.data?.message || 
+                          err.message || 
+                          "Échec de la connexion. Veuillez vérifier votre email et mot de passe.";
+       setError(errorMessage);
        console.error("Login error:", err);
        setIsSubmitting(false);
      }
@@ -160,13 +162,11 @@ const Login = () => {
                         }
                       } catch (error) {
                         console.error('Google login error:', error);
-                        setError(error.response?.data?.message || 'Échec de la connexion avec Google');
-                        enqueueSnackbar(
-                          error.response?.data?.message || 
-                          error.message || 
-                          'Échec de la connexion Google.', 
-                          { variant: 'error' }
-                        );
+                        const errorMessage = error.response?.data?.message || 
+                                          error.message || 
+                                          'Échec de la connexion avec Google';
+                        setError(errorMessage);
+                        enqueueSnackbar(errorMessage, { variant: 'error' });
                       } finally {
                         setIsSubmitting(false);
                       }
@@ -235,7 +235,11 @@ const Login = () => {
               </div>
             </div>
 
-            {error ? <div className="alert alert-danger py-2 mb-3 small">{error}</div> : null}
+            {error ? (
+              <div className="alert alert-danger py-2 mb-3 small">
+                {typeof error === 'string' ? error : (error.message || 'Une erreur est survenue')}
+              </div>
+            ) : null}
 
             <div className="mb-3 d-flex justify-content-between align-items-center">
               <div>

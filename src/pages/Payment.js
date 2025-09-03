@@ -18,16 +18,25 @@ import {
   Paper,
   Radio,
   RadioGroup,
-  FormControlLabel,
   FormControl,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Stepper,
+  Step,
+  StepLabel,
+  Fade,
+  Grow
 } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LoadingButton } from '@mui/lab';
+import styled from '@emotion/styled';
 import {
   CreditCard as CreditCardIcon,
   Phone as PhoneIcon,
   Security as SecurityIcon,
-  CheckCircleOutline as CheckIcon
+  CheckCircleOutline as CheckIcon,
+  NavigateNext as ArrowForwardIcon,
+  NavigateBefore as ArrowBackIcon
 } from '@mui/icons-material';
 
 // MUI Icons for payment methods
@@ -36,7 +45,7 @@ import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 
 const PaymentMethodCard = ({ method, selected, onSelect, type, disabled }) => {
   const theme = useTheme();
-  
+
   const getIcon = () => {
     switch (type) {
       case 'card':
@@ -47,7 +56,7 @@ const PaymentMethodCard = ({ method, selected, onSelect, type, disabled }) => {
         return <PaymentsIcon sx={{ fontSize: 40, color: selected ? theme.palette.primary.main : 'text.secondary' }} />;
     }
   };
-  
+
   return (
     <Paper
       elevation={selected ? 3 : 1}
@@ -90,7 +99,13 @@ const PaymentMethodCard = ({ method, selected, onSelect, type, disabled }) => {
 };
 
 const PaymentSummary = ({ plan, amount, currency }) => (
-  <Card elevation={0} sx={{ bgcolor: 'grey.50', mb: 3 }}>
+  <StyledCard
+    elevation={0}
+    component={motion.div}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    sx={{ bgcolor: 'grey.50', mb: 3 }}
+  >
     <CardContent>
       <Typography variant="h6" gutterBottom>
         Résumé de la commande
@@ -113,8 +128,25 @@ const PaymentSummary = ({ plan, amount, currency }) => (
         </Box>
       </Stack>
     </CardContent>
-  </Card>
+  </StyledCard>
 );
+
+// Animation variants pour Framer Motion
+const pageTransition = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 }
+};
+
+// Styled components avec Framer Motion
+const StyledCard = styled(motion.div)`
+  ${({ theme }) => `
+    background-color: ${theme.palette.background.paper};
+    border-radius: ${theme.shape.borderRadius}px;
+    padding: ${theme.spacing(2)};
+    margin-bottom: ${theme.spacing(2)};
+  `}
+`;
 
 export default function Payment() {
   const [searchParams] = useSearchParams();
@@ -122,8 +154,10 @@ export default function Payment() {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
 
+  const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [accountDetails, setAccountDetails] = useState(null);
   const [formData, setFormData] = useState({
@@ -154,9 +188,9 @@ export default function Payment() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (!response.ok) throw new Error('Erreur lors de la récupération des détails du compte');
-        
+
         const data = await response.json();
         setAccountDetails(data);
       } catch (error) {
@@ -231,19 +265,18 @@ export default function Payment() {
           amount: getPlanAmount(),
           currency: 'USD',
           paymentMethod,
-          paymentDetails: {
-            ...(paymentMethod === 'visa' || paymentMethod === 'mastercard' 
-              ? {
-                  cardHolderName: formData.cardHolderName,
-                  cardNumber: formData.cardNumber,
-                  expiryDate: formData.expiryDate,
-                  cvv: formData.cvv,
-                }
-              : {
-                  mobileNumber: '+243' + formData.mobileNumber,
-                }
-            )
-          }
+          ...(paymentMethod === 'visa' || paymentMethod === 'mastercard'
+            ? {
+              cardHolderName: formData.cardHolderName,
+              cardNumber: formData.cardNumber,
+              expiryDate: formData.expiryDate,
+              cvv: formData.cvv,
+            }
+            : {
+              mobileNumber: '+243' + formData.mobileNumber,
+            }
+          )
+
         }),
       });
 
@@ -253,12 +286,13 @@ export default function Payment() {
       }
 
       const paymentData = await response.json();
-      
+
       // Redirection vers FreshPay
       window.location.href = paymentData.paymentUrl;
 
     } catch (error) {
-      setError(error.message || 'Une erreur est survenue lors du paiement');
+      const errorMessage = error.response?.data?.message || error.message || 'Une erreur est survenue lors du paiement';
+      setError(errorMessage);
       console.error('Payment Error:', error);
     } finally {
       setLoading(false);
@@ -275,218 +309,398 @@ export default function Payment() {
     );
   }
 
+  const steps = ['Détails de la commande', 'Méthode de paiement', 'Confirmation'];
+
+  const handleNext = () => {
+    setActiveStep((prevStep) => prevStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Grid container spacing={4}>
-        <Grid item xs={12} md={8}>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
-            Paiement
-          </Typography>
-          
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
+      <motion.div
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageTransition}
+      >
+        <Stepper
+          activeStep={activeStep}
+          sx={{ mb: 6 }}
+          alternativeLabel={!isSmall}
+          orientation={isSmall ? 'vertical' : 'horizontal'}
+        >
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
 
-          <Card sx={{ mb: 4 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Méthodes de paiement
-              </Typography>
-              
-              <FormControl component="fieldset" sx={{ width: '100%' }}>
-                <RadioGroup
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                backgroundClip: 'text',
+                textFillColor: 'transparent',
+                mb: 4
+              }}
+            >
+              {steps[activeStep]}
+            </Typography>
+
+            {error && (
+              <Grow in={Boolean(error)}>
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {typeof error === 'string' ? error : error.message || 'Une erreur est survenue'}
+                </Alert>
+              </Grow>
+            )}
+
+            <AnimatePresence mode="wait">
+              {activeStep === 0 && (
+                <StyledCard
+                  component={motion.div}
+                  variants={pageTransition}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  sx={{ mb: 4 }}
                 >
-                  <Stack spacing={2}>
-                    <PaymentMethodCard
-                      method="Mobile Money - Airtel"
-                      type="mobile"
-                      selected={paymentMethod === 'airtel'}
-                      onSelect={() => setPaymentMethod('airtel')}
+                  <CardContent>
+                    <PaymentSummary
+                      plan={plan.charAt(0).toUpperCase() + plan.slice(1)}
+                      amount={getPlanAmount()}
+                      currency="USD"
                     />
-                    <PaymentMethodCard
-                      method="Mobile Money - Orange"
-                      type="mobile"
-                      selected={paymentMethod === 'orange'}
-                      onSelect={() => setPaymentMethod('orange')}
-                    />
-                    <PaymentMethodCard
-                      method="Mobile Money - Vodacom"
-                      type="mobile"
-                      selected={paymentMethod === 'vodacom'}
-                      onSelect={() => setPaymentMethod('vodacom')}
-                    />
-                    <PaymentMethodCard
-                      method="Carte Visa"
-                      type="card"
-                      selected={paymentMethod === 'visa'}
-                      onSelect={() => setPaymentMethod('visa')}
-                    />
-                    <PaymentMethodCard
-                      method="Carte Mastercard"
-                      type="card"
-                      selected={paymentMethod === 'mastercard'}
-                      onSelect={() => setPaymentMethod('mastercard')}
-                    />
-                  </Stack>
-                </RadioGroup>
-              </FormControl>
-            </CardContent>
-          </Card>
 
-          {paymentMethod && (
-            <Card sx={{ mb: 4 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {['visa', 'mastercard'].includes(paymentMethod) 
-                    ? 'Informations de la carte'
-                    : 'Informations Mobile Money'}
-                </Typography>
-
-                <Stack spacing={3}>
-                  {['visa', 'mastercard'].includes(paymentMethod) ? (
-                    // Formulaire de carte bancaire
-                    <>
-                      <TextField
-                        label="Nom sur la carte"
-                        fullWidth
-                        value={formData.cardHolderName || ''}
-                        onChange={(e) => handleFormChange('cardHolderName', e.target.value)}
-                      />
-                      <TextField
-                        label="Numéro de carte"
-                        fullWidth
-                        inputProps={{ maxLength: 16 }}
-                        value={formData.cardNumber || ''}
-                        onChange={(e) => handleFormChange('cardNumber', e.target.value.replace(/\D/g, ''))}
-                      />
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <TextField
-                            label="Date d'expiration (MM/YY)"
-                            fullWidth
-                            inputProps={{ maxLength: 5 }}
-                            value={formData.expiryDate || ''}
-                            onChange={(e) => {
-                              const input = e.target.value;
-                              let formatted = input.replace(/\D/g, '');
-                              if (formatted.length >= 2) {
-                                formatted = formatted.slice(0, 2) + '/' + formatted.slice(2);
-                              }
-                              handleFormChange('expiryDate', formatted);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            label="CVV"
-                            fullWidth
-                            type="password"
-                            inputProps={{ maxLength: 3 }}
-                            value={formData.cvv || ''}
-                            onChange={(e) => handleFormChange('cvv', e.target.value.replace(/\D/g, ''))}
-                          />
-                        </Grid>
-                      </Grid>
-                    </>
-                  ) : (
-                    // Formulaire Mobile Money
-                    <>
-                      <TextField
-                        label="Numéro de téléphone"
-                        fullWidth
-                        value={formData.mobileNumber || ''}
-                        onChange={(e) => handleFormChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">+243</InputAdornment>,
-                        }}
-                      />
-                      <Alert severity="info" sx={{ mt: 2 }}>
-                        <AlertTitle>Instructions</AlertTitle>
-                        1. Vérifiez que votre numéro est correct<br />
-                        2. Vous recevrez une notification sur votre téléphone<br />
-                        3. Suivez les instructions pour confirmer le paiement<br />
-                        4. Entrez votre code PIN quand demandé
-                      </Alert>
-                    </>
-                  )}
-
-                  {loading && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                      <CircularProgress />
-                    </Box>
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
-          )}
-
-          <Stack direction={isSmall ? 'column' : 'row'} spacing={2}>
-            <Button
-              variant="outlined"
-              onClick={() => navigate(-1)}
-              disabled={loading}
-              fullWidth={isSmall}
-            >
-              Retour
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handlePayment}
-              disabled={!paymentMethod || loading}
-              fullWidth={isSmall}
-              startIcon={loading ? <CircularProgress size={20} /> : <SecurityIcon />}
-            >
-              {loading ? 'Traitement...' : 'Payer maintenant'}
-            </Button>
-          </Stack>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card elevation={3}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Détails de l'abonnement
-              </Typography>
-              
-              {accountDetails && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Compte
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {accountDetails.email}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Type de compte
-                  </Typography>
-                  <Typography variant="body1">
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Typography>
-                </Box>
+                    {accountDetails && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                          Détails du compte
+                        </Typography>
+                        <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                          <Stack spacing={2}>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">
+                                Email
+                              </Typography>
+                              <Typography variant="body1">
+                                {accountDetails.email}
+                              </Typography>
+                            </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">
+                                Type de compte
+                              </Typography>
+                              <Typography variant="body1">
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </Paper>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </StyledCard>
               )}
 
-              <PaymentSummary
-                plan={plan.charAt(0).toUpperCase() + plan.slice(1)}
-                amount={getPlanAmount()}
-                currency="USD"
-              />
+              {activeStep === 1 && (
+                <StyledCard
+                  component={motion.div}
+                  variants={pageTransition}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  sx={{ mb: 4 }}
+                >
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Choisissez votre méthode de paiement
+                    </Typography>
 
-              <Box sx={{ bgcolor: 'primary.light', p: 2, borderRadius: 1, mt: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <SecurityIcon color="primary" />
-                  <Typography variant="body2" color="primary.dark">
-                    Paiement sécurisé via FreshPay
+                    <FormControl component="fieldset" sx={{ width: '100%' }}>
+                      <RadioGroup
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      >
+                        <Stack spacing={2}>
+                          <PaymentMethodCard
+                            method="Mobile Money - Airtel"
+                            type="mobile"
+                            selected={paymentMethod === 'airtel'}
+                            onSelect={() => setPaymentMethod('airtel')}
+                          />
+                          <PaymentMethodCard
+                            method="Mobile Money - Orange"
+                            type="mobile"
+                            selected={paymentMethod === 'orange'}
+                            onSelect={() => setPaymentMethod('orange')}
+                          />
+                          <PaymentMethodCard
+                            method="Mobile Money - Vodacom"
+                            type="mobile"
+                            selected={paymentMethod === 'vodacom'}
+                            onSelect={() => setPaymentMethod('vodacom')}
+                          />
+                          <PaymentMethodCard
+                            method="Carte Visa"
+                            type="card"
+                            selected={paymentMethod === 'visa'}
+                            onSelect={() => setPaymentMethod('visa')}
+                          />
+                          <PaymentMethodCard
+                            method="Carte Mastercard"
+                            type="card"
+                            selected={paymentMethod === 'mastercard'}
+                            onSelect={() => setPaymentMethod('mastercard')}
+                          />
+                        </Stack>
+                      </RadioGroup>
+                    </FormControl>
+                  </CardContent>
+                </StyledCard>
+              )}
+
+              {activeStep === 2 && paymentMethod && (
+                <StyledCard
+                  component={motion.div}
+                  variants={pageTransition}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  sx={{ mb: 4 }}
+                >
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {['visa', 'mastercard'].includes(paymentMethod)
+                        ? 'Informations de la carte'
+                        : 'Informations Mobile Money'}
+                    </Typography>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <Stack spacing={3}>
+                        {['visa', 'mastercard'].includes(paymentMethod) ? (
+                          <>
+                            <TextField
+                              label="Nom sur la carte"
+                              fullWidth
+                              value={formData.cardHolderName || ''}
+                              onChange={(e) => handleFormChange('cardHolderName', e.target.value)}
+                            />
+                            <TextField
+                              label="Numéro de carte"
+                              fullWidth
+                              inputProps={{ maxLength: 16 }}
+                              value={formData.cardNumber || ''}
+                              onChange={(e) => handleFormChange('cardNumber', e.target.value.replace(/\D/g, ''))}
+                            />
+                            <Grid container spacing={2}>
+                              <Grid item xs={6}>
+                                <TextField
+                                  label="Date d'expiration (MM/YY)"
+                                  fullWidth
+                                  inputProps={{ maxLength: 5 }}
+                                  value={formData.expiryDate || ''}
+                                  onChange={(e) => {
+                                    const input = e.target.value;
+                                    let formatted = input.replace(/\D/g, '');
+                                    if (formatted.length >= 2) {
+                                      formatted = formatted.slice(0, 2) + '/' + formatted.slice(2);
+                                    }
+                                    handleFormChange('expiryDate', formatted);
+                                  }}
+                                />
+                              </Grid>
+                              <Grid item xs={6}>
+                                <TextField
+                                  label="CVV"
+                                  fullWidth
+                                  type="password"
+                                  inputProps={{ maxLength: 3 }}
+                                  value={formData.cvv || ''}
+                                  onChange={(e) => handleFormChange('cvv', e.target.value.replace(/\D/g, ''))}
+                                />
+                              </Grid>
+                            </Grid>
+                          </>
+                        ) : (
+                          <>
+                            <TextField
+                              label="Numéro de téléphone"
+                              fullWidth
+                              value={formData.mobileNumber || ''}
+                              onChange={(e) => handleFormChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
+                              InputProps={{
+                                startAdornment: <InputAdornment position="start">+243</InputAdornment>,
+                              }}
+                            />
+                            <Alert severity="info" sx={{ mt: 2 }}>
+                              <AlertTitle>Instructions</AlertTitle>
+                              1. Vérifiez que votre numéro est correct<br />
+                              2. Vous recevrez une notification sur votre téléphone<br />
+                              3. Suivez les instructions pour confirmer le paiement<br />
+                              4. Entrez votre code PIN quand demandé
+                            </Alert>
+                          </>
+                        )}
+                      </Stack>
+                    </motion.div>
+                  </CardContent>
+                </StyledCard>
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Stack direction={isSmall ? 'column' : 'row'} spacing={2}>
+                {activeStep > 0 && (
+                  <Button
+                    variant="outlined"
+                    onClick={handleBack}
+                    disabled={loading}
+                    fullWidth={isSmall}
+                    startIcon={<ArrowBackIcon />}
+                  >
+                    Retour
+                  </Button>
+                )}
+
+                {activeStep === 0 && (
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    fullWidth={isSmall}
+                    endIcon={<ArrowForwardIcon />}
+                  >
+                    Continuer
+                  </Button>
+                )}
+
+                {activeStep === 1 && (
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    disabled={!paymentMethod}
+                    fullWidth={isSmall}
+                    endIcon={<ArrowForwardIcon />}
+                  >
+                    Continuer au paiement
+                  </Button>
+                )}
+
+                {activeStep === 2 && (
+                  <LoadingButton
+                    variant="contained"
+                    onClick={handlePayment}
+                    loading={loading}
+                    disabled={!paymentMethod}
+                    fullWidth={isSmall}
+                    loadingPosition="end"
+                    endIcon={<SecurityIcon />}
+                    sx={{
+                      background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                      transition: 'all 0.3s ease-in-out',
+                      '&:hover': {
+                        transform: 'scale(1.02)',
+                      }
+                    }}
+                  >
+                    {loading ? 'Traitement en cours...' : 'Confirmer le paiement'}
+                  </LoadingButton>
+                )}
+              </Stack>
+            </motion.div>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card elevation={3}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Récapitulatif
                   </Typography>
-                </Stack>
-              </Box>
-            </CardContent>
-          </Card>
+
+                  <Box sx={{ mb: 4 }}>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Étape actuelle
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {steps[activeStep]}
+                        </Typography>
+                      </Box>
+
+                      <Divider />
+
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Montant à payer
+                        </Typography>
+                        <Typography variant="h5" color="primary" fontWeight="bold">
+                          {getPlanAmount()} USD
+                        </Typography>
+                      </Box>
+
+                      {paymentMethod && (
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            Méthode de paiement
+                          </Typography>
+                          <Typography variant="body1">
+                            {paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Stack>
+                  </Box>
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      bgcolor: 'primary.light',
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: 'primary.main',
+                    }}
+                  >
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <SecurityIcon color="primary" />
+                      <Typography variant="body2" color="primary.dark">
+                        Paiement sécurisé via FreshPay
+                      </Typography>
+                    </Stack>
+                  </Paper>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Grid>
         </Grid>
-      </Grid>
+      </motion.div>
     </Container>
   );
 }

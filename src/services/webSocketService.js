@@ -42,7 +42,7 @@ class WebSocketService {
         
         // Handle welcome message
         if (message.type === 'welcome') {
-          localStorage.setItem('ndaku_ws_id', message.id);
+          localStorage.setItem('ndaku _ws_id', message.id);
         }
 
         // Call registered handlers

@@ -289,9 +289,14 @@
   }
 }
 .center-card{ width:100%; max-width:1100px; background:white; border-radius:16px; padding:22px; box-shadow: 0 22px 44px rgba(12,30,60,0.06)}
-.center-divider{ height : auto; overflow : scroll; overflow-x: hidden; width : 100%}
+.center-divider{ height : auto; overflow : auto; overflow-x: hidden; width : 100%}
 @media (max-width: 992px){
   .center-divider{ height : 86vh }
+}
+@media (min-width : 900px){
+  .center-divider {
+    padding : 30px;
+  }
 }
 .left-col.collapsed{ width:88px; }
 .center-panel.expanded{ margin-left: 0; width : 100% }

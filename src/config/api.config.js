@@ -9,11 +9,11 @@ export const config = {
   API_ENDPOINTS: {
     // Auth endpoints
     AUTH: {
-      LOGIN: `${API_URL}/auth/api/login`,
-      REGISTER: `${API_URL}/auth/api/register`, 
-      GOOGLE_LOGIN: `${API_URL}/auth/api/google`,
-      GOOGLE_EXCHANGE: `${API_URL}/auth/api/google/exchange`,
-      PROFILE: `${API_URL}/auth/api/profile`,
+      LOGIN: `${API_URL}/api/auth/login`,
+      REGISTER: `${API_URL}/api/auth/register`, 
+      GOOGLE_LOGIN: `${API_URL}/api/auth/google`,
+      GOOGLE_EXCHANGE: `${API_URL}/api/auth/google/exchange`,
+      PROFILE: `${API_URL}/api/auth/profile`,
     },
     // User endpoints
     USER: {

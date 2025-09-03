@@ -8,10 +8,10 @@ export const properties = [
     price: 120000,
     address: "123 Avenue Kasa-Vubu, Kinshasa",
     images: [require('../img/property-1.jpg'), require('../img/property-2.jpg')],
-  agentId: 1,
-  geoloc: { lat: -4.3386, lng: 15.2986 },
-  status: "vente",
-  visitFee: 5000,
+    agentId: 1,
+    geoloc: { lat: -4.3386, lng: 15.2986 },
+    status: "vente",
+    visitFee: 5000,
     chambres: 3,
     douches: 2,
     salon: 1,
@@ -26,10 +26,10 @@ export const properties = [
     price: 350000,
     address: "45 Avenue du Fleuve, Gombe, Kinshasa",
     images: [require('../img/property-3.jpg'), require('../img/property-4.jpg')],
-  agentId: 2,
-  geoloc: { lat: -4.3208, lng: 15.3126 },
-  status: "vente",
-  visitFee: 8000,
+    agentId: 2,
+    geoloc: { lat: -4.3208, lng: 15.3126 },
+    status: "vente",
+    visitFee: 8000,
     chambres: 5,
     douches: 3,
     salon: 2,
@@ -44,10 +44,10 @@ export const properties = [
     price: 80000,
     address: "Route Matadi, Mont Ngafula, Kinshasa",
     images: [require('../img/property-5.jpg')],
-  agentId: 3,
-  geoloc: { lat: -4.4841, lng: 15.2471 },
-  status: "vente",
-  visitFee: 3000,
+    agentId: 3,
+    geoloc: { lat: -4.4841, lng: 15.2471 },
+    status: "vente",
+    visitFee: 3000,
   },
   {
     id: 9,
@@ -57,10 +57,10 @@ export const properties = [
     price: 300000,
     address: "Avenue du Commerce, Gombe, Kinshasa",
     images: [require('../img/property-4.jpg'), require('../img/property-3.jpg')],
-  agentId: 1,
-  geoloc: { lat: -4.3208, lng: 15.3126 },
-  status: "vente",
-  visitFee: 15000,
+    agentId: 1,
+    geoloc: { lat: -4.3208, lng: 15.3126 },
+    status: "vente",
+    visitFee: 15000,
     superficie: 350,
   },
   {
@@ -71,10 +71,10 @@ export const properties = [
     price: 120000,
     address: "Route de Matadi, Mont Ngafula, Kinshasa",
     images: [require('../img/property-5.jpg')],
-  agentId: 3,
-  geoloc: { lat: -4.4841, lng: 15.2471 },
-  status: "vente",
-  visitFee: 7000,
+    agentId: 3,
+    geoloc: { lat: -4.4841, lng: 15.2471 },
+    status: "vente",
+    visitFee: 7000,
     superficie: 800,
   },
   {
@@ -85,8 +85,8 @@ export const properties = [
     price: 70000,
     address: "Boulevard du 30 Juin, Gombe, Kinshasa",
     images: [require('../img/property-2.jpg')],
-  agentId: 2,
-  geoloc: { lat: -4.3208, lng: 15.3126 },
+    agentId: 2,
+    geoloc: { lat: -4.3208, lng: 15.3126 },
     status: "location",
     superficie: 45,
   },
@@ -98,8 +98,8 @@ export const properties = [
     price: 95000,
     address: "Zone industrielle, Limete, Kinshasa",
     images: [require('../img/property-6.jpg')],
-  agentId: 2,
-  geoloc: { lat: -4.3892, lng: 15.3486 },
+    agentId: 2,
+    geoloc: { lat: -4.3892, lng: 15.3486 },
     status: "location",
     superficie: 200,
   },
@@ -111,8 +111,8 @@ export const properties = [
     price: 180000,
     address: "12 Avenue de la Paix, Limete, Kinshasa",
     images: [require('../img/property-6.jpg')],
-  agentId: 1,
-  geoloc: { lat: -4.3892, lng: 15.3486 },
+    agentId: 1,
+    geoloc: { lat: -4.3892, lng: 15.3486 },
     status: "location",
     chambres: 4,
     douches: 2,
@@ -128,8 +128,8 @@ export const properties = [
     price: 40000,
     address: "Rue Université, Bandalungwa, Kinshasa",
     images: [require('../img/property-2.jpg')],
-  agentId: 2,
-  geoloc: { lat: -4.3450, lng: 15.2850 },
+    agentId: 2,
+    geoloc: { lat: -4.3450, lng: 15.2850 },
     status: "location",
     chambres: 1,
     douches: 1,
@@ -145,8 +145,8 @@ export const properties = [
     price: 250000,
     address: "Boulevard du 30 Juin, Gombe, Kinshasa",
     images: [require('../img/property-1.jpg')],
-  agentId: 3,
-  geoloc: { lat: -4.3208, lng: 15.3126 },
+    agentId: 3,
+    geoloc: { lat: -4.3208, lng: 15.3126 },
     status: "vente",
     chambres: 2,
     douches: 2,
@@ -162,8 +162,8 @@ export const properties = [
     price: 150000,
     address: "Avenue des écoles, Kintambo, Kinshasa",
     images: [require('../img/property-3.jpg')],
-  agentId: 1,
-  geoloc: { lat: -4.3600, lng: 15.2850 },
+    agentId: 1,
+    geoloc: { lat: -4.3600, lng: 15.2850 },
     status: "vente",
   },
   {
@@ -174,8 +174,8 @@ export const properties = [
     price: 500000,
     address: "Immeuble Prestige, Gombe, Kinshasa",
     images: [require('../img/property-4.jpg')],
-  agentId: 2,
-  geoloc: { lat: -4.3208, lng: 15.3126 },
+    agentId: 2,
+    geoloc: { lat: -4.3208, lng: 15.3126 },
     status: "vente",
   },
   // nouvelles salles de fêtes ajoutées
@@ -190,8 +190,8 @@ export const properties = [
     area: 350,
     description: 'Grande salle équipée pour mariages, conférences et événements professionnels. Parking et cuisine disponible.',
     features: ['Parking', 'Cuisine', 'Scène', 'Toilettes'],
-  agentId: 2,
-  geoloc: { lat: -4.3208, lng: 15.3126 }
+    agentId: 2,
+    geoloc: { lat: -4.3208, lng: 15.3126 }
   },
   {
     id: 102,
@@ -204,8 +204,8 @@ export const properties = [
     area: 280,
     description: 'Espace moderne avec sonorisation, éclairage LED et mobilier modulable. Idéal pour réceptions et soirées.',
     features: ['Sonorisation', 'Eclairage LED', 'Mobilier'],
-  agentId: 3,
-  geoloc: { lat: -4.3208, lng: 15.3126 }
+    agentId: 3,
+    geoloc: { lat: -4.3208, lng: 15.3126 }
   },
   {
     id: 103,
@@ -218,8 +218,8 @@ export const properties = [
     area: 220,
     description: 'Salle polyvalente proche des transports, excellente pour séminaires et cérémonies familiales.',
     features: ['Proche transport', 'Climatisation'],
-  agentId: 1,
-  geoloc: { lat: -4.3250, lng: 15.3220 }
+    agentId: 1,
+    geoloc: { lat: -4.3250, lng: 15.3220 }
   },
 ];
 
@@ -238,8 +238,8 @@ export const agents = [
     geoloc: { lat: -4.325, lng: 15.322 },
     // busyDates should be array of ISO date strings (YYYY-MM-DD)
     busyDates: [
-      new Date(Date.now() + 2*24*3600*1000).toISOString().slice(0,10),
-      new Date(Date.now() + 5*24*3600*1000).toISOString().slice(0,10)
+      new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+      new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10)
     ],
     properties: [1, 4, 7],
   },
@@ -256,8 +256,8 @@ export const agents = [
     subscription: "Pro",
     geoloc: { lat: -4.320, lng: 15.300 },
     busyDates: [
-      new Date(Date.now() + 1*24*3600*1000).toISOString().slice(0,10),
-      new Date(Date.now() + 7*24*3600*1000).toISOString().slice(0,10)
+      new Date(Date.now() + 1 * 24 * 3600 * 1000).toISOString().slice(0, 10),
+      new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString().slice(0, 10)
     ],
     properties: [2, 5, 8],
   },
@@ -274,7 +274,7 @@ export const agents = [
     subscription: "Basic",
     geoloc: { lat: -4.350, lng: 15.280 },
     busyDates: [
-      new Date(Date.now() + 3*24*3600*1000).toISOString().slice(0,10)
+      new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString().slice(0, 10)
     ],
     properties: [3, 6],
   },
@@ -286,8 +286,8 @@ export const owners = [
     name: 'Propriétaire Démo',
     email: 'owner@demo.local',
     phone: '+243 810 000 010',
-    preferredAgents: [1,2], // favoris : utilisera ces agents en priorité dans la sélection
-    types: ['Appartement','Maison'],
+    preferredAgents: [1, 2], // favoris : utilisera ces agents en priorité dans la sélection
+    types: ['Appartement', 'Maison'],
     properties: [],
   }
 ];

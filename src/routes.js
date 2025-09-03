@@ -30,6 +30,7 @@ import OwnerSubscribe from './pages/OwnerSubscribe';
 import Payment from './pages/Payment';
 import PaymentConfirm from './pages/PaymentConfirm';
 import PaymentCancel from './pages/PaymentCancel';
+import PaymentSimulation from './pages/PaymentSimulation';
 import OwnerAgents from './pages/OwnerAgents';
 import OwnerAppointments from './pages/OwnerAppointments';
 import OwnerPrivacy from './pages/OwnerPrivacy';
@@ -71,6 +72,7 @@ const AppRoutes = () => (
   <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
   <Route path="/payment/confirm" element={<PrivateRoute><PaymentConfirm /></PrivateRoute>} />
   <Route path="/payment/cancel" element={<PrivateRoute><PaymentCancel /></PrivateRoute>} />
+  <Route path="/payment-simulation/:paymentId" element={<PrivateRoute><PaymentSimulation /></PrivateRoute>} />
   <Route path="/owner/dashboard" element={<PrivateRoute><OwnerDashboard /></PrivateRoute>} />
   <Route path="/owner/properties" element={<PrivateRoute><OwnerProperties /></PrivateRoute>} />
   <Route path="/property/create" element={<PrivateRoute><PropertyCreate /></PrivateRoute>} />

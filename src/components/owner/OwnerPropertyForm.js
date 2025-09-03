@@ -25,25 +25,51 @@ import {
 } from '@mui/icons-material';
 import { agents, properties as sampleProps, owners as sampleOwners } from '../../data/fakedata';
 
+const COMMUNES_KINSHASA = [
+  'Bandalungwa',
+  'Barumbu',
+  'Bumbu',
+  'Gombe',
+  'Kalamu',
+  'Kasa-Vubu',
+  'Kimbanseke',
+  'Kinshasa',
+  'Kintambo',
+  'Kisenso',
+  'Lemba',
+  'Limete',
+  'Lingwala',
+  'Makala',
+  'Maluku',
+  'Masina',
+  'Matete',
+  'Mont-Ngafula',
+  'Ndjili',
+  'Ngaba',
+  'Ngaliema',
+  'Ngiri-Ngiri',
+  'Nsele',
+  'Selembao'
+];
+
 export default function OwnerPropertyForm({onSave, initial={}}){
   const defaults = {
     title: initial.title || initial.name || '',
-    type: initial.type || 'Appartement',
+    type: initial.type || 'APPARTEMENT',
     price: initial.price || '',
-    image: initial.image || (initial.images && initial.images[0]) || '',
     address: initial.address || '',
     description: initial.description || '',
+    commune: initial.commune || 'Gombe',
     agentId: initial.agentId || (agents && agents[0] && agents[0].id) || null,
-    chambres: initial.chambres || initial.bedrooms || 0,
-    douches: initial.douches || 0,
-    salon: initial.salon || 0,
-    cuisine: initial.cuisine || 0,
-    sdb: initial.sdb || 0,
-  superficie: initial.superficie || initial.area || '',
+    chambres: initial.chambres || initial.bedrooms || '0',
+    douches: initial.douches || '0',
+    salon: initial.salon || '1',
+    cuisine: initial.cuisine || '1',
+    sdb: initial.sdb || '0',
+    superficie: initial.superficie || initial.area || '',
     features: initial.features || [],
-    status: initial.status || 'vente'
-  ,
-  geoloc: initial.geoloc || { lat: '', lng: '' }
+    status: initial.status || 'vente',
+    geoloc: initial.geoloc || { lat: '', lng: '' }
   };
 
   const [p, setP] = useState(defaults);
@@ -242,6 +268,20 @@ export default function OwnerPropertyForm({onSave, initial={}}){
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
+                select
+                label="Statut"
+                value={p.status || 'vente'}
+                onChange={(e) => setP({ ...p, status: e.target.value })}
+                variant="outlined"
+                sx={commonTextFieldSx}
+              >
+                <MenuItem value="vente">Vente</MenuItem>
+                <MenuItem value="location">Location</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
                 label="Prix"
                 value={p.price}
                 onChange={(e) => setP({ ...p, price: e.target.value })}
@@ -257,12 +297,42 @@ export default function OwnerPropertyForm({onSave, initial={}}){
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={8}>
-              <TextField
-                fullWidth
-                label="Adresse complète"
-                value={p.address}
-                onChange={(e) => setP({ ...p, address: e.target.value })}
-              />
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Quartier"
+                    value={p.quartier || ''}
+                    onChange={(e) => setP({ ...p, quartier: e.target.value })}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Commune"
+                    value={p.commune || ''}
+                    onChange={(e) => setP({ ...p, commune: e.target.value })}
+                    required
+                  >
+                    {COMMUNES_KINSHASA.map((commune) => (
+                      <MenuItem key={commune} value={commune}>
+                        {commune}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Adresse complète"
+                    value={p.address}
+                    onChange={(e) => setP({ ...p, address: e.target.value })}
+                    required
+                  />
+                </Grid>
+              </Grid>
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField

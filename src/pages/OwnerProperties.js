@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import OwnerPropertyForm from '../components/owner/OwnerPropertyForm';
 import PropertyCard from '../components/property/PropertyCard';
-import '../styles/owner.css';
-import { agents } from '../data/fakedata';
-import { getListingRequests, acceptListingRequest, rejectListingRequest } from '../api/ownerActions';
 import {
   Box,
   Card,
@@ -25,7 +24,9 @@ import {
   Chip,
   DialogTitle,
   DialogActions,
-  alpha
+  alpha,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,74 +43,294 @@ import {
 } from '@mui/icons-material';
 
 export default function OwnerProperties() {
-  const [properties, setProperties] = useState(JSON.parse(localStorage.getItem('owner_props') || '[]'));
+  const { user } = useAuth();
+  const [properties, setProperties] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [filter, setFilter] = useState({ q: '', type: 'all' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // determine owner types: try owner_request_draft, then owner_application, then derive from props
-  const ownerTypes = useMemo(() => {
+  const ownerTypes = useMemo(() => [
+    'APPARTEMENT',
+    'MAISON',
+    'VILLA',
+    'TERRAIN',
+    'BUREAU'
+  ], []);
+
+  const [stats, setStats] = useState({
+    total: 0,
+    byType: {}
+  });
+
+  const fetchProperties = useCallback(async () => {
+    if (!user?.id) return;
+    
     try {
-      const draftRaw = localStorage.getItem('owner_request_draft');
-      if (draftRaw) { const d = JSON.parse(draftRaw); if (d.types && d.types.length) return d.types; }
-    } catch (e) { }
-    try {
-      const apps = JSON.parse(localStorage.getItem('owner_application') || 'null');
-      if (apps) { const head = Array.isArray(apps) ? apps[0] : apps; if (head && head.meta && head.meta.types && head.meta.types.length) return head.meta.types; }
-    } catch (e) { }
-    const typesFromProps = Array.from(new Set((properties || []).map(p => p.type).filter(Boolean)));
-    return typesFromProps.length ? typesFromProps : ['Appartement', 'Voiture', 'Terrain'];
-  }, [properties]);
-
-  const stats = useMemo(() => {
-    const total = properties.length;
-    const byType = {};
-    ownerTypes.forEach(t => byType[t] = properties.filter(p => p.type === t).length);
-    return { total, byType };
-  }, [properties, ownerTypes]);
-
-  const openAdd = () => { setEditIndex(null); setModalOpen(true); };
-  const openEdit = (i) => { setEditIndex(i); setModalOpen(true); };
-  const [editing, setEditing] = useState(null);
-
-  const remove = (i) => { if (!window.confirm('Supprimer ce bien ?')) return; const next = [...properties]; next.splice(i, 1); setProperties(next); localStorage.setItem('owner_props', JSON.stringify(next)); };
-  const save = (p) => {
-    const next = [...properties];
-    if (editIndex != null) {
-      next[editIndex] = { ...next[editIndex], ...p };
-    } else {
-      const assign = { ...p, id: Date.now(), agentId: p.agentId || (agents[0] && agents[0].id) };
-      next.push(assign);
+      setLoading(true);
+      const token = localStorage.getItem('ndaku_auth_token');
+      
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user.id}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      
+      console.log('Biens récupérés:', response.data);
+      const propertiesData = response.data?.data || [];
+      setProperties(propertiesData);
+      
+      // Update stats
+      setStats({
+        total: propertiesData.length,
+        byType: ownerTypes.reduce((acc, type) => {
+          acc[type] = propertiesData.filter(p => p.type === type).length;
+          return acc;
+        }, {})
+      });
+      
+      setError(null);
+    } catch (err) {
+      console.error('Erreur lors du chargement des biens:', err);
+      setError(err.response?.data?.message || 'Erreur lors du chargement des propriétés');
+    } finally {
+      setLoading(false);
     }
-    setProperties(next);
-    localStorage.setItem('owner_props', JSON.stringify(next));
-    setModalOpen(false);
-    setEditIndex(null);
+  }, [user, ownerTypes]);
+
+  // Charger les biens au montage et après chaque création/modification/suppression
+  useEffect(() => {
+    const loadProperties = async () => {
+      try {
+        // Log l'état de l'authentification
+        console.log('État auth:', { user, isAuthenticated: !!user });
+        
+        if (!user?._id) {
+          console.log('Pas d\'utilisateur ou pas d\'ID');
+          return;
+        }
+
+        setLoading(true);
+        const token = localStorage.getItem('ndaku_auth_token');
+        
+        if (!token) {
+          console.log('Pas de token d\'authentification');
+          return;
+        }
+
+        console.log('Appel API avec:', {
+          url: `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
+          token: token ? 'présent' : 'absent'
+        });
+
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
+          {
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        console.log('Réponse du serveur:', response.data);
+        
+        // S'assurer d'avoir un tableau même si la réponse est vide
+        const propertiesData = response.data?.data || [];
+        console.log('Données traitées:', propertiesData);
+        
+        setProperties(propertiesData);
+        
+        // Mettre à jour les statistiques
+        setStats({
+          total: propertiesData.length,
+          byType: ownerTypes.reduce((acc, type) => {
+            acc[type] = propertiesData.filter(p => p.type === type).length;
+            return acc;
+          }, {})
+        });
+        
+        setError(null);
+      } catch (err) {
+        console.error('Erreur détaillée:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
+        setError(err.response?.data?.message || 'Erreur lors du chargement des propriétés');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProperties();
+  }, [user, ownerTypes]);
+
+  const openAdd = () => { 
+    setEditIndex(null); 
+    setModalOpen(true); 
   };
 
-  const filtered = properties.filter(p => {
+  const openEdit = (i) => { 
+    setEditIndex(i); 
+    setModalOpen(true); 
+  };
+
+  const remove = async (i) => { 
+    if (!window.confirm('Supprimer ce bien ?')) return;
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('ndaku_auth_token');
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[i]._id}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      await fetchProperties();
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erreur lors de la suppression');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const save = async (p) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('ndaku_auth_token');
+      
+      // Créer un objet avec toutes les données
+      const propertyData = {
+        titre: p.title,
+        type: p.type,
+        prix: Number(p.price),
+        description: p.description,
+        adresse: p.address,
+        commune: p.commune,
+        quartier: p.quartier,
+        categorie: p.type,
+        statut: p.status || 'vente',
+        chambres: Number(p.chambres) || 0,
+        douches: Number(p.douches) || 0,
+        salon: Number(p.salon) || 1,
+        cuisine: Number(p.cuisine) || 1,
+        sdb: Number(p.sdb) || 0,
+        superficie: Number(p.superficie) || 0,
+        status: p.status || 'vente',
+        proprietaireType: 'Owner',
+        proprietaire: user?.id,
+        geoloc: p.geoloc,
+        features: p.features || []
+      };
+
+      // Créer FormData
+      const formData = new FormData();
+
+      // Convertir les images base64 en fichiers
+      const imageFiles = await Promise.all(p.images.map(async (imageData, index) => {
+        // Si c'est déjà un File, on le retourne tel quel
+        if (imageData instanceof File) return imageData;
+        
+        // Si c'est une string base64, on la convertit en File
+        if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+          const response = await fetch(imageData);
+          const blob = await response.blob();
+          return new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
+        }
+        return null;
+      }));
+
+      // Ajouter les données JSON
+      formData.append('data', JSON.stringify(propertyData));
+
+      // Ajouter les images
+      imageFiles.forEach(file => {
+        if (file) {
+          formData.append('images', file);
+        }
+      });
+      
+      // Ajouter les détails spécifiques
+      formData.append('chambres', p.chambres || '');
+      formData.append('douches', p.douches || '');
+      formData.append('salon', p.salon || '1');
+      formData.append('cuisine', p.cuisine || '1');
+      formData.append('sdb', p.sdb || '');
+      formData.append('superficie', p.superficie || '');
+      formData.append('status', p.status || 'vente');
+      
+      // Convertir les objets en JSON
+      if (p.features) {
+        formData.append('features', JSON.stringify(p.features));
+      }
+      if (p.geoloc) {
+        formData.append('geoloc', JSON.stringify(p.geoloc));
+      }
+
+      // Gérer les images
+      if (p.images && p.images.length > 0) {
+        p.images.forEach((file, index) => {
+          if (file instanceof File) {
+            formData.append('images', file);
+          }
+        });
+      }
+
+      // Ajouter l'ID du propriétaire
+      if (user && user.id) {
+        formData.append('ownerId', user.id);
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+      };
+
+      if (editIndex != null) {
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[editIndex]._id}`,
+          formData,
+          { headers }
+        );
+      } else {
+        const response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier`,
+          formData,
+          { headers }
+        );
+        
+        console.log('Bien créé avec succès:', response.data);
+      }
+      
+      // Recharger la liste des biens
+      await fetchProperties();
+      setModalOpen(false);
+      setEditIndex(null);
+      setError(null);
+    } catch (err) {
+      console.error('Erreur détaillée:', err.response?.data);
+      setError(err.response?.data?.message || 'Erreur lors de la sauvegarde');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filtered = (properties || []).filter(p => {
     if (filter.type && filter.type !== 'all' && p.type !== filter.type) return false;
-    if (filter.q && filter.q.trim().length) { const q = filter.q.toLowerCase(); return (p.title && p.title.toLowerCase().includes(q)) || (p.type && p.type.toLowerCase().includes(q)); }
+    if (filter.q && filter.q.trim().length) {
+      const q = filter.q.toLowerCase();
+      return (p.titre && p.titre.toLowerCase().includes(q)) ||
+             (p.description && p.description.toLowerCase().includes(q)) ||
+             (p.type && p.type.toLowerCase().includes(q)) ||
+             (p.adresse && p.adresse.toLowerCase().includes(q));
+    }
     return true;
   });
 
   const [requests, setRequests] = useState([]);
-  useEffect(()=>{ setRequests(getListingRequests()); }, []);
-
-  const handleAccept = async (id)=>{
-    if(!window.confirm('Accepter cette demande et lier le bien à l\'agence ?')) return;
-    try{
-      await acceptListingRequest(id);
-      setRequests(getListingRequests());
-      setProperties(JSON.parse(localStorage.getItem('owner_props') || '[]'));
-    }catch(e){ alert('Impossible d\'accepter la demande : '+ String(e)); }
-  };
-
-  const handleReject = (id)=>{
-    if(!window.confirm('Rejeter cette demande ?')) return;
-    rejectListingRequest(id);
-    setRequests(getListingRequests());
-  };
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -122,6 +343,20 @@ export default function OwnerProperties() {
       default: return <HomeIcon />;
     }
   };
+
+  if (!user) {
+    return (
+      <OwnerLayout>
+        <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          <Paper sx={{ p: 3, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              Veuillez vous connecter pour voir vos propriétés
+            </Typography>
+          </Paper>
+        </Box>
+      </OwnerLayout>
+    );
+  }
 
   return (
     <OwnerLayout>
@@ -295,120 +530,42 @@ export default function OwnerProperties() {
           </Stack>
         </Paper>
 
-        {/* Pending listing requests */}
-        {requests.length > 0 && (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Demandes de liaisons d'agences
-            </Typography>
-            <Stack spacing={2}>
-              {requests.map((r) => (
-                <Paper 
-                  key={r.id} 
-                  elevation={0}
-                  sx={{ 
-                    p: 2,
-                    borderRadius: 0,
-                    border: `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2}
-                    alignItems={{ sm: 'center' }}
-                    justifyContent="space-between"
-                  >
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={500}>
-                        Agence: {r.agencyId}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Propriété: {r.propertyId} — {new Date(r.date).toLocaleString()}
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        startIcon={<CheckIcon />}
-                        onClick={() => handleAccept(r.id)}
-                      >
-                        Accepter
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        startIcon={<CloseIcon />}
-                        onClick={() => handleReject(r.id)}
-                      >
-                        Rejeter
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </Paper>
-              ))}
-            </Stack>
-          </Box>
-        )}
+        {/* Cette section a été supprimée car la fonctionnalité de liaison d'agence n'est pas encore implémentée dans l'API */}
 
         {/* Properties grid */}
         <Grid container spacing={3}>
           {filtered.map((p, i) => (
-            <Grid item xs={12} sm={6} md={4} key={p.id || i}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  borderRadius: 0,
-                  border: `1px solid ${theme.palette.divider}`,
-                  '& .MuiCardContent-root': {
-                    p: 2,
-                  }
-                }}
-                elevation={0}
-              >
-                <Box sx={{ position: 'relative' }}>
-                  <PropertyCard property={p} />
-                  <Box 
-                    sx={{ 
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      bgcolor: 'rgba(255,255,255,0.95)',
-                      borderRadius: 0,
-                      backdropFilter: 'blur(4px)',
-                      border: `1px solid ${theme.palette.divider}`,
-                    }}
-                  >
-                    <Chip 
-                      size="small"
-                      label={p.type} 
-                      icon={getPropertyIcon(p.type)}
-                      sx={{ 
-                        m: 0.5,
-                        borderRadius: 0,
-                        bgcolor: theme.palette.background.paper,
-                      }}
-                    />
-                  </Box>
-                </Box>
-                <CardContent>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    justifyContent="flex-end"
-                  >
+            <Grid item xs={12} sm={6} md={4} key={p._id || i}>
+              <Box sx={{ position: 'relative' }}>
+                <PropertyCard property={{
+                  id: p._id,
+                  name: p.titre,
+                  description: p.description,
+                  type: p.type,
+                  price: p.prix,
+                  address: p.adresse,
+                  images: p.images && p.images.length > 0 
+                    ? p.images.map(img => `${process.env.REACT_APP_BACKEND_APP_URL}/${img}`) 
+                    : [require('../img/property-1.jpg')],
+                  agentId: p.agentId,
+                  geoloc: p.geoloc || { lat: -4.3250, lng: 15.3220 },
+                  status: p.statut,
+                  chambres: p.chambres,
+                  douches: p.douches,
+                  salon: p.salon,
+                  cuisine: p.cuisine,
+                  sdb: p.sdb,
+                  features: p.equipements || [],
+                }} />
+                <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+                  <Stack direction="row" spacing={1}>
                     <IconButton
                       size="small"
                       onClick={() => openEdit(properties.indexOf(p))}
                       sx={{ 
-                        bgcolor: theme.palette.grey[50],
-                        borderRadius: 0,
-                        border: `1px solid ${theme.palette.divider}`,
-                        '&:hover': { 
-                          bgcolor: theme.palette.grey[100] 
-                        }
+                        bgcolor: 'background.paper',
+                        '&:hover': { bgcolor: 'action.hover' },
+                        boxShadow: 1
                       }}
                     >
                       <EditIcon fontSize="small" />
@@ -417,28 +574,57 @@ export default function OwnerProperties() {
                       size="small"
                       onClick={() => remove(properties.indexOf(p))}
                       sx={{ 
-                        bgcolor: alpha(theme.palette.error.main, 0.05),
-                        color: theme.palette.error.main,
-                        borderRadius: 0,
-                        border: `1px solid ${theme.palette.error.light}`,
-                        '&:hover': { 
-                          bgcolor: alpha(theme.palette.error.main, 0.1)
-                        }
+                        bgcolor: 'background.paper',
+                        color: 'error.main',
+                        '&:hover': { bgcolor: 'error.lighter' },
+                        boxShadow: 1
                       }}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Stack>
-                </CardContent>
-              </Card>
+                </Box>
+              </Box>
             </Grid>
           ))}
-          {filtered.length === 0 && (
+          {loading && (
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, textAlign: 'center' }}>
+                <Box display="flex" justifyContent="center" alignItems="center" gap={2}>
+                  <CircularProgress size={24} />
+                  <Typography color="text.secondary">
+                    Chargement des biens...
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          )}
+          {!loading && error && (
+            <Grid item xs={12}>
+              <Paper sx={{ p: 3, bgcolor: 'error.lighter' }}>
+                <Typography color="error" align="center">
+                  {error}
+                </Typography>
+              </Paper>
+            </Grid>
+          )}
+          {!loading && !error && filtered.length === 0 && (
             <Grid item xs={12}>
               <Paper sx={{ p: 3, textAlign: 'center' }}>
                 <Typography color="text.secondary">
-                  Aucun bien trouvé
+                  {filter.q || filter.type !== 'all' ? 
+                    'Aucun bien ne correspond aux critères de recherche' :
+                    'Vous n\'avez pas encore ajouté de biens'
+                  }
                 </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={openAdd}
+                  sx={{ mt: 2 }}
+                >
+                  Ajouter un bien
+                </Button>
               </Paper>
             </Grid>
           )}

@@ -2,6 +2,7 @@ import React from 'react';
 import OwnerSidebar from './OwnerSidebar';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaBell, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
+import ProfileCard from './ProfileCard';
 import { getDashboardMetrics } from '../../data/fakeMetrics';
 import '../../styles/owner.css';
 import {
@@ -130,8 +131,8 @@ export default function OwnerLayout({ children }) {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ 
-            display: 'flex', 
+          <Box sx={{
+            display: 'flex',
             gap: 1,
             alignItems: 'center',
             '& .MuiIconButton-root': {
@@ -148,8 +149,8 @@ export default function OwnerLayout({ children }) {
                 '&:hover': { bgcolor: theme.palette.grey[100] }
               }}
             >
-              <Badge 
-                badgeContent={3} 
+              <Badge
+                badgeContent={3}
                 color="error"
                 sx={{
                   '& .MuiBadge-badge': {
@@ -171,8 +172,8 @@ export default function OwnerLayout({ children }) {
                 '&:hover': { bgcolor: theme.palette.grey[100] }
               }}
             >
-              <Badge 
-                badgeContent={ownerUnread} 
+              <Badge
+                badgeContent={ownerUnread}
                 color="error"
                 sx={{
                   '& .MuiBadge-badge': {
@@ -196,10 +197,10 @@ export default function OwnerLayout({ children }) {
                 '&:hover': { bgcolor: theme.palette.grey[100] }
               }}
             >
-              <Avatar 
+              <Avatar
                 src="/logo192.png"
-                sx={{ 
-                  width: 32, 
+                sx={{
+                  width: 32,
                   height: 32,
                   border: `2px solid ${theme.palette.background.paper}`,
                   boxShadow: theme.shadows[2]
@@ -216,7 +217,7 @@ export default function OwnerLayout({ children }) {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         sx={{
-          width: drawerWidth,
+          width: { dm : drawerWidth},
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: drawerWidth,
@@ -226,6 +227,12 @@ export default function OwnerLayout({ children }) {
             boxShadow: theme.shadows[2],
             backgroundImage: 'none',
           },
+          width: menuOpen ? drawerWidth : 0,
+          transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          overflowX: 'hidden',
         }}
         PaperProps={{
           elevation: 2,
@@ -240,17 +247,18 @@ export default function OwnerLayout({ children }) {
         sx={{
           flexGrow: 1,
           width: { xs: '100%', md: `calc(100% - ${menuOpen ? drawerWidth : 0}px)` },
-          ml: { xs: 0, md: menuOpen ? `${drawerWidth}px` : 0 },
+          // ml: { xs: 0, md: menuOpen ? `${drawerWidth}px` : 0 },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
           }),
-          pt: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 3 },
+          // pt: { xs: 2, sm: 3 },
+          // px: { xs: 2, sm: 3 },
           mt: '64px', // height of AppBar
           minHeight: 'calc(100vh - 64px)',
           display: 'flex',
           flexDirection: 'column',
+          width: '100%',
           gap: 3,
           overflow: 'hidden',
         }}
@@ -287,34 +295,26 @@ export default function OwnerLayout({ children }) {
           },
         }}
       >
-        <Box sx={{ p: 2, pb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Avatar 
-              src="/logo192.png" 
-              sx={{ 
-                width: 48, 
-                height: 48,
-                border: `2px solid ${theme.palette.background.paper}`,
-                boxShadow: theme.shadows[2]
-              }} 
-            />
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600}>
-                Propriétaire Demo
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Compte partenaire
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-        <Divider />
-        <MenuItem sx={{ py: 1.5 }}>Mon profil</MenuItem>
-        <MenuItem sx={{ py: 1.5 }}>Paramètres</MenuItem>
+        <ProfileCard onClose={() => setAnchorProfile(null)} />
         <Divider />
         <MenuItem 
-          onClick={() => { navigate('/'); setAnchorProfile(null); }} 
-          sx={{ 
+          onClick={() => {
+            setAnchorProfile(null);
+            navigate('/owner/profile');
+          }} 
+          sx={{ py: 1.5 }}
+        >
+          <FaUser style={{ marginRight: 12 }} />
+          Éditer mon profil
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => { 
+            localStorage.removeItem('ndaku_auth_token');
+            navigate('/'); 
+            setAnchorProfile(null); 
+          }}
+          sx={{
             py: 1.5,
             color: 'error.main',
             '&:hover': {
