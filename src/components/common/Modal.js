@@ -9,7 +9,8 @@ const style = {
   bgcolor: 'background.paper',
   boxShadow: 24,
   p: 4,
-  borderRadius: 2,
+  borderRadius: 0,
+  width: '90vw',
 };
 
 const Modal = ({ open, onClose, children }) => (

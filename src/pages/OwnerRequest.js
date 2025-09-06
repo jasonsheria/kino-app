@@ -284,24 +284,7 @@ export default function OwnerRequest() {
                   </Box>
                 ))}
               </Stack>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => navigate('/owner/subscribe')}
-                sx={{
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  py: 1.5,
-                  textTransform: 'none',
-                  '&:hover': {
-                    bgcolor: '#10a37f',
-                    transform: 'translateY(-2px)',
-                    transition: 'all 0.2s'
-                  }
-                }}
-              >
-                Choisir un abonnement
-              </Button>
+             
             </Paper>
             {/* Status card */}
             <Paper elevation={0} sx={{
@@ -393,13 +376,14 @@ export default function OwnerRequest() {
                   Quel(s) type(s) de bien possédez-vous ?
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
-                  {['Voiture', 'Terrain', 'Appartement', 'Salle de fête'].map(t => (
+                  {['Voiture', 'Terrain', 'Appartement', 'Salle de fête','Magazin', 'Studio'].map(t => (
                     <Button
                       key={t}
                       variant={types.includes(t) ? "contained" : "outlined"}
                       onClick={() => toggleType(t)}
                       sx={{
                         mb: 1,
+                        margin : '10px',
                         bgcolor: types.includes(t) ? 'var(--ndaku-primary)' : 'transparent',
                         color: types.includes(t) ? 'white' : 'text.primary',
                         '&:hover': {

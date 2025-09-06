@@ -78,6 +78,7 @@
     border-radius: 10px;
     border: 1.5px solid #e6eef2;
     padding: 10px 12px;
+    padding-left : 40px;
     font-size: 0.95rem;
     transition: all 0.18s ease;
     background: #f8fafc;
@@ -193,11 +194,13 @@
 }
 
 .password-toggle {
-    position: absolute;
+   position: absolute;
     right: 8px;
-    top: 6px;
+    top: -1px;
     transform: translateY(6px);
-    padding: 6px 8px
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
 }
 
 .error-text {
@@ -226,16 +229,14 @@
 
 .social-btn {
     flex: 1;
-    padding: 14px;
     border-radius: 12px;
     font-weight: 600;
     transition: all 0.3s ease;
-    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     font-size: 1rem;
     cursor: pointer;
+    width : 100%;
 }
 
 .social-btn:hover {
@@ -340,7 +341,7 @@
 
 .illustration-caption {
     position: absolute;
-    bottom: 40px;
+    top: 40px;
     left: 40px;
     right: 40px;
     background: rgba(255, 255, 255, 0.9);

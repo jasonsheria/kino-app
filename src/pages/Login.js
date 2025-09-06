@@ -117,12 +117,14 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="auth-card shadow-sm">
+        
         <div className="auth-illustration">
-          <img src={require('../img/header.jpg')} alt="illustration" />
           <div className="illustration-caption">
             <h4>Trouver. Vendre. Louer.</h4>
             <p className="small">Découvrez des annonces locales et contactez les meilleurs agents.</p>
           </div>
+          <img src={require('../img/header.jpg')} alt="illustration" />
+
         </div>
 
         <div className="auth-form">
@@ -131,10 +133,11 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="fade-in">
             <div className="social-auth">
-              <button type="button" className="social-btn google" disabled={loading}>
+              {/* <button type="button" className="social-btn google" disabled={loading}> */}
                 {/* <FaGoogle /> Continuer avec Google */}
                 {/* Intégration directe du bouton GoogleLogin */}
                 <GoogleLogin
+                style={{borderRadius : 'none'}}
                   onSuccess={async (credentialResponse) => {
                     if (credentialResponse.credential) {
                       setIsSubmitting(true);
@@ -187,7 +190,7 @@ const Login = () => {
                   width="100%"
                   useOneTap
                 />
-              </button>
+              {/* </button> */}
             </div>
 
             <div className="or-divider">

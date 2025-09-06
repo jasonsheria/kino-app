@@ -84,7 +84,9 @@ const AppRoutes = () => (
   <Route path="/owner/security" element={<PrivateRoute><OwnerSecurity /></PrivateRoute>} />
   <Route path="/owner/settings" element={<PrivateRoute><OwnerSettings /></PrivateRoute>} />
   <Route path="/owner/privacy" element={<PrivateRoute><OwnerPrivacy /></PrivateRoute>} />
+
   {/* agency flows */}
+  
   <Route path="/agency/onboard" element={<AgencyOnboard />} />
   <Route path="/agency/login" element={<AgencyLogin />} />
   <Route path="/agency/dashboard" element={<PrivateRoute><AgencyDashboard /></PrivateRoute>} />

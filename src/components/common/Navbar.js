@@ -5,6 +5,7 @@ import './Navbar.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import { Button } from '@mui/material';
 
 const Navbar = () => {
   const location = useLocation();
@@ -15,7 +16,7 @@ const Navbar = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
-  
+
   const lastScrollY = useRef(0);
   const headerRef = useRef(null);
   const drawerRef = useRef(null);
@@ -103,13 +104,13 @@ const Navbar = () => {
 
         {/* Navigation desktop */}
         <div className="kn-menu">
-          <Link 
+          <Link
             to="/"
             className={`kn-menu-link ${location.pathname === '/' ? 'active' : ''}`}
           >
             Accueil
           </Link>
-          
+
           <Link to="/about" className="kn-menu-link">
             À propos
           </Link>
@@ -152,19 +153,20 @@ const Navbar = () => {
         </div>
 
         {/* Boutons d'action */}
-  <div className="kn-cta-group ct-1">
+        <div className="kn-cta-group ct-1">
           {/* Notifications & user status */}
           <div className="kn-notif-wrap">
-            <button
-              className="kn-notif-btn"
-              aria-label="Afficher les notifications"
+            <Button
+              variant="contained"
+              color="primary"
               onClick={() => setNotifOpen(!notifOpen)}
+              aria-label="Afficher les notifications"
             >
               <FaBell />
               {notifications?.length > 0 && (
                 <span className="kn-notif-badge">{notifications.length}</span>
               )}
-            </button>
+            </Button>
 
             <div className={`kn-notif-menu ${notifOpen ? 'show' : ''}`} role="menu">
               {notifications?.length > 0 ? (
@@ -184,10 +186,23 @@ const Navbar = () => {
               )}
             </div>
           </div>
+          <Button
+            variant="contained"
+            color="primary"
+            aria-label="propriétaire"
 
-          <Link to="/owner/onboard" className="kn-cta kn-cta-outline">
-            Devenir propriétaire
-          </Link>
+          >
+            <Link to="/owner/onboard"
+              style={{
+                listStyleType: 'none',
+                textDecoration: 'none',
+                color: 'white',
+              }}
+            >
+              Propriétaire
+            </Link>
+
+          </Button>
           {user ? (
             <div className="kn-user-wrap" ref={userMenuRef}>
               <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
@@ -201,44 +216,71 @@ const Navbar = () => {
               </div>
             </div>
           ) : (
-            <Link to="/login" className="kn-cta kn-cta-filled">Connexion</Link>
+            < Button
+              variant="contained"
+              color="primary"
+              aria-label="propriétaire"
+
+            >
+              <Link to="/login" style={{
+                listStyleType: 'none',
+                textDecoration: 'none',
+                color: 'white',
+              }}>Connexion</Link>
+            </Button>
           )}
         </div>
 
         {/* Compact actions shown on mobile (notification + user) */}
-        <div className="kn-compact-actions">
-          <button className="kn-notif-btn kn-compact" aria-label="Afficher les notifications" onClick={() => setNotifOpen(!notifOpen)}>
-            <FaBell />
-            {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
-          </button>
-          {user ? (
-            <button className="kn-user-compact" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen}>
-              <FaUserCircle />
-              <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
-            </button>
-          ) : (
-            <Link to="/login" className="kn-compact-login">Connexion</Link>
-          )}
-        </div>
+
+
+
 
         {/* Bouton menu mobile */}
-        <button
-          className="kn-menu-toggle"
-          onClick={() => setIsDrawerOpen(true)}
-          aria-label="Ouvrir le menu"
-          aria-expanded={isDrawerOpen}
-        >
-          <FaBars />
-        </button>
+        <div className="kn-compact-actions">
+          <Button
+            onClick={() => setNotifOpen(!notifOpen)}
+            className="kn-cta kn-user-btn"
+            aria-label="Afficher les notifications"
+          >
+            <FaBell />
+            {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
+          </Button>
+          {user ? (
+            <div className="kn-user-wrap" ref={userMenuRef}>
+              <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
+                <FaUserCircle className="kn-user-icon" />
+                <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
+              </button>
+
+              <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
+                <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
+                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); /* call logout from context */ window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+
+          <Button
+            variant="outlined"
+            color="success"
+            onClick={() => setIsDrawerOpen(true)}
+            aria-label="Ouvrir le menu"
+            className="kn-menu-toggle"
+          >
+            <FaBars />
+          </Button>
+        </div>
       </nav>
 
       {/* Drawer mobile */}
-      <div 
+      <div
         className={`kn-drawer-backdrop ${isDrawerOpen ? 'show' : ''}`}
         onClick={() => setIsDrawerOpen(false)}
         aria-hidden="true"
       />
-      
+
       <aside
         ref={drawerRef}
         className={`kn-drawer ${isDrawerOpen ? 'show' : ''}`}
@@ -255,13 +297,15 @@ const Navbar = () => {
             />
             <span className="kn-brand-text">Kino-App</span>
           </Link>
-          <button
-            className="kn-drawer-close"
+          <Button
+            variant="outlined"
+            color="success"
             onClick={() => setIsDrawerOpen(false)}
             aria-label="Fermer le menu"
+            className="kn-drawer-close"
           >
             <FaTimes />
-          </button>
+          </Button>
         </div>
 
         <div className="kn-drawer-body">
@@ -315,28 +359,52 @@ const Navbar = () => {
             >
               Contact
             </Link>
-            <div className="kn-cta-group" style={{ margin: '16px 0' , flexDirection : "column"}}>
-              <Link
-                to="/owner/onboard"
-                className="kn-cta kn-cta-outline"
+            <div className="kn-cta-group" style={{ margin: '16px 0', flexDirection: "column" }}>
+              <Button
+                variant="outlined"
+                color="success"
                 onClick={() => setIsDrawerOpen(false)}
                 style={{ width: '100%' }}
               >
-                Devenir propriétaire
-              </Link>
-              <Link
-                to="/login"
-                className="kn-cta kn-cta-filled"
-                onClick={() => setIsDrawerOpen(false)}
-                style={{ width: '100%' }}
-              >
-                Connexion
-              </Link>
+                <Link
+                  to="/owner/onboard"
+                  className="kn-drawer-link"
+                  onClick={() => setIsDrawerOpen(false)}
+                >
+                  Propriétaire
+                </Link>
+              </Button>
+
+              {user ? (
+                <Link
+                  to="/profile"
+                  className="kn-cta kn-cta-filled"
+                  onClick={() => setIsDrawerOpen(false)}
+                  style={{ width: '100%' }}
+                >
+                  Profile
+                </Link>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setIsDrawerOpen(false)}
+                  style={{ width: '100%' }}
+                >
+                  <Link
+                    to="/login"
+                    className="kn-drawer-link"
+                    onClick={() => setIsDrawerOpen(false)}
+                  >
+                    Connexion
+                  </Link>
+                </Button>
+              )}
             </div>
           </nav>
         </div>
       </aside>
-    </header>
+    </header >
   );
 };
 

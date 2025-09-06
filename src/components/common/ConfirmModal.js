@@ -3,7 +3,9 @@ import Modal from './Modal';
 
 export default function ConfirmModal({open, title, message, onConfirm, onCancel}){
   return (
-    <Modal open={open} onClose={onCancel}>
+    <Modal 
+    
+    open={open} onClose={onCancel}>
       <div style={{maxWidth:520}}>
         <h5>{title || 'Confirmer'}</h5>
         <p style={{color:'#374151'}}>{message}</p>
