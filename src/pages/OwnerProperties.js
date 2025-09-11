@@ -42,6 +42,8 @@ import {
   Landscape as TerrainIcon
 } from '@mui/icons-material';
 
+const placeholderImage = "https://via.placeholder.com/150";
+
 export default function OwnerProperties() {
   const { user } = useAuth();
   const [properties, setProperties] = useState([]);
@@ -70,16 +72,32 @@ export default function OwnerProperties() {
     try {
       setLoading(true);
       const token = localStorage.getItem('ndaku_auth_token');
-      
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user.id}`,
+
+      // First check if user is an owner
+      const ownerResponse = await axios.get(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/check-account`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
       );
       
-      console.log('Biens récupérés:', response.data);
-      const propertiesData = response.data?.data || [];
+      if (!ownerResponse.data?.owner?._id) {
+        setError('Compte propriétaire non trouvé');
+        return;
+      }
+
+      // const ownerId = ownerResponse.data.owner._id;
+      // console.log('Owner ID:', ownerId);
+      
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      
+      console.log('Biens récupérés apres mise à jour:', response.data);
+      const propertiesData = response.data?.data?.data || [];
       setProperties(propertiesData);
       
       // Update stats
@@ -120,10 +138,22 @@ export default function OwnerProperties() {
           return;
         }
 
-        console.log('Appel API avec:', {
-          url: `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
-          token: token ? 'présent' : 'absent'
-        });
+        // D'abord vérifier si l'utilisateur est un propriétaire
+        const ownerResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/check-account`,
+          {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }
+        );
+        
+        if (!ownerResponse.data?.owner?._id) {
+          console.log('Compte propriétaire non trouvé');
+          setError('Compte propriétaire non trouvé');
+          return;
+        }
+
+        const ownerId = ownerResponse.data.owner._id;
+        console.log('Owner ID update by user:', user._id);
 
         const response = await axios.get(
           `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
@@ -138,7 +168,7 @@ export default function OwnerProperties() {
         console.log('Réponse du serveur:', response.data);
         
         // S'assurer d'avoir un tableau même si la réponse est vide
-        const propertiesData = response.data?.data || [];
+        const propertiesData = response.data?.data?.data || [];
         console.log('Données traitées:', propertiesData);
         
         setProperties(propertiesData);
@@ -533,39 +563,55 @@ export default function OwnerProperties() {
         {/* Cette section a été supprimée car la fonctionnalité de liaison d'agence n'est pas encore implémentée dans l'API */}
 
         {/* Properties grid */}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ mt: 3 }}>
           {filtered.map((p, i) => (
-            <Grid item xs={12} sm={6} md={4} key={p._id || i}>
-              <Box sx={{ position: 'relative' }}>
-                <PropertyCard property={{
-                  id: p._id,
-                  name: p.titre,
-                  description: p.description,
-                  type: p.type,
-                  price: p.prix,
-                  address: p.adresse,
-                  images: p.images && p.images.length > 0 
-                    ? p.images.map(img => `${process.env.REACT_APP_BACKEND_APP_URL}/${img}`) 
-                    : [require('../img/property-1.jpg')],
-                  agentId: p.agentId,
-                  geoloc: p.geoloc || { lat: -4.3250, lng: 15.3220 },
-                  status: p.statut,
-                  chambres: p.chambres,
-                  douches: p.douches,
-                  salon: p.salon,
-                  cuisine: p.cuisine,
-                  sdb: p.sdb,
-                  features: p.equipements || [],
-                }} />
+            <Grid item xs={12} sm={6} md={4} key={p._id || i} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Box
+                sx={{
+                  position: 'relative',
+                  width: '100%',
+                  maxWidth: 360,
+                  boxShadow: 3,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  bgcolor: 'background.paper',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                  },
+                }}
+              >
+                <PropertyCard
+                  property={{
+                    id: p._id,
+                    name: p.titre,
+                    description: p.description,
+                    type: p.type,
+                    price: p.prix,
+                    address: p.adresse,
+                    images: p.images && p.images.length > 0
+                      ? p.images.map(img => `${process.env.REACT_APP_BACKEND_APP_URL}/${img}`)
+                      : [placeholderImage],
+                    agentId: p.agentId,
+                    geoloc: p.geoloc || { lat: -4.3250, lng: 15.3220 },
+                    status: p.statut,
+                    chambres: p.chambres,
+                    douches: p.douches,
+                    salon: p.salon,
+                    cuisine: p.cuisine,
+                    sdb: p.sdb,
+                    features: p.equipements || [],
+                  }}
+                />
                 <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
                   <Stack direction="row" spacing={1}>
                     <IconButton
                       size="small"
                       onClick={() => openEdit(properties.indexOf(p))}
-                      sx={{ 
+                      sx={{
                         bgcolor: 'background.paper',
                         '&:hover': { bgcolor: 'action.hover' },
-                        boxShadow: 1
+                        boxShadow: 1,
                       }}
                     >
                       <EditIcon fontSize="small" />
@@ -573,11 +619,11 @@ export default function OwnerProperties() {
                     <IconButton
                       size="small"
                       onClick={() => remove(properties.indexOf(p))}
-                      sx={{ 
+                      sx={{
                         bgcolor: 'background.paper',
                         color: 'error.main',
                         '&:hover': { bgcolor: 'error.lighter' },
-                        boxShadow: 1
+                        boxShadow: 1,
                       }}
                     >
                       <DeleteIcon fontSize="small" />
@@ -612,10 +658,9 @@ export default function OwnerProperties() {
             <Grid item xs={12}>
               <Paper sx={{ p: 3, textAlign: 'center' }}>
                 <Typography color="text.secondary">
-                  {filter.q || filter.type !== 'all' ? 
-                    'Aucun bien ne correspond aux critères de recherche' :
-                    'Vous n\'avez pas encore ajouté de biens'
-                  }
+                  {filter.q || filter.type !== 'all'
+                    ? 'Aucun bien ne correspond aux critères de recherche'
+                    : 'Vous n\'avez pas encore ajouté de biens'}
                 </Typography>
                 <Button
                   variant="contained"

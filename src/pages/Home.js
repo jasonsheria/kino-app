@@ -805,7 +805,7 @@ const Home = () => {
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
                     <div className="row justify-content-center">
                         {agents.slice(0, 6).map(agent => (
-                            <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
+               <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
                                 {/* wrapper cliquable pour ouvrir la messagerie */}
                                 <div
                                     role="Buttons"
