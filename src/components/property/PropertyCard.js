@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { showToast } from '../common/ToastManager';
 import { agents, properties } from '../../data/fakedata';
-import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt } from 'react-icons/fa';
+import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
 import './PropertyCard.css';
 import VisitBookingModal from '../common/VisitBookingModal';
@@ -116,43 +116,38 @@ const PropertyCard = ({ property }) => {
   const mainPos = agent?.geoloc || { lat: -4.325, lng: 15.322 };
 
   return (
-    <div className="card shadow-lg border-0 mb-4 property-card animate__animated animate__fadeInUp" style={{borderRadius:18, overflow:'hidden', transition:'box-shadow .3s'}}>
-      <div className="position-relative">
-          <img
-          src={imgs[0]}
-          alt={displayName}
-          className="card-img-top property-img animate__animated animate__zoomIn"
-          style={{height: 200, objectFit: 'cover', cursor: 'pointer', borderTopLeftRadius:18, borderTopRightRadius:18, transition:'transform .4s'}}
-          onClick={() => imgs.length && openLightbox(0)}
-        />
-  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'var(--ndaku-primary)', color:'#fff'}}>{property.type}</span>
-  <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{property.status}</span>
+    <div className="card shadow-lg border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
+      <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
+        <img src={imgs[0]} alt={displayName} className="property-img" />
+        <div className="image-overlay" />
+        <div className="badges">
+          <div className="badge status-badge">{property.status || ''}</div>
+          <div className="badge type-badge">{property.type || ''}</div>
+        </div>
+        <div className="price-badge">{new Intl.NumberFormat().format(property.price || 0)} $</div>
+        <div className="card-actions">
+          <button className="action-btn" title="Edit"><FaEdit /></button>
+          <button className="action-btn danger" title="Delete"><FaTrash /></button>
+        </div>
       </div>
       <div className="card-body">
-  <h6 className="card-title fw-bold text-primary mb-1">{displayName}</h6>
-        <div className="mb-2 text-muted small"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
-        <div className="mb-2">
-            <span className="d-block fs-6 text-dark mb-1" style={{fontWeight:500}}>
-            <FaRegMoneyBillAlt className="me-2 text-success" style={{fontSize:22}}/>
-            <span className="fs-5 text-success fw-bold">{(property.price || 0).toLocaleString()} $</span>
-          </span>
-          <span className="text-secondary small">{property.description}</span>
+        <div className="title-row">
+          <h6 className="card-title mb-0">{displayName}</h6>
+          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1"/>{property.address}</div>
         </div>
-        {/* Spécificités pour Appartement, Studio, Maison */}
-  {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
-          <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
-            <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary"/> {property.chambres}</span>
-            <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info"/> {property.douches}</span>
-            <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning"/> {property.salon}</span>
-            <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success"/> {property.cuisine}</span>
-            <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger"/> {property.sdb}</span>
-          </div>
-        )}
-        {/* Bouton Voir plus */}
-        <div className="d-flex justify-content-end mb-2">
-          <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>
-            Visiter <FaMapMarkerAlt className="ms-1"/>
-          </button>
+        <p className="card-desc text-secondary small">{property.description}</p>
+        <div className="features-row">
+          {(property.chambres || property.douches || property.salon || property.cuisine) && (
+            <>
+              <div className="feature"><FaBed /> <span>{property.chambres || 0}</span></div>
+              <div className="feature"><FaShower /> <span>{property.douches || 0}</span></div>
+              <div className="feature"><FaCouch /> <span>{property.salon || 0}</span></div>
+              <div className="feature"><FaUtensils /> <span>{property.cuisine || 0}</span></div>
+            </>
+          )}
+        </div>
+        <div className="d-flex justify-content-end mt-3">
+          <button className="btns btn-primary btn-sm fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>Voir le bien</button>
         </div>
         {/* Agent lié */}
         {agent && (

@@ -60,6 +60,22 @@
 
 .owner-property-card img{ height:160px; object-fit:cover; border-top-left-radius:12px; border-top-right-radius:12px; }
 
+/* Compatibility with redesigned PropertyCard component */
+.property-card{ background:var(--pro-surface); border-radius:12px; overflow:hidden; box-shadow: var(--pro-shadow-1); transition: transform .18s ease, box-shadow .18s ease; }
+.property-card:hover{ transform: translateY(-6px); box-shadow: var(--pro-shadow-2); }
+.property-img{ width:100%; height:220px; object-fit:cover; display:block; }
+.property-card .card-body{ padding:14px; }
+.property-card .card-title{ font-weight:800; color:var(--pro-heading); margin:0; font-size:1.05rem; }
+.property-card .card-sub{ color:var(--pro-muted); font-size:0.92rem; margin-top:6px; }
+.property-price{ color:var(--pro-accent); font-weight:900; font-size:1.15rem; }
+.property-badges{ display:flex; gap:8px; margin-top:8px; }
+.property-feature-list{ display:flex; gap:12px; margin-top:10px; color:#596a72; font-weight:700; }
+
+@media (max-width: 900px){
+  .property-img{ height:180px; }
+  .property-card .card-body{ padding:12px; }
+}
+
 .owner-empty{ text-align:center; padding:28px; color:var(--owner-muted); }
 
 .owner-badge{ background: rgba(14,165,164,0.12); color:var(--owner-accent); padding:6px 10px; border-radius:999px; font-weight:600; }

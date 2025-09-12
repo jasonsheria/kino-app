@@ -67,7 +67,7 @@ export default function OwnerProperties() {
   });
 
   const fetchProperties = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id || !user?._id) return;
     
     try {
       setLoading(true);
@@ -86,18 +86,19 @@ export default function OwnerProperties() {
         return;
       }
 
-      // const ownerId = ownerResponse.data.owner._id;
-      // console.log('Owner ID:', ownerId);
+      const ownerId = user._id || user.id;
+      console.log('Owner ID:', ownerId);
       
       const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
       );
       
-      console.log('Biens récupérés apres mise à jour:', response.data);
-      const propertiesData = response.data?.data?.data || [];
+      console.log('Biens récupérés:', response.data);
+      const propertiesData = response.data?.data || [];
+      console.log('Properties data:', propertiesData);
       setProperties(propertiesData);
       
       // Update stats
@@ -124,7 +125,7 @@ export default function OwnerProperties() {
       try {
         // Log l'état de l'authentification
         console.log('État auth:', { user, isAuthenticated: !!user });
-        
+        console.log('user', user._id)
         if (!user?._id) {
           console.log('Pas d\'utilisateur ou pas d\'ID');
           return;
@@ -152,11 +153,16 @@ export default function OwnerProperties() {
           return;
         }
 
-        const ownerId = ownerResponse.data.owner._id;
-        console.log('Owner ID update by user:', user._id);
+        const ownerId = user._id || user.id;
+        console.log('Owner ID:', ownerId);
+
+        console.log('Appel API avec:', {
+          url: `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
+          token: token ? 'présent' : 'absent'
+        });
 
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${user._id}`,
+          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
           {
             headers: { 
               'Authorization': `Bearer ${token}`,
@@ -168,7 +174,7 @@ export default function OwnerProperties() {
         console.log('Réponse du serveur:', response.data);
         
         // S'assurer d'avoir un tableau même si la réponse est vide
-        const propertiesData = response.data?.data?.data || [];
+        const propertiesData = response.data?.data || [];
         console.log('Données traitées:', propertiesData);
         
         setProperties(propertiesData);
@@ -349,13 +355,25 @@ export default function OwnerProperties() {
   };
 
   const filtered = (properties || []).filter(p => {
-    if (filter.type && filter.type !== 'all' && p.type !== filter.type) return false;
+    if (filter.type && filter.type !== 'all') {
+      // Convertir les types en majuscules pour la comparaison
+      const filterType = filter.type.toUpperCase();
+      const propertyType = (p.type || '').toUpperCase();
+      if (propertyType !== filterType) return false;
+    }
+    
     if (filter.q && filter.q.trim().length) {
       const q = filter.q.toLowerCase();
-      return (p.titre && p.titre.toLowerCase().includes(q)) ||
-             (p.description && p.description.toLowerCase().includes(q)) ||
-             (p.type && p.type.toLowerCase().includes(q)) ||
-             (p.adresse && p.adresse.toLowerCase().includes(q));
+      const searchFields = [
+        p.titre,
+        p.description,
+        p.type,
+        p.adresse,
+        p.commune,
+        p.quartier
+      ].map(field => (field || '').toLowerCase());
+      
+      return searchFields.some(field => field.includes(q));
     }
     return true;
   });
@@ -590,7 +608,23 @@ export default function OwnerProperties() {
                     price: p.prix,
                     address: p.adresse,
                     images: p.images && p.images.length > 0
-                      ? p.images.map(img => `${process.env.REACT_APP_BACKEND_APP_URL}/${img}`)
+                      ? p.images.map(img => {
+                          try {
+                            // If it's already a full URL, return as-is
+                            if (img.startsWith('http')) return img;
+
+                            // Ensure backend base URL has no trailing slash
+                            const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/+$/, '');
+
+                            // Images stored in DB are relative paths beginning with `/uploads/...`
+                            const resolved = img.startsWith('/') ? `${base}${img}` : `${base}/${img}`;
+                            console.log('Resolved image URL for property', p._id, resolved);
+                            return resolved;
+                          } catch (e) {
+                            console.error('Error resolving image URL', e, img);
+                            return placeholderImage;
+                          }
+                        })
                       : [placeholderImage],
                     agentId: p.agentId,
                     geoloc: p.geoloc || { lat: -4.3250, lng: 15.3220 },
