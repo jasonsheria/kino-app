@@ -1,0 +1,359 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { fetchUserProfile, fetchOwnerProfile, updateProfile } from '../api/profile';
+import { fetchReviews, addReview } from '../api/reviews';
+import OwnerLayout from '../components/owner/OwnerLayout';
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Grid,
+  IconButton,
+  Paper,
+  Rating,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  Alert,
+  Tab,
+  Tabs,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  ListItemSecondaryAction,
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Verified as VerifiedIcon,
+  HourglassEmpty as PendingIcon,
+  Error as UnverifiedIcon,
+  Business as BusinessIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  LocationOn as LocationIcon,
+  Description as DescriptionIcon,
+  House as HouseIcon,
+  Visibility as ViewIcon,
+  Message as MessageIcon,
+  Star as StarIcon,
+} from '@mui/icons-material';
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`profile-tabpanel-${index}`}
+      aria-labelledby={`profile-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+export default function OwnerProfile() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [tabValue, setTabValue] = useState(0);
+  
+  const [owner, setOwner] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState('');
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const fileRef = useRef(null);
+
+  // Statistiques
+  const [stats, setStats] = useState({
+    properties: 0,
+    views: 0,
+    inquiries: 0,
+    rating: 0
+  });
+
+    useEffect(() => {
+    let mounted = true;
+    
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        // Charger à la fois le profil utilisateur et le profil propriétaire
+        const [userProfile, ownerProfile] = await Promise.all([
+          fetchUserProfile(),
+          fetchOwnerProfile()
+        ]);
+        
+        if (mounted) {
+          // Fusionner les deux profils
+          setOwner({
+            ...userProfile,
+            ...ownerProfile,
+            // Garder les champs spécifiques du propriétaire
+            certification: ownerProfile.certification,
+            businessDetails: ownerProfile.businessDetails,
+            subscription: ownerProfile.subscription
+          });
+
+          // Mettre à jour les stats
+          setStats({
+            properties: ownerProfile.propertyCount || 0,
+            views: ownerProfile.totalViews || 0,
+            inquiries: ownerProfile.inquiryCount || 0,
+            rating: ownerProfile.rating || 0
+          });
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err.response?.data?.message || "Erreur lors du chargement du profil");
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    loadProfile();
+    return () => mounted = false;
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadReviews = async () => {
+      try {
+        if (owner?._id) {
+          const fetchedReviews = await fetchReviews(owner._id);
+          if (mounted) {
+            setReviews(fetchedReviews);
+          }
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des avis:', err);
+      }
+    };
+    loadReviews();
+    return () => mounted = false;
+  }, [owner?._id]);
+
+  const onPick = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    
+    // Validate file size
+    if (f.size > 5 * 1024 * 1024) { // 5MB limit
+      setError("L'image ne doit pas dépasser 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => setPreview(ev.target.result);
+    reader.readAsDataURL(f);
+  };
+
+  const save = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      
+      // Validation
+      if (!owner.name?.trim()) {
+        setError("Le nom est requis");
+        return;
+      }
+      if (!owner.email?.trim()) {
+        setError("L'email est requis");
+        return;
+      }
+      if (!owner.phone?.trim()) {
+        setError("Le numéro de téléphone est requis");
+        return;
+      }
+
+      const updateData = {
+        name: owner.name,
+        email: owner.email,
+        phone: owner.phone,
+        bio: owner.bio,
+        businessDetails: owner.businessDetails || {},
+      };
+
+      // Ajouter les fichiers si nécessaire
+      const files = {};
+      if (preview && preview.startsWith('data:')) {
+        // Convertir le base64 en File
+        const response = await fetch(preview);
+        const blob = await response.blob();
+        files.avatar = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+      }
+      
+      await updateProfile(updateData, files);
+      
+      // Recharger les données
+      const [userProfile, ownerProfile] = await Promise.all([
+        fetchUserProfile(),
+        fetchOwnerProfile()
+      ]);
+      
+      setOwner({
+        ...userProfile,
+        ...ownerProfile,
+        certification: ownerProfile.certification,
+        businessDetails: ownerProfile.businessDetails,
+        subscription: ownerProfile.subscription
+      });
+
+      setPreview('');
+      setSuccess("Profil mis à jour avec succès");
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur lors de la sauvegarde");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <OwnerLayout>
+      <div className="owner-card center-card" style={{padding:20}}>
+        <div className="top-row">
+          <h4>Mon profil professionnel</h4>
+          <div className="small text-muted">Gérez vos informations publiques et les paramètres de compte.</div>
+        </div>
+
+        <div className="profile-section profile-card" style={{marginTop:12}}>
+          <div>
+            <div className="profile-avatar">
+              <img src={preview || owner.avatar || '/logo192.png'} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+            </div>
+
+            <div style={{marginTop:12,display:'flex',gap:8}}>
+              <label className="btn btn-outline-secondary" style={{cursor:'pointer'}}>
+                Changer
+                <input ref={fileRef} type="file" accept="image/*" onChange={onPick} style={{display:'none'}} />
+              </label>
+              <button className="btn btn-outline-danger" onClick={()=>{ setPreview('/logo192.png'); fileRef.current.value=''; }}>Supprimer</button>
+            </div>
+
+            <div style={{marginTop:18}}>
+              <div className="small text-muted">Statut de certification</div>
+              <div style={{marginTop:8}}>
+                {owner.certified ? <span className="owner-badge">Certifié</span> : owner.certRequested ? <span className="owner-badge" style={{background:'#fff7ed',color:'#b45309'}}>En attente</span> : <span className="owner-badge" style={{background:'#f8fafc',color:'#64748b'}}>Non certifié</span>}
+              </div>
+              {owner.certified && owner.certificationNote && <div className="small text-muted mt-2">Note admin: {owner.certificationNote}</div>}
+              {!owner.certified && !owner.certRequested && (
+                <div style={{marginTop:10}}>
+                  <button className="btn btn-sm owner-btn-primary" onClick={async ()=>{ await updateOwner(ownerId, { certRequested:true }); const u = await fetchOwner(ownerId); setOwner(u); }}>Demander certification</button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="profile-meta profile-section">
+            <div className="profile-grid">
+              <div>
+                <label className="form-label">Nom</label>
+                <input className="form-control" value={owner.name} onChange={e=> setOwner({...owner,name:e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Email</label>
+                <input className="form-control" value={owner.email} onChange={e=> setOwner({...owner,email:e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Téléphone</label>
+                <input className="form-control" value={owner.phone} onChange={e=> setOwner({...owner,phone:e.target.value})} />
+              </div>
+              <div>
+                <label className="form-label">Abonnement</label>
+                <select className="form-select" value={owner.subscription} onChange={e=> setOwner({...owner,subscription:e.target.value})}>
+                  <option value="basic">Basique</option>
+                  <option value="pro">Pro</option>
+                  <option value="premium">Premium</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="profile-section" style={{marginTop:12}}>
+              <div className="small text-muted">Cotation du profil</div>
+              <div className="profile-rating" style={{marginTop:6}}>
+                <div style={{fontSize:28,fontWeight:800}}>{owner.rating?.toFixed(1) || '0.0'}</div>
+                <div className="small text-muted">(basé sur les avis)</div>
+              </div>
+            </div>
+
+            <div className="profile-section" style={{marginTop:12}}>
+              <label className="form-label">Biographie / Présentation publique</label>
+              <textarea className="form-control" rows={5} value={owner.bio||''} onChange={e=> setOwner({...owner,bio:e.target.value})} />
+            </div>
+
+            <div className="profile-section" style={{marginTop:12}}>
+              <h6>Avis & évaluations</h6>
+              <div className="reviews-list" style={{marginTop:8}}>
+                {reviews.length===0 && <div className="small text-muted">Aucun avis pour le moment</div>}
+                {reviews.map(r => (
+                  <div key={r.id} className="review-item">
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <div style={{fontWeight:800}}>Note: {r.rating}/5</div>
+                      <div className="small text-muted">{new Date(r.date).toLocaleDateString()}</div>
+                    </div>
+                    <div style={{marginTop:6}}>{r.text}</div>
+                  </div>
+                ))}
+
+                <div className="review-item" style={{borderStyle:'dashed'}}>
+                  <div className="small text-muted">Laisser un avis</div>
+                  <div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
+                    <select className="form-select" value={newReview.rating} onChange={e=> setNewReview(n=>({...n,rating: Number(e.target.value)}))} style={{width:120}}>
+                      {[5,4,3,2,1].map(v => <option key={v} value={v}>{v} étoiles</option>)}
+                    </select>
+                    <input className="form-control" placeholder="Votre commentaire" value={newReview.text} onChange={e=> setNewReview(n=>({...n,text:e.target.value}))} />
+                    <button className="btn btn-outline-primary" onClick={submitReview}>Envoyer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isAdminView && (
+              <div className="profile-section" style={{marginTop:12}}>
+                <h6>Administration: certification</h6>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <button className="btn btn-success" onClick={()=> approveCertification(true,'Approuvé par admin')}>Approuver</button>
+                  <button className="btn btn-outline-danger" onClick={()=> approveCertification(false,'Rejeté par admin')}>Rejeter</button>
+                  <button className="btn btn-sm btn-secondary" onClick={()=> { localStorage.removeItem('ndaku_admin_mode'); setIsAdminView(false); }}>Quitter mode admin</button>
+                </div>
+              </div>
+            )}
+
+            <div className="sticky-actions">
+              <div className="profile-action-row">
+                <button className="btn btn-outline-secondary" onClick={async ()=>{ const u = await fetchOwner(ownerId); setOwner(u); setPreview(''); }}>Annuler</button>
+                <button className="btn owner-btn-primary" onClick={save} disabled={saving}>{saving? 'Sauvegarde...' : 'Sauvegarder les modifications'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </OwnerLayout>
+  );
+}
+
+

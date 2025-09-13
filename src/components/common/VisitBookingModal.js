@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import './VisitBookingModal.css';
 import { showToast } from './ToastManager';
 
-const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property }) => {
+const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent }) => {
   const [step, setStep] = useState(1);
   const [bookingData, setBookingData] = useState({
     date: '',
@@ -12,6 +13,16 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property }) => 
   });
   const [loading, setLoading] = useState(false);
   const VISIT_FEE = 15;
+
+  // lock body scroll while modal is open
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+    return undefined;
+  }, [open]);
 
   if (!open) return null;
 
@@ -91,11 +102,11 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property }) => 
     return slots;
   };
 
-  return (
-    <div className="visit-booking-modal-bg">
-      <div className="visit-booking-modal">
-        <button className="modal-close-btn" onClick={onClose}>&times;</button>
-        
+  const modalContent = (
+    <div className="visit-booking-modal-bg" onMouseDown={(e) => { if (e.target.classList.contains('visit-booking-modal-bg')) onClose(); }}>
+      <div className="visit-booking-modal fullpage">
+        <button className="modal-close-btn" onClick={onClose} aria-label="Fermer">&times;</button>
+
         <div className="modal-header">
           <h2>Réserver une visite</h2>
           <div className="steps-indicator" data-step={step}>
@@ -161,26 +172,29 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property }) => 
 
               <div className="payment-methods">
                 <button 
-                  className="payment-method-btn airtel"
+                  className={`payment-method-btn ${bookingData.paymentMethod==='airtel' ? 'selected' : ''}`}
                   onClick={() => handlePaymentMethodSelect('airtel')}
+                  type="button"
                 >
-                  <img src="/img/payment/airtel-money.png" alt="Airtel Money" />
+                  <img src="/img/payment/airtel-money.svg" alt="Airtel Money" />
                   <span>Airtel Money</span>
                 </button>
 
                 <button 
-                  className="payment-method-btn orange"
+                  className={`payment-method-btn ${bookingData.paymentMethod==='orange' ? 'selected' : ''}`}
                   onClick={() => handlePaymentMethodSelect('orange')}
+                  type="button"
                 >
-                  <img src="/img/payment/orange-money.png" alt="Orange Money" />
+                  <img src="/img/payment/orange-money.svg" alt="Orange Money" />
                   <span>Orange Money</span>
                 </button>
 
                 <button 
-                  className="payment-method-btn mpesa"
+                  className={`payment-method-btn ${bookingData.paymentMethod==='vodacom' ? 'selected' : ''}`}
                   onClick={() => handlePaymentMethodSelect('vodacom')}
+                  type="button"
                 >
-                  <img src="/img/payment/mpesa.png" alt="M-Pesa Vodacom" />
+                  <img src="/img/payment/mpesa.svg" alt="M-Pesa Vodacom" />
                   <span>M-Pesa</span>
                 </button>
               </div>
@@ -254,6 +268,9 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property }) => 
       </div>
     </div>
   );
+
+  // render into portal at document.body so it's page-level
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default VisitBookingModal;

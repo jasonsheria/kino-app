@@ -18,6 +18,22 @@ export default function PropertyCreate() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // Helper to format various error shapes into strings for rendering
+  const formatError = (errOrMessage) => {
+    if (!errOrMessage) return null;
+    if (typeof errOrMessage === 'string') return errOrMessage;
+    if (Array.isArray(errOrMessage)) return errOrMessage.join(', ');
+    if (typeof errOrMessage === 'object') {
+      if (errOrMessage.message) {
+        if (typeof errOrMessage.message === 'string') return errOrMessage.message;
+        if (Array.isArray(errOrMessage.message)) return errOrMessage.message.join(', ');
+        try { return JSON.stringify(errOrMessage.message); } catch (e) {}
+      }
+      try { return JSON.stringify(errOrMessage); } catch (e) { return String(errOrMessage); }
+    }
+    return String(errOrMessage);
+  };
+
   // Form fields
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -115,7 +131,7 @@ export default function PropertyCreate() {
       }, 2000);
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Une erreur est survenue');
+      setError(formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Une erreur est survenue');
     } finally {
       setLoading(false);
     }

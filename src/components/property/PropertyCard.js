@@ -10,14 +10,18 @@ import AgentContactModal from '../common/AgentContactModal';
 import './PropertyCard.css';
 import VisitBookingModal from '../common/VisitBookingModal';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-const PropertyCard = ({ property }) => {
+const PropertyCard = ({ property, showActions: propShowActions }) => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const agent = agents.find(a => a.id === property.agentId);
+  const location = useLocation();
+  const { user } = useAuth();
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [isReserved, setIsReserved] = useState(() => {
@@ -59,6 +63,12 @@ const PropertyCard = ({ property }) => {
     };
   }, [property.id]);
   const navigate = useNavigate();
+
+  // determine whether to show edit/delete action buttons:
+  // Priority: explicit prop -> role-based (preferred) -> fallback to route-based
+  const role = user?.role || user?.domaine || null;
+  const isPrivileged = /^\s*(owner|agency|admin|superadmin)\s*$/i.test(role);
+  const showActions = Boolean(propShowActions) || isPrivileged || /\/owner|\/dashboard|\/agency|\/admin/i.test(location.pathname);
 
   const handleReservationSuccess = () => {
   console.log('Reservation success callback received for property', property.id);
@@ -125,10 +135,12 @@ const PropertyCard = ({ property }) => {
           <div className="badge type-badge">{property.type || ''}</div>
         </div>
         <div className="price-badge">{new Intl.NumberFormat().format(property.price || 0)} $</div>
-        <div className="card-actions">
-          <button className="action-btn" title="Edit"><FaEdit /></button>
-          <button className="action-btn danger" title="Delete"><FaTrash /></button>
-        </div>
+        {showActions && (
+          <div className="card-actions">
+            <button className="action-btn" title="Edit"><FaEdit /></button>
+            <button className="action-btn danger" title="Delete"><FaTrash /></button>
+          </div>
+        )}
       </div>
       <div className="card-body">
         <div className="title-row">

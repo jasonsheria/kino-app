@@ -17,7 +17,7 @@
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-full: 9999px;
-  --drawer-width: 300px;
+  --drawer-width: 340px;
   --link-delay: 0.1s;
 }
 
@@ -212,7 +212,7 @@
 }
 
 .kn-user-icon {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .kn-online-status {
@@ -344,7 +344,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 12px 18px;
   font-weight: 600;
   font-size: 15px;
   border-radius: var(--radius-full);
@@ -376,11 +376,11 @@
 /* Mobile Menu Button */
 .kn-menu-toggle {
   display: none;
-  padding: 8px;
+  padding: 10px;
   color: var(--text);
   background: transparent;
   border: none;
-  font-size: 24px;
+  font-size: 26px;
   cursor: pointer;
   transition: color 0.2s ease;
 }

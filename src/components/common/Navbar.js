@@ -93,10 +93,10 @@ const Navbar = () => {
     <header className={`kn-header ${isSticky ? 'sticky' : ''} ${isHidden ? 'hidden' : ''}`} ref={headerRef}>
       <nav className="kn-nav">
         {/* Logo et marque */}
-        <Link to="/" className="kn-brand">
+        <Link to="/" className="kn-brand" aria-label="Aller à l'accueil">
           <img
-            src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-            alt=""
+            src="/img/logo.svg"
+            alt="Kino-App logo"
             className="kn-brand-logo"
           />
           <span className="kn-brand-text">Kino-App</span>
@@ -161,8 +161,9 @@ const Navbar = () => {
               color="primary"
               onClick={() => setNotifOpen(!notifOpen)}
               aria-label="Afficher les notifications"
+              title="Notifications"
             >
-              <FaBell />
+              <FaBell aria-hidden="true" />
               {notifications?.length > 0 && (
                 <span className="kn-notif-badge">{notifications.length}</span>
               )}
@@ -189,8 +190,8 @@ const Navbar = () => {
           <Button
             variant="contained"
             color="primary"
-            aria-label="propriétaire"
-
+            aria-label="Devenir propriétaire"
+            title="Devenir propriétaire"
           >
             <Link to="/owner/onboard"
               style={{
@@ -242,8 +243,9 @@ const Navbar = () => {
             onClick={() => setNotifOpen(!notifOpen)}
             className="kn-cta kn-user-btn"
             aria-label="Afficher les notifications"
+            title="Notifications"
           >
-            <FaBell />
+            <FaBell aria-hidden="true" />
             {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
           </Button>
           {user ? (
@@ -268,8 +270,9 @@ const Navbar = () => {
             onClick={() => setIsDrawerOpen(true)}
             aria-label="Ouvrir le menu"
             className="kn-menu-toggle"
+            title="Ouvrir le menu"
           >
-            <FaBars />
+            <FaBars aria-hidden="true" />
           </Button>
         </div>
       </nav>

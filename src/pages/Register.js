@@ -30,6 +30,21 @@ export default function Register() {
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState(null);
 
+  const formatError = (errOrMessage) => {
+    if (!errOrMessage) return null;
+    if (typeof errOrMessage === 'string') return errOrMessage;
+    if (Array.isArray(errOrMessage)) return errOrMessage.join(', ');
+    if (typeof errOrMessage === 'object') {
+      if (errOrMessage.message) {
+        if (typeof errOrMessage.message === 'string') return errOrMessage.message;
+        if (Array.isArray(errOrMessage.message)) return errOrMessage.message.join(', ');
+        try { return JSON.stringify(errOrMessage.message); } catch (e) {}
+      }
+      try { return JSON.stringify(errOrMessage); } catch (e) { return String(errOrMessage); }
+    }
+    return String(errOrMessage);
+  };
+
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
   const handleFileChange = (e) => {
@@ -76,7 +91,7 @@ export default function Register() {
       if (socket && user && user._id) socket.emit('identify', { userId: user._id });
       navigate('/login');
     } catch (err) {
-      setError(err?.message || "Erreur lors de l'inscription");
+      setError(formatError(err?.message) || formatError(err) || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }

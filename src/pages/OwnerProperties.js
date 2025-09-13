@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import OwnerPropertyForm from '../components/owner/OwnerPropertyForm';
 import PropertyCard from '../components/property/PropertyCard';
+import PropertyFilterBar from '../components/property/PropertyFilterBar';
 import {
   Box,
   Card,
@@ -49,9 +50,45 @@ export default function OwnerProperties() {
   const [properties, setProperties] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [filter, setFilter] = useState({ q: '', type: 'all' });
+  const [filter, setFilter] = useState({ 
+    q: '', 
+    type: 'all',
+    commune: 'Toutes',
+    chambres: 'Tous',
+    sdb: 'Tous',
+    salon: 'Tous',
+    cuisine: 'Tous',
+    priceMin: '',
+    priceMax: '',
+    sort: 'relevance'
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetIndex, setDeleteTargetIndex] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+
+  // Normalize various error shapes coming from axios / backend
+  const formatError = (errOrMessage) => {
+    if (!errOrMessage) return null;
+    // If it's already a string
+    if (typeof errOrMessage === 'string') return errOrMessage;
+    // If it's an array (e.g., validation messages)
+    if (Array.isArray(errOrMessage)) return errOrMessage.join(', ');
+    // If it's an object, try to extract common fields
+    if (typeof errOrMessage === 'object') {
+      // If it's an Axios response.data object that contains { message }
+      if (errOrMessage.message) {
+        if (typeof errOrMessage.message === 'string') return errOrMessage.message;
+        if (Array.isArray(errOrMessage.message)) return errOrMessage.message.join(', ');
+        try { return JSON.stringify(errOrMessage.message); } catch (e) { /* fallthrough */ }
+      }
+      // Fallback to stringify the whole object
+      try { return JSON.stringify(errOrMessage); } catch (e) { return String(errOrMessage); }
+    }
+    return String(errOrMessage);
+  };
 
   const ownerTypes = useMemo(() => [
     'APPARTEMENT',
@@ -67,7 +104,11 @@ export default function OwnerProperties() {
   });
 
   const fetchProperties = useCallback(async () => {
-    if (!user?.id || !user?._id) return;
+    console.log('fetchProperties called with user:', user);
+    if (!user?.id && !user?._id) {
+      console.log('No user ID found, aborting fetch');
+      return;
+    }
     
     try {
       setLoading(true);
@@ -89,6 +130,7 @@ export default function OwnerProperties() {
       const ownerId = user._id || user.id;
       console.log('Owner ID:', ownerId);
       
+      console.log('Fetching properties for owner:', ownerId);
       const response = await axios.get(
         `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
         {
@@ -96,7 +138,8 @@ export default function OwnerProperties() {
         }
       );
       
-      console.log('Biens récupérés:', response.data);
+      console.log('API Response:', response);
+      console.log('Response data:', response.data);
       const propertiesData = response.data?.data || [];
       console.log('Properties data:', propertiesData);
       setProperties(propertiesData);
@@ -113,96 +156,19 @@ export default function OwnerProperties() {
       setError(null);
     } catch (err) {
       console.error('Erreur lors du chargement des biens:', err);
-      setError(err.response?.data?.message || 'Erreur lors du chargement des propriétés');
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors du chargement des propriétés';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   }, [user, ownerTypes]);
 
-  // Charger les biens au montage et après chaque création/modification/suppression
+  // Charger les biens au montage et quand l'utilisateur change
   useEffect(() => {
-    const loadProperties = async () => {
-      try {
-        // Log l'état de l'authentification
-        console.log('État auth:', { user, isAuthenticated: !!user });
-        console.log('user', user._id)
-        if (!user?._id) {
-          console.log('Pas d\'utilisateur ou pas d\'ID');
-          return;
-        }
-
-        setLoading(true);
-        const token = localStorage.getItem('ndaku_auth_token');
-        
-        if (!token) {
-          console.log('Pas de token d\'authentification');
-          return;
-        }
-
-        // D'abord vérifier si l'utilisateur est un propriétaire
-        const ownerResponse = await axios.get(
-          `${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/check-account`,
-          {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }
-        );
-        
-        if (!ownerResponse.data?.owner?._id) {
-          console.log('Compte propriétaire non trouvé');
-          setError('Compte propriétaire non trouvé');
-          return;
-        }
-
-        const ownerId = user._id || user.id;
-        console.log('Owner ID:', ownerId);
-
-        console.log('Appel API avec:', {
-          url: `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
-          token: token ? 'présent' : 'absent'
-        });
-
-        const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
-          {
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        console.log('Réponse du serveur:', response.data);
-        
-        // S'assurer d'avoir un tableau même si la réponse est vide
-        const propertiesData = response.data?.data || [];
-        console.log('Données traitées:', propertiesData);
-        
-        setProperties(propertiesData);
-        
-        // Mettre à jour les statistiques
-        setStats({
-          total: propertiesData.length,
-          byType: ownerTypes.reduce((acc, type) => {
-            acc[type] = propertiesData.filter(p => p.type === type).length;
-            return acc;
-          }, {})
-        });
-        
-        setError(null);
-      } catch (err) {
-        console.error('Erreur détaillée:', {
-          message: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
-        setError(err.response?.data?.message || 'Erreur lors du chargement des propriétés');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProperties();
-  }, [user, ownerTypes]);
+    if (user?._id || user?.id) {
+      fetchProperties();
+    }
+  }, [fetchProperties, user]);
 
   const openAdd = () => { 
     setEditIndex(null); 
@@ -215,22 +181,32 @@ export default function OwnerProperties() {
   };
 
   const remove = async (i) => { 
-    if (!window.confirm('Supprimer ce bien ?')) return;
+    // Open confirmation dialog instead of using window.confirm
+    setDeleteTargetIndex(i);
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetIndex == null) return;
     try {
-      setLoading(true);
+      setDeleteLoading(true);
       const token = localStorage.getItem('ndaku_auth_token');
       await axios.delete(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[i]._id}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[deleteTargetIndex]._id}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
+      setDeleteDialogOpen(false);
+      setDeleteTargetIndex(null);
+      setDeleteError(null);
+      // refresh list
       await fetchProperties();
-      setError(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la suppression');
+      console.error('Erreur suppression:', err.response?.data || err.message);
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors de la suppression';
+      setDeleteError(msg);
     } finally {
-      setLoading(false);
+      setDeleteLoading(false);
     }
   };
 
@@ -280,15 +256,45 @@ export default function OwnerProperties() {
         return null;
       }));
 
+      // Derive keepImages from p.images (existing URLs that are not data URIs)
+      let derivedKeepImages = [];
+      try {
+        derivedKeepImages = (p.images || []).filter(img => typeof img === 'string' && !img.startsWith('data:'));
+      } catch (e) {
+        console.warn('Could not derive keepImages', e);
+      }
+
+      // Ensure keepImages is part of the JSON payload because backend reads @Body('data')
+      const finalData = { ...propertyData };
+      if (derivedKeepImages.length) finalData.keepImages = derivedKeepImages;
       // Ajouter les données JSON
-      formData.append('data', JSON.stringify(propertyData));
+      formData.append('data', JSON.stringify(finalData));
 
       // Ajouter les images
-      imageFiles.forEach(file => {
-        if (file) {
-          formData.append('images', file);
+      // For create: backend expects 'images'
+      // For update: backend expects 'newImages' (see mobilier.controller.ts)
+      if (editIndex != null) {
+        imageFiles.forEach(file => {
+          if (file) {
+            formData.append('newImages', file);
+          }
+        });
+        // Derive keepImages from p.images (existing URLs that are not data URIs)
+        try {
+          const keepImages = (p.images || []).filter(img => typeof img === 'string' && !img.startsWith('data:'));
+          if (keepImages.length) {
+            formData.append('keepImages', JSON.stringify(keepImages));
+          }
+        } catch (e) {
+          console.warn('Could not append derived keepImages', e);
         }
-      });
+      } else {
+        imageFiles.forEach(file => {
+          if (file) {
+            formData.append('images', file);
+          }
+        });
+      }
       
       // Ajouter les détails spécifiques
       formData.append('chambres', p.chambres || '');
@@ -307,13 +313,21 @@ export default function OwnerProperties() {
         formData.append('geoloc', JSON.stringify(p.geoloc));
       }
 
-      // Gérer les images
+      // Gérer les images passed directly in p.images (File instances)
       if (p.images && p.images.length > 0) {
-        p.images.forEach((file, index) => {
-          if (file instanceof File) {
-            formData.append('images', file);
-          }
-        });
+        if (editIndex != null) {
+          p.images.forEach((file) => {
+            if (file instanceof File) {
+              formData.append('newImages', file);
+            }
+          });
+        } else {
+          p.images.forEach((file) => {
+            if (file instanceof File) {
+              formData.append('images', file);
+            }
+          });
+        }
       }
 
       // Ajouter l'ID du propriétaire
@@ -341,42 +355,91 @@ export default function OwnerProperties() {
         console.log('Bien créé avec succès:', response.data);
       }
       
-      // Recharger la liste des biens
+      // Recharger la liste des biens et réinitialiser l'état
       await fetchProperties();
       setModalOpen(false);
       setEditIndex(null);
       setError(null);
     } catch (err) {
       console.error('Erreur détaillée:', err.response?.data);
-      setError(err.response?.data?.message || 'Erreur lors de la sauvegarde');
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors de la sauvegarde';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const filtered = (properties || []).filter(p => {
-    if (filter.type && filter.type !== 'all') {
-      // Convertir les types en majuscules pour la comparaison
-      const filterType = filter.type.toUpperCase();
-      const propertyType = (p.type || '').toUpperCase();
-      if (propertyType !== filterType) return false;
-    }
-    
-    if (filter.q && filter.q.trim().length) {
-      const q = filter.q.toLowerCase();
-      const searchFields = [
-        p.titre,
-        p.description,
-        p.type,
-        p.adresse,
-        p.commune,
-        p.quartier
-      ].map(field => (field || '').toLowerCase());
+  const filtered = useMemo(() => {
+    return (properties || []).filter(p => {
+      // Type filter
+      if (filter.type && filter.type !== 'all') {
+        const filterType = filter.type.toUpperCase();
+        const propertyType = (p.type || '').toUpperCase();
+        if (propertyType !== filterType) return false;
+      }
       
-      return searchFields.some(field => field.includes(q));
-    }
-    return true;
-  });
+      // Search filter
+      if (filter.q && filter.q.trim().length) {
+        const q = filter.q.toLowerCase();
+        const searchFields = [
+          p.titre,
+          p.description,
+          p.type,
+          p.adresse,
+          p.commune,
+          p.quartier
+        ].map(field => (field || '').toLowerCase());
+        
+        if (!searchFields.some(field => field.includes(q))) return false;
+      }
+
+      // Commune filter
+      if (filter.commune && filter.commune !== 'Toutes') {
+        if (!p.adresse || !p.adresse.toLowerCase().includes(filter.commune.toLowerCase())) return false;
+      }
+
+      // Chambres filter
+      if (filter.chambres && filter.chambres !== 'Tous') {
+        if (filter.chambres === '3+') {
+          if ((p.chambres || 0) < 3) return false;
+        } else {
+          if (String(p.chambres || 0) !== filter.chambres) return false;
+        }
+      }
+
+      // SDB filter
+      if (filter.sdb && filter.sdb !== 'Tous') {
+        if (String(p.sdb || p.douches || 0) !== filter.sdb) return false;
+      }
+
+      // Salon filter
+      if (filter.salon && filter.salon !== 'Tous') {
+        if (String(p.salon || 0) !== filter.salon) return false;
+      }
+
+      // Cuisine filter
+      if (filter.cuisine && filter.cuisine !== 'Tous') {
+        if (String(p.cuisine || 0) !== filter.cuisine) return false;
+      }
+
+      // Prix range filter
+      if (filter.priceMin && Number(p.prix) < Number(filter.priceMin)) return false;
+      if (filter.priceMax && Number(p.prix) > Number(filter.priceMax)) return false;
+
+      return true;
+    }).sort((a, b) => {
+      // Sorting
+      switch (filter.sort) {
+        case 'price_asc':
+          return (a.prix || 0) - (b.prix || 0);
+        case 'price_desc':
+          return (b.prix || 0) - (a.prix || 0);
+        case 'relevance':
+        default:
+          return 0; // Keep original order
+      }
+    });
+  }, [properties, filter]);
 
   const [requests, setRequests] = useState([]);
 
@@ -494,87 +557,81 @@ export default function OwnerProperties() {
             bgcolor: theme.palette.background.paper,
           }}
         >
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            alignItems={{ sm: 'center' }}
-            justifyContent="space-between"
-          >
+          <Stack spacing={2}>
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               spacing={2}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              alignItems={{ sm: 'center' }}
+              justifyContent="space-between"
             >
-              <TextField
-                placeholder="Rechercher un bien"
-                variant="outlined"
-                size="small"
-                value={filter.q}
-                onChange={(e) => setFilter({ ...filter, q: e.target.value })}
-                sx={{ 
-                  minWidth: { sm: 250 },
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 0,
-                    backgroundColor: theme.palette.grey[50],
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" />
-                    </InputAdornment>
-                  )
-                }}
-              />
-              <TextField
-                select
-                size="small"
-                value={filter.type}
-                onChange={(e) => setFilter({ ...filter, type: e.target.value })}
-                sx={{ 
-                  minWidth: { sm: 200 },
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 0,
-                    backgroundColor: theme.palette.grey[50],
-                  }
-                }}
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
               >
-                <MenuItem value="all">Tous les types</MenuItem>
-                {ownerTypes.map((t) => (
-                  <MenuItem key={t} value={t}>{t}</MenuItem>
-                ))}
-              </TextField>
-              <IconButton 
-                onClick={() => setFilter({ q: '', type: 'all' })}
+                <TextField
+                  placeholder="Rechercher un bien"
+                  variant="outlined"
+                  size="small"
+                  value={filter.q}
+                  onChange={(e) => setFilter(f => ({ ...f, q: e.target.value }))}
+                  sx={{ 
+                    minWidth: { sm: 250 },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 0,
+                      backgroundColor: theme.palette.grey[50],
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TextField
+                  select
+                  size="small"
+                  value={filter.type}
+                  onChange={(e) => setFilter(f => ({ ...f, type: e.target.value }))}
+                  sx={{ 
+                    minWidth: { sm: 200 },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 0,
+                      backgroundColor: theme.palette.grey[50],
+                    }
+                  }}
+                >
+                  <MenuItem value="all">Tous les types</MenuItem>
+                  {ownerTypes.map((t) => (
+                    <MenuItem key={t} value={t}>{t}</MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={openAdd}
                 sx={{ 
-                  bgcolor: theme.palette.grey[50],
+                  minWidth: { xs: '100%', sm: 'auto' },
+                  bgcolor: theme.palette.primary.main,
+                  color: 'white',
                   borderRadius: 0,
-                  border: `1px solid ${theme.palette.divider}`,
+                  px: 3,
                   '&:hover': { 
-                    bgcolor: theme.palette.action.hover 
+                    bgcolor: theme.palette.primary.dark,
                   }
                 }}
               >
-                <RefreshIcon />
-              </IconButton>
+                Ajouter un bien
+              </Button>
             </Stack>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={openAdd}
-              sx={{ 
-                minWidth: { xs: '100%', sm: 'auto' },
-                bgcolor: theme.palette.primary.main,
-                color: 'white',
-                borderRadius: 0,
-                px: 3,
-                '&:hover': { 
-                  bgcolor: theme.palette.primary.dark,
-                }
-              }}
-            >
-              Ajouter un bien
-            </Button>
+            <PropertyFilterBar
+              items={properties}
+              onChange={(newFilters) => setFilter(f => ({ ...f, ...newFilters }))}
+              defaultFilters={filter}
+            />
           </Stack>
         </Paper>
 
@@ -759,6 +816,30 @@ export default function OwnerProperties() {
               type="submit"
             >
               Enregistrer
+            </Button>
+          </DialogActions>
+        </Dialog>
+        
+        {/* Delete confirmation dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => { if (!deleteLoading) { setDeleteDialogOpen(false); setDeleteTargetIndex(null); setDeleteError(null); } }}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle>Confirmer la suppression</DialogTitle>
+          <DialogContent>
+            <Typography>Êtes-vous sûr de vouloir supprimer ce bien ? Cette action est irréversible.</Typography>
+            {deleteError && (
+              <Box sx={{ mt: 2 }}>
+                <Alert severity="error">{deleteError}</Alert>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setDeleteDialogOpen(false); setDeleteTargetIndex(null); setDeleteError(null); }} disabled={deleteLoading}>Annuler</Button>
+            <Button color="error" variant="contained" onClick={confirmDelete} disabled={deleteLoading} startIcon={deleteLoading ? <CircularProgress size={16} /> : null}>
+              {deleteLoading ? 'Suppression...' : 'Supprimer'}
             </Button>
           </DialogActions>
         </Dialog>
