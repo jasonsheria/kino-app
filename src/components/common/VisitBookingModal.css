@@ -2,13 +2,14 @@
   position: fixed;
   z-index: 10010;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(17, 25, 40, 0.7);
+  background: rgba(17, 25, 40, 0.8);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   animation: modalBgIn 0.2s ease-out;
-  padding: 20px;
+  padding: 0;
+  touch-action: none;
 }
 
 .visit-booking-modal {
@@ -18,9 +19,42 @@
   padding: 28px;
   width: min(980px, calc(100% - 48px));
   max-width: 100%;
+  max-height: calc(100vh - 48px);
   position: relative;
   animation: modalIn 0.28s cubic-bezier(0.21, 1.02, 0.73, 1);
   overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 680px) {
+  .visit-booking-modal-bg {
+    padding: 0;
+  }
+  .visit-booking-modal {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    padding: 20px;
+    animation: modalInMobile 0.3s cubic-bezier(0.21, 1.02, 0.73, 1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  .visit-booking-modal::before {
+    border-radius: 0;
+  }
+}
+
+@keyframes modalInMobile {
+  from { 
+    transform: translateY(100%);
+  }
+  to { 
+    transform: translateY(0);
+  }
 }
 
 .visit-booking-modal::before {
@@ -197,20 +231,34 @@
 
 .modal-body {
   position: relative;
+  padding-bottom: 60px;
 }
 
 .datetime-form,
 .payment-method-selection,
 .confirmation-form {
-  animation: fadeIn 0.3s;
+  animation: fadeSlideUp 0.3s cubic-bezier(0.21, 1.02, 0.73, 1);
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .price-display {
-  background: #f8fafc;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   border-radius: 16px;
   padding: 24px;
   text-align: center;
   margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  border: 1px solid #eef2f7;
 }
 
 .price-display .amount {
@@ -245,16 +293,32 @@
 .input-group input,
 .input-group select {
   width: 100%;
-  padding: 14px 18px;
+  padding: 16px 20px;
   border: 2px solid #e2e8f0;
-  border-radius: 14px;
-  font-size: 15px;
+  border-radius: 16px;
+  font-size: 16px;
   color: #1a2236;
   transition: all 0.2s;
   background: white;
   box-shadow: 
     0 2px 4px rgba(0,0,0,0.02),
     0 1px 2px rgba(0,0,0,0.03);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 680px) {
+  .input-group input,
+  .input-group select {
+    padding: 18px 20px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  .input-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+  }
 }
 
 .input-group input:hover,
@@ -272,6 +336,28 @@
   transform: translateY(-1px);
 }
 
+/* Custom date input styling for better mobile UX */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background: transparent;
+  bottom: 0;
+  color: transparent;
+  cursor: pointer;
+  height: auto;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: auto;
+}
+
+input[type="date"] {
+  position: relative;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
 .input-group input::placeholder {
   color: #94a3b8;
   font-size: 14px;
@@ -284,18 +370,44 @@
   margin: 24px 0 32px 0;
 }
 
+@media (max-width: 680px) {
+  .payment-methods {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 .payment-method-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 16px;
+  padding: 20px;
   background: linear-gradient(180deg,#fff,#fbfdff);
   border: 2px solid #eef2f7;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+@media (max-width: 680px) {
+  .payment-method-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 16px;
+    gap: 20px;
+  }
+  .payment-method-btn img {
+    height: 36px;
+  }
+  .payment-method-btn span {
+    font-size: 16px;
+    text-align: left;
+  }
 }
 
 .payment-method-btn:hover {
@@ -324,7 +436,7 @@
 }
 
 @media (max-width: 680px) {
-  .visit-booking-modal { width: calc(100% - 32px); padding: 18px; border-radius: 12px; }
+  /* .visit-booking-modal { width: calc(100% - 32px); padding: 18px; border-radius: 12px; } */
   .payment-methods { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
 
@@ -367,21 +479,43 @@
   background: var(--ndaku-primary);
   color: white;
   border: none;
-  border-radius: 14px;
-  padding: 16px 28px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: 16px;
+  padding: 18px 32px;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   box-shadow: 
     0 4px 12px var(--ndaku-primary-33),
     0 2px 4px rgba(0,0,0,0.05);
   position: relative;
   overflow: hidden;
+  margin-top: auto;
+}
+
+@media (max-width: 680px) {
+  .submit-btn {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    padding: 20px;
+    margin: 0;
+    box-shadow: 0 -2px 20px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  
+  /* Add safe area padding for iOS */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .submit-btn {
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+  }
 }
 
 .submit-btn::before {

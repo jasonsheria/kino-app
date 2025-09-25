@@ -35,10 +35,8 @@ export default function OwnerOnboard(){
         setLoading(false);
       }
     };
-
     checkOwnerAccount();
   }, [navigate]);
-
   return (
   <div className="container owner-hero">
       <div className="row justify-content-center">
@@ -56,7 +54,8 @@ export default function OwnerOnboard(){
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Chargement...</span>
                   </div>
-                  <p className="mt-2">Vérification de votre compte...</p>
+                  <p className="mt-2">
+                    Vérification de votre compte...</p>
                 </div>
               ) : error ? (
                 <div className="alert alert-danger" role="alert">

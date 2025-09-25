@@ -8,7 +8,6 @@ import { agents, properties } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
 import './PropertyCard.css';
-import VisitBookingModal from '../common/VisitBookingModal';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,14 +15,13 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-const PropertyCard = ({ property, showActions: propShowActions }) => {
+const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const agent = agents.find(a => a.id === property.agentId);
   const location = useLocation();
   const { user } = useAuth();
   const [showContact, setShowContact] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
   const [isReserved, setIsReserved] = useState(() => {
     try {
   const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
@@ -70,22 +68,7 @@ const PropertyCard = ({ property, showActions: propShowActions }) => {
   const isPrivileged = /^\s*(owner|agency|admin|superadmin)\s*$/i.test(role);
   const showActions = Boolean(propShowActions) || isPrivileged || /\/owner|\/dashboard|\/agency|\/admin/i.test(location.pathname);
 
-  const handleReservationSuccess = () => {
-  console.log('Reservation success callback received for property', property.id);
-  setIsReserved(true);
-  setShowBooking(false);
-    // Optionnel: Mettre à jour le statut dans le localStorage pour persistance
-    try {
-      const reservedProperties = JSON.parse(localStorage.getItem('reserved_properties') || '[]');
-      if (!reservedProperties.includes(property.id)) {
-        reservedProperties.push(property.id);
-        localStorage.setItem('reserved_properties', JSON.stringify(reservedProperties));
-      }
-    } catch (e) {
-      console.error('Erreur lors de la sauvegarde du statut de réservation:', e);
-    }
-  showToast('Visite réservée — contact agent disponible', 'success');
-  };
+  // Reservation success is handled globally via event dispatch/localStorage in the modal
 
   // safe images array (fallback to property.image or a bundled placeholder)
   const imgs = Array.isArray(property.images) && property.images.length
@@ -180,7 +163,7 @@ const PropertyCard = ({ property, showActions: propShowActions }) => {
                     <button 
                       className="btns btn-primary reserve-btn"
                       title="Réserver une visite"
-                      onClick={()=>setShowBooking(true)}
+                      onClick={() => onOpenBooking ? onOpenBooking(property, agent) : navigate(`/properties/${property.id}`)}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7.5M19 21v-6m-3 3h6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -201,7 +184,7 @@ const PropertyCard = ({ property, showActions: propShowActions }) => {
             </div>
           </div>
         )}
-      {showBooking && <VisitBookingModal open={showBooking} onClose={()=>setShowBooking(false)} onSuccess={handleReservationSuccess} agent={agent} property={property} />}
+      {/* Booking modal is now mounted at page-level (Home) to allow full-screen presentation */}
       </div>
       {/* Lightbox */}
       {showLightbox && imgs.length > 0 && (

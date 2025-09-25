@@ -20,6 +20,8 @@ const Navbar = () => {
   const lastScrollY = useRef(0);
   const headerRef = useRef(null);
   const drawerRef = useRef(null);
+  const drawerCloseBtnRef = useRef(null);
+  const touchStartX = useRef(null);
 
   // Sticky navbar handler
   useEffect(() => {
@@ -66,13 +68,58 @@ const Navbar = () => {
 
     // Auto focus first focusable element
     const firstFocusable = drawerRef.current?.querySelector('a[href], button:not([disabled])');
-    setTimeout(() => firstFocusable?.focus(), 100);
+    setTimeout(() => {
+      // Prefer focusing the close button for better discoverability
+      (drawerCloseBtnRef.current || firstFocusable)?.focus();
+    }, 100);
 
     return () => {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isDrawerOpen]);
+
+  // Close dropdowns and drawer when clicking outside specific elements
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (drawerRef.current && isDrawerOpen && !drawerRef.current.contains(e.target) && !e.target.closest('.kn-menu-toggle')) {
+        setIsDrawerOpen(false);
+      }
+      // close dropdown menus when clicking outside
+      if (!userMenuRef.current?.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, [isDrawerOpen]);
+
+  // Swipe to close on mobile: detect left swipe
+  useEffect(() => {
+    const onTouchStart = (e) => {
+      touchStartX.current = e.touches && e.touches[0] ? e.touches[0].clientX : null;
+    };
+    const onTouchEnd = (e) => {
+      if (!touchStartX.current) return;
+      const endX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : null;
+      if (endX !== null && touchStartX.current - endX > 50) {
+        // swipe left
+        setIsDrawerOpen(false);
+      }
+      touchStartX.current = null;
+    };
+    const node = drawerRef.current;
+    if (node) {
+      node.addEventListener('touchstart', onTouchStart);
+      node.addEventListener('touchend', onTouchEnd);
+    }
+    return () => {
+      if (node) {
+        node.removeEventListener('touchstart', onTouchStart);
+        node.removeEventListener('touchend', onTouchEnd);
+      }
+    };
+  }, [drawerRef.current]);
 
   // Close drawer on route change
   useEffect(() => {
@@ -99,7 +146,7 @@ const Navbar = () => {
             alt="Kino-App logo"
             className="kn-brand-logo"
           />
-          <span className="kn-brand-text">Kino-App</span>
+          <span className="kn-brand-text">K-App</span>
         </Link>
 
         {/* Navigation desktop */}
@@ -239,21 +286,22 @@ const Navbar = () => {
 
         {/* Bouton menu mobile */}
         <div className="kn-compact-actions">
-          <Button
-            onClick={() => setNotifOpen(!notifOpen)}
-            className="kn-cta kn-user-btn"
-            aria-label="Afficher les notifications"
-            title="Notifications"
-          >
-            <FaBell aria-hidden="true" />
-            {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
-          </Button>
+         
           {user ? (
             <div className="kn-user-wrap" ref={userMenuRef}>
               <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
                 <FaUserCircle className="kn-user-icon" />
                 <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
               </button>
+              <Button
+                onClick={() => setNotifOpen(!notifOpen)}
+                className="kn-cta kn-user-btn"
+                aria-label="Afficher les notifications"
+                title="Notifications"
+              >
+                <FaBell aria-hidden="true" />
+                {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
+              </Button>
 
               <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
                 <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
@@ -379,14 +427,9 @@ const Navbar = () => {
               </Button>
 
               {user ? (
-                <Link
-                  to="/profile"
-                  className="kn-cta kn-cta-filled"
-                  onClick={() => setIsDrawerOpen(false)}
-                  style={{ width: '100%' }}
+                <
                 >
-                  Profile
-                </Link>
+                </>
               ) : (
                 <Button
                   variant="contained"

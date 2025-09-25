@@ -8,11 +8,35 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   const [isCalling, setIsCalling] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [callTime, setCallTime] = useState(0);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [callStatus, setCallStatus] = useState('idle'); // idle, requesting, connecting, active, ended
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  
   const timerRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const pcRef = useRef(null);
+  
+  // Swipe to close handler
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientY);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isUpSwipe = distance > 100;
+    if (isUpSwipe && !isCalling) {
+      onClose();
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
 
   useEffect(() => {
     return () => {
@@ -38,9 +62,29 @@ const AgentContactModal = ({ agent, open, onClose }) => {
     return `${mm}:${ss}`;
   };
 
+  const requestPermissions = async () => {
+    try {
+      setCallStatus('requesting');
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      setPermissionDenied(false);
+      return true;
+    } catch (err) {
+      console.error('Permission error:', err);
+      setPermissionDenied(true);
+      setCallStatus('idle');
+      return false;
+    }
+  };
+
   const startCall = async () => {
     try {
+      // Check permissions first
+      const hasPermissions = await requestPermissions();
+      if (!hasPermissions) return;
+      
       setIsCalling(true);
+      setCallStatus('connecting');
+      
       // get local media
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
@@ -102,9 +146,17 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   };
 
   return (
-    <div className="agent-contact-modal-bg">
-      <div className="agent-contact-modal">
-        <button className="close-btn" onClick={() => { stopCall(); onClose(); }}>&times;</button>
+    <div className="agent-contact-modal-bg" 
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="agent-contact-modal" aria-modal="true" role="dialog">
+        <button 
+          className="close-btn" 
+          onClick={() => { stopCall(); onClose(); }} 
+          aria-label="Fermer"
+        >&times;</button>
         <div className="agent-contact-header">
           <img src={agent.photo} alt={agent.name} className="agent-avatar" />
           <div>
@@ -124,18 +176,91 @@ const AgentContactModal = ({ agent, open, onClose }) => {
 
           <div className="webrtc-controls mb-2">
             {!isCalling ? (
-              <button className="btn btn-outline-success w-100" onClick={() => { startCall(); window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id } } })); }}>
-                Démarrer l'appel (in-app)
+              <button 
+                className="btn btn-outline-success w-100" 
+                onClick={() => { 
+                  startCall(); 
+                  window.dispatchEvent(new CustomEvent('ndaku-call', { 
+                    detail: { to: 'support', meta: { agentId: agent.id } } 
+                  })); 
+                }}
+                disabled={permissionDenied}
+              >
+                {permissionDenied ? (
+                  <>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Autoriser le microphone
+                  </>
+                ) : callStatus === 'requesting' ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                      <span className="visually-hidden">Chargement...</span>
+                    </div>
+                    Autorisation...
+                  </>
+                ) : callStatus === 'connecting' ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                      <span className="visually-hidden">Connexion...</span>
+                    </div>
+                    Connexion...
+                  </>
+                ) : (
+                  <>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                    </svg>
+                    Démarrer l'appel
+                  </>
+                )}
               </button>
             ) : (
               <div className="call-panel">
                 <div className="call-info-left">
                   <div className="fw-bold">En appel</div>
-                  <div className="small text-muted">Avec {agent.name} • {formatTime(callTime)}</div>
+                  <div className="small text-muted">
+                    <span>Avec {agent.name}</span>
+                    <span className="mx-2">•</span>
+                    <span>{formatTime(callTime)}</span>
+                  </div>
                 </div>
                 <div className="call-controls">
-                  <button className={`btn ${micEnabled ? 'btn-warning' : 'btn-secondary'} me-2`} onClick={toggleMic}>{micEnabled ? 'Micro ON' : 'Micro OFF'}</button>
-                  <button className="btn btn-danger" onClick={stopCall}>Raccrocher</button>
+                  <button 
+                    className={`btn ${micEnabled ? 'btn-warning' : 'btn-secondary'}`}
+                    onClick={toggleMic}
+                    aria-label={micEnabled ? 'Désactiver le micro' : 'Activer le micro'}
+                  >
+                    {micEnabled ? (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+                        </svg>
+                        Micro ON
+                      </>
+                    ) : (
+                      <>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+                          <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2M12 19v4M8 23h8"/>
+                        </svg>
+                        Micro OFF
+                      </>
+                    )}
+                  </button>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={stopCall}
+                    aria-label="Raccrocher"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 2v4M8 2v4M3 9.5h18m-18 0c0 5.52 4.48 10 10 10s10-4.48 10-10"/>
+                    </svg>
+                    Raccrocher
+                  </button>
                 </div>
               </div>
             )}

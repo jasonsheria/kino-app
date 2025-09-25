@@ -12,7 +12,28 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
     phoneNumber: ''
   });
   const [loading, setLoading] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const VISIT_FEE = 15;
+  
+  // Swipe handlers
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientY);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isDownSwipe = distance < -50;
+    if (isDownSwipe) {
+      onClose();
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
 
   // lock body scroll while modal is open
   useEffect(() => {
@@ -103,8 +124,13 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
   };
 
   const modalContent = (
-    <div className="visit-booking-modal-bg" onMouseDown={(e) => { if (e.target.classList.contains('visit-booking-modal-bg')) onClose(); }}>
-      <div className="visit-booking-modal fullpage">
+    <div className="visit-booking-modal-bg" 
+      onMouseDown={(e) => { if (e.target.classList.contains('visit-booking-modal-bg')) onClose(); }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="visit-booking-modal fullpage" aria-modal="true" role="dialog">
         <button className="modal-close-btn" onClick={onClose} aria-label="Fermer">&times;</button>
 
         <div className="modal-header">

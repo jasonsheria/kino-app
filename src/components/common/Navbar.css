@@ -198,7 +198,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px;
-  color: var(--text);
+  color: #00c5a8;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -322,18 +322,19 @@
 .kn-notif-empty { padding: 12px; color: var(--text-light); text-align: center; }
 
 /* User dropdown menu */
-.kn-user-wrap { position: relative; display: inline-block; }
+.kn-user-wrap { position: relative; display: flex; }
 .kn-user-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--bg); border-radius: var(--radius-md); box-shadow: var(--shadow-dropdown); padding: 8px; min-width: 160px; opacity: 0; visibility: hidden; transform-origin: top right; transform: translateY(-6px) scale(0.98); transition: all 0.15s ease; z-index: 130; }
 .kn-user-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 .kn-user-menu-item { display: block; padding: 8px 12px; color: var(--text); text-decoration: none; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; border-radius: 6px; }
 .kn-user-menu-item:hover { background: var(--primary-light); color: var(--primary); }
 
 /* Compact actions for mobile */
-.kn-compact-actions { display: none; gap: 6px; align-items: center; }
 .kn-notif-btn.kn-compact { padding: 8px; border-radius: 999px; background: transparent; border: none; font-size: 18px; }
 .kn-user-compact { padding: 8px; border-radius: 999px; background: transparent; border: none; font-size: 18px; position: relative; }
 .kn-compact-login { padding: 8px 12px; background: var(--primary); color: #fff; border-radius: var(--radius-full); text-decoration: none; }
-
+.kn-compact-actions{
+  display :none;
+}
 @media (max-width: 900px) {
   .kn-cta-group.ct-1 { display: none; }
   .kn-compact-actions { display: flex; }

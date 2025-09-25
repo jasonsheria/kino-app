@@ -271,95 +271,123 @@ export default function OwnerProfile() {
           </Box>
         )}
 
-        {/* En-tête du profil */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={3}>
-              <Box display="flex" flexDirection="column" alignItems="center">
-                <Avatar
-                  src={preview || owner.avatar || '/logo192.png'}
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    mb: 2,
-                    border: `2px solid ${theme.palette.primary.main}`
-                  }}
-                />
-                <Stack direction="row" spacing={1}>
-                  <Button
-                    variant="outlined"
-                    component="label"
-                    startIcon={<PhotoCameraIcon />}
-                  >
-                    Changer
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={onPick}
-                      hidden
-                    />
-                  </Button>
-                  <IconButton
-                    color="error"
-                    onClick={() => {
-                      setPreview('/logo192.png');
-                      if (fileRef.current) fileRef.current.value = '';
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Stack>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h5" gutterBottom>
-                {owner.name || "Non renseigné"}
+        {/* En-tête du profil - Hero/banner style */}
+        <Paper sx={{ mb: 3, borderRadius: 2, overflow: 'hidden' }} elevation={2}>
+          {/* Banner with background image */}
+          <Box
+            sx={{
+              height: { xs: 160, md: 240 },
+              backgroundImage: `url(${preview || owner.avatar || '/logo192.png'})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              position: 'relative'
+            }}
+          >
+            {/* Dark overlay for readability */}
+            <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.35)' }} />
+
+            {/* Name + quick actions on banner */}
+            <Box sx={{ position: 'absolute', left: { xs: 16, md: 32 }, bottom: { xs: 12, md: 20 }, color: '#fff' }}>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {owner.name || 'Non renseigné'}
               </Typography>
-              <Stack spacing={1}>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <EmailIcon color="action" />
-                  <Typography>{owner.email}</Typography>
-                </Box>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <PhoneIcon color="action" />
-                  <Typography>{owner.phone || "Non renseigné"}</Typography>
-                </Box>
-                {owner.businessDetails?.address && (
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocationIcon color="action" />
-                    <Typography>{owner.businessDetails.address}</Typography>
-                  </Box>
-                )}
-              </Stack>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Stack spacing={1} alignItems={{ xs: 'center', md: 'flex-end' }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
                 {owner.certification?.status === 'verified' ? (
                   <Chip
-                    icon={<VerifiedIcon />}
+                    icon={<VerifiedIcon sx={{ color: 'white' }} />}
                     label="Vérifié"
                     color="success"
                     variant="filled"
+                    sx={{ bgcolor: 'success.dark' }}
                   />
                 ) : owner.certification?.pending ? (
-                  <Chip
-                    icon={<PendingIcon />}
-                    label="En attente"
-                    color="warning"
-                    variant="filled"
-                  />
+                  <Chip label="En attente" color="warning" variant="filled" sx={{ bgcolor: 'warning.dark' }} />
                 ) : (
-                  <Chip
-                    icon={<UnverifiedIcon />}
-                    label="Non vérifié"
-                    color="default"
-                    variant="filled"
-                  />
+                  <Chip label="Non vérifié" color="default" variant="filled" />
                 )}
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   Membre depuis {new Date(owner.createdAt).toLocaleDateString()}
                 </Typography>
+              </Stack>
+            </Box>
+
+            {/* Small camera action at top-right of banner */}
+            <IconButton
+              aria-label="Changer la bannière"
+              component="label"
+              sx={{ position: 'absolute', right: 12, top: 12, bgcolor: 'background.paper' }}
+              onClick={() => fileRef.current && fileRef.current.click()}
+              size="small"
+            >
+              <PhotoCameraIcon fontSize="small" />
+              <input ref={fileRef} type="file" accept="image/*" onChange={onPick} hidden />
+            </IconButton>
+          </Box>
+
+          {/* Info row below banner with overlapping avatar */}
+          <Grid container spacing={3} alignItems="center" sx={{ p: { xs: 2, md: 3 } }}>
+            <Grid item xs={12} md={3}>
+              <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, alignItems: 'center' }}>
+                <Avatar
+                  src={preview || owner.avatar || ''}
+                  alt={owner.name || 'Propriétaire'}
+                  sx={{
+                    width: { xs: 96, md: 120 },
+                    height: { xs: 96, md: 120 },
+                    transform: { xs: 'none', md: 'translateY(-36px)' },
+                    border: `4px solid ${theme.palette.background.paper}`,
+                    boxShadow: 3,
+                    bgcolor: preview || owner.avatar ? 'transparent' : theme.palette.primary.light,
+                    color: theme.palette.primary.contrastText,
+                    fontSize: { xs: 24, md: 32 }
+                  }}
+                >
+                  {!preview && !owner.avatar && (
+                    (owner.name || 'U')
+                      .split(' ')
+                      .map(n => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+                  )}
+                </Avatar>
+              </Box>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6">{owner.email}</Typography>
+              <Box display="flex" alignItems="center" gap={1} sx={{ mt: 1 }}>
+                <PhoneIcon color="action" />
+                <Typography>{owner.phone || 'Non renseigné'}</Typography>
+              </Box>
+              {owner.businessDetails?.address && (
+                <Box display="flex" alignItems="center" gap={1} sx={{ mt: 1 }}>
+                  <LocationIcon color="action" />
+                  <Typography>{owner.businessDetails.address}</Typography>
+                </Box>
+              )}
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <Stack spacing={1} alignItems={{ xs: 'center', md: 'flex-end' }}>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<EditIcon />}
+                    onClick={() => window.scrollTo({ top: 400, behavior: 'smooth' })}
+                    size="small"
+                  >
+                    Éditer
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<MessageIcon />}
+                    size="small"
+                  >
+                    Contacter
+                  </Button>
+                </Stack>
               </Stack>
             </Grid>
           </Grid>

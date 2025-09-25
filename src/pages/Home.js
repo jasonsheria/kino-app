@@ -19,9 +19,11 @@ import './HomeSection.css';
 // import './auth.css';
 import Preloader from '../components/common/Preloader';
 import PropertyCard from '../components/property/PropertyCard';
+import VisitBookingModal from '../components/common/VisitBookingModal';
 import AgentCard from '../components/agent/AgentCard';
 import ScrollReveal from '../components/common/ScrollReveal';
 import AgentContactModal from '../components/common/Messenger';
+import { showToast } from '../components/common/ToastManager';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 import authService from '../services/authService';
@@ -230,6 +232,27 @@ const Home = () => {
     }, [tIndex, testimonials]);
 
     const navigate = useNavigate();
+    // Booking modal state (moved here so modal is page-level and can be full-screen)
+    const [bookingOpen, setBookingOpen] = React.useState(false);
+    const [bookingProperty, setBookingProperty] = React.useState(null);
+    const [bookingAgent, setBookingAgent] = React.useState(null);
+
+    const openBooking = (property, agent) => {
+        setBookingProperty(property);
+        setBookingAgent(agent || null);
+        setBookingOpen(true);
+    };
+    const closeBooking = () => {
+        setBookingOpen(false);
+        setBookingProperty(null);
+        setBookingAgent(null);
+    };
+    const handleBookingSuccess = (data) => {
+        // The modal already writes to localStorage and dispatches event 'property-reserved'.
+        // Here we can show a toast and close the modal.
+        try { showToast('Visite réservée — vous recevrez les coordonnées de l’agent', 'success'); } catch (e) { /* ignore */ }
+        setBookingOpen(false);
+    };
 
     const scrollToId = (id) => {
         try {
@@ -688,7 +711,7 @@ const Home = () => {
                 <div className="row justify-content-center">
                     {filteredResults.slice(0, 6).map((property, idx) => (
                         <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
-                            <PropertyCard property={property} />
+                            <PropertyCard property={property} onOpenBooking={openBooking} />
                         </ScrollReveal>
                     ))}
                     {filteredResults.length === 0 && (
@@ -830,6 +853,15 @@ const Home = () => {
 
             {/* Modal de messagerie / contact agent */}
             <AgentContactModal agent={selectedAgent} open={contactOpen} onClose={closeContact} />
+
+            {/* Modal de réservation: monté au niveau page pour plein écran */}
+            <VisitBookingModal
+                open={bookingOpen}
+                onClose={closeBooking}
+                onSuccess={handleBookingSuccess}
+                property={bookingProperty}
+                agent={bookingAgent}
+            />
 
             {/* Témoignages utilisateurs — compact, 3 visibles, navigation */}
             <section className="container py-4" aria-label="Avis utilisateurs">

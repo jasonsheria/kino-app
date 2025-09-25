@@ -2,24 +2,73 @@
   position: fixed;
   z-index: 10010;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(30,40,50,0.18);
+  background: rgba(17, 25, 40, 0.85);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: modalBgFadeIn 0.2s ease-out;
+  touch-action: none;
 }
+
+@keyframes modalBgFadeIn {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(6px); }
+}
+
 .agent-contact-modal {
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   border-radius: 18px;
-  box-shadow: 0 8px 32px var(--ndaku-primary-33-strong);
+  box-shadow: 0 8px 32px rgba(17, 25, 40, 0.2);
   padding: 28px 22px 22px 22px;
   min-width: 320px;
   max-width: 520px;
+  width: calc(100% - 32px);
   position: relative;
   min-height: 220px;
-  max-height : 90vh;
+  max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: modalSlideUp 0.3s cubic-bezier(0.21, 1.02, 0.73, 1);
+}
+
+@keyframes modalSlideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 680px) {
+  .agent-contact-modal-bg {
+    padding: 0;
+  }
+  
+  .agent-contact-modal {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    animation: modalSlideUpMobile 0.3s cubic-bezier(0.21, 1.02, 0.73, 1);
+  }
+  
+  @keyframes modalSlideUpMobile {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  
+  /* Safe area insets for iOS */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .agent-contact-modal {
+      padding-bottom: calc(22px + env(safe-area-inset-bottom));
+    }
+  }
 }
 .agent-contact-header {
   display: flex;
@@ -108,28 +157,139 @@
   100% { transform: rotate(360deg); }
 }
 
+.webrtc-controls {
+  width: 100%;
+  position: relative;
+}
+
 .webrtc-controls .call-panel {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
 }
+
 .webrtc-controls .call-info-left {
-  display:flex; flex-direction:column;
+  display: flex;
+  flex-direction: column;
 }
+
+.webrtc-controls .call-info-left .fw-bold {
+  font-size: 16px;
+  color: var(--ndaku-primary);
+}
+
+.webrtc-controls .call-info-left .text-muted {
+  font-size: 14px;
+}
+
+.webrtc-controls .call-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .webrtc-controls .call-controls button {
-  min-width: 90px;
+  min-width: 110px;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+  transition: all 0.2s ease;
 }
+
+.webrtc-controls .call-controls button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.webrtc-controls .call-controls .btn-warning {
+  background: #fff3cd;
+  border-color: #ffeeba;
+  color: #856404;
+}
+
+.webrtc-controls .call-controls .btn-warning:hover {
+  background: #ffecb5;
+  border-color: #ffdf7e;
+}
+
+.webrtc-controls .call-controls .btn-danger {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+.webrtc-controls .call-controls .btn-danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+  transform: translateY(-2px);
+}
+
 .call-videos {
-  width:100%;
-  margin-top:12px;
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:center;
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
-.call-videos video, .call-videos audio {
-  display:block;
+
+.call-videos video, 
+.call-videos audio {
+  display: block;
+}
+
+@media (max-width: 680px) {
+  .webrtc-controls .call-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    background: white;
+    z-index: 11;
+    padding: 20px;
+    margin: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .webrtc-controls .call-controls {
+    margin-top: 16px;
+    justify-content: space-between;
+  }
+
+  .webrtc-controls .call-controls button {
+    flex: 1;
+    height: 48px;
+  }
+
+  /* Safe area insets for iOS */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .webrtc-controls .call-panel {
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+  }
+
+  .webrtc-controls .call-info-left {
+    text-align: center;
+  }
+
+  .webrtc-controls .call-info-left .fw-bold {
+    font-size: 18px;
+  }
 }
 
 /* Responsive adjustments */

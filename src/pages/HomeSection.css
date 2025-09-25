@@ -169,7 +169,7 @@
 .property-card .property-img,
 .vehicle-card .card-img-top {
   width: 100vw;
-  height: 200px;
+  /* height: 200px; */
   object-fit: cover;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
@@ -180,7 +180,7 @@
   .property-card .card-img-top,
   .property-card .property-img,
   .vehicle-card .card-img-top {
-    height: 160px;
+    /* height: 160px; */
   }
 }
 
@@ -757,7 +757,7 @@ img {
   }
 
   .hero-title {
-    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    font-size: clamp(1.8rem, 5vw, 1.8rem);
     margin-bottom: 0.5rem;
     line-height: 1.2;
   }
