@@ -286,6 +286,41 @@
   }
 }
 
+/* Force full-width components on small screens */
+@media (max-width: 900px) {
+  /* Make main containers full width */
+  .center-card, .center-panel, .owner-card, .center-divider, .dashboard-shell, .center-card .card-body {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Make cards span the full width */
+  .StatCard, .stat-card, .pricing-card, .property-card, .tile, .card {
+    width: 100% !important;
+    margin: 6px 0 !important;
+    box-sizing: border-box;
+  }
+
+  /* Grid to single column for key content */
+  .content-grid, .property-grid, .agents-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Ensure top stat row scrolls horizontally if needed */
+  .stat-row{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Adjust padding for the App layout */
+  .owner-topbar { padding-left: 12px; padding-right: 12px; }
+
+  /* Reduce gaps for compact mobile look */
+  .dashboard-shell{ padding: 12px !important; }
+}
+
 /* Faithful dashboard layout styles */
 .dashboard-shell{ display:flex; min-height:100vh; background: linear-gradient(90deg, #f2f4f7, #eef2f6); align-items:stretch; padding:28px; }
 .left-col{overflow : hidden; width:260px; display:flex; align-items:stretch; max-height: 92vh; }

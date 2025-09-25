@@ -63,7 +63,6 @@ export default function OwnerCalendar({ ownerId, initialDate }){
           <button className="btns btn-sm btn-light" onClick={nextMonth} aria-label="next month">▶</button>
         </div>
         <div className="cal-title">{viewDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
-        <div className="cal-legend small text-muted">Occupied dates are highlighted</div>
       </div>
 
       <div className="cal-grid">

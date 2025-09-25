@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchUserProfile, fetchOwnerProfile, updateProfile } from '../api/profile';
+import { useOwnerProfile } from '../hooks/useOwnerProfile';
 import { fetchReviews, addReview } from '../api/reviews';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import {
@@ -82,6 +83,7 @@ export default function OwnerProfile() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const fileRef = useRef(null);
+  const { ownerProfile } = useOwnerProfile();
 
   // Statistiques
   const [stats, setStats] = useState({
@@ -277,7 +279,7 @@ export default function OwnerProfile() {
           <Box
             sx={{
               height: { xs: 160, md: 240 },
-              backgroundImage: `url(${preview || owner.avatar || '/logo192.png'})`,
+              backgroundImage: `url(${preview || owner.profileUrl || '/logo192.png'})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               position: 'relative'
@@ -313,7 +315,7 @@ export default function OwnerProfile() {
 
             {/* Small camera action at top-right of banner */}
             <IconButton
-              aria-label="Changer la bannière"
+              aria-label="Chanè----------ger la bannière"
               component="label"
               sx={{ position: 'absolute', right: 12, top: 12, bgcolor: 'background.paper' }}
               onClick={() => fileRef.current && fileRef.current.click()}
@@ -329,7 +331,7 @@ export default function OwnerProfile() {
             <Grid item xs={12} md={3}>
               <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, alignItems: 'center' }}>
                 <Avatar
-                  src={preview || owner.avatar || ''}
+                  src={ preview || owner.profileUrl || ''}
                   alt={owner.name || 'Propriétaire'}
                   sx={{
                     width: { xs: 96, md: 120 },
@@ -342,14 +344,7 @@ export default function OwnerProfile() {
                     fontSize: { xs: 24, md: 32 }
                   }}
                 >
-                  {!preview && !owner.avatar && (
-                    (owner.name || 'U')
-                      .split(' ')
-                      .map(n => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  )}
+                 
                 </Avatar>
               </Box>
             </Grid>
@@ -395,7 +390,7 @@ export default function OwnerProfile() {
 
         {/* Statistiques */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} style={{width : "42.5vw"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -406,7 +401,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} style={{width : "42.5vw"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -417,7 +412,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} style={{width : "42.5vw"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -428,7 +423,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} style={{width : "42.5vw"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">

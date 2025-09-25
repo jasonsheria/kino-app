@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import OwnerProfile from '../../pages/OwnerProfile';
 
 export default function OwnerLayout({ children }) {
   const theme = useTheme();
@@ -198,7 +199,7 @@ export default function OwnerLayout({ children }) {
               }}
             >
               <Avatar
-                src="/logo192.png"
+                src={OwnerProfile.ProfileUrl || "/logo192.png"}
                 sx={{
                   width: 32,
                   height: 32,

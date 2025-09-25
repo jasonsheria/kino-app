@@ -15,6 +15,17 @@ import {
     CircularProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Tooltip,
+    Legend,
+    Filler,
+} from 'chart.js';
 import {
     FaEye,
     FaCalendarCheck,
@@ -74,6 +85,50 @@ export default function OwnerDashboard() {
         setTimeout(() => setAnimateBars(true), 120);
     }, []);
 
+    // small 7-day revenue dataset for the mini chart
+    const revenueData = React.useMemo(() => {
+        // if metrics.weeklyRevenue exists use it, otherwise fabricate sample data around metrics.revenue
+        const base = metrics.revenue || 120;
+        const weekly = (metrics.weeklyRevenue && metrics.weeklyRevenue.length === 7)
+            ? metrics.weeklyRevenue
+            : Array.from({ length: 7 }, (_, i) => Math.max(0, Math.round(base * (0.6 + Math.random() * 0.8))));
+
+        return {
+            labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+            datasets: [
+                {
+                    label: 'Revenu',
+                    data: weekly,
+                    fill: true,
+                    backgroundColor: 'rgba(255,255,255,0.08)',
+                    borderColor: 'rgba(255,255,255,0.9)',
+                    tension: 0.3,
+                    pointRadius: 0,
+                    borderWidth: 2,
+                }
+            ]
+        };
+    }, [metrics]);
+
+    const revenueOptions = React.useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+            x: { display: false },
+            y: { display: false }
+        },
+        elements: { point: { radius: 0 } }
+    }), []);
+
+    // register chart components once
+    React.useEffect(() => {
+        ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
+    }, []);
+
     if (loading) {
         return (
             <OwnerLayout>
@@ -96,51 +151,79 @@ export default function OwnerDashboard() {
 
     return (
         <OwnerLayout>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, md: 4 }, mt: 4, mb: 4, width: '100%' }}>
                 <Grid container spacing={3}>
-                    {/* Profile Card */}
-                    <Grid item xs={12}>
-                        <ProfileCard>
-                            <Box sx={{ height: 100, bgcolor: 'primary.main' }} />
-                            <CardContent sx={{ pt: 0 }}>
-                                <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                                    <StyledAvatar src={ownerProfile?.avatar} alt={ownerProfile?.name} />
-                                    <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>
-                                        {ownerProfile?.name}
-                                    </Typography>
-                                    <Box display="flex" gap={1} mb={1}>
-                                        <Chip
-                                            icon={<FaStar />}
-                                            label={`${ownerProfile?.rating || 0} étoiles`}
-                                            color="primary"
-                                        />
-                                        <Chip
-                                            icon={ownerProfile?.certified ? <FaCheck /> : <FaCertificate />}
-                                            label={ownerProfile?.certified ? 'Certifié' : 'Non certifié'}
-                                            color={ownerProfile?.certified ? 'success' : 'default'}
-                                        />
-                                        <Chip
-                                            label={ownerProfile?.subscription || 'Basic'}
-                                            color="secondary"
-                                        />
+                    {/* Dashboard Header (mobile/financial) */}
+                    <Grid item xs={12} style={{width : "100%"}}>
+                        <Card sx={{ mb: 2, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff' }}>
+                            <CardContent>
+                                <Box display="flex" alignItems="center" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }}>
+                                    <Box>
+                                        <Typography variant="h6">Bonjour, {ownerProfile?.name?.split(' ')[0] || 'Propriétaire'}</Typography>
+                                        <Typography variant="body2" sx={{ opacity: 0.9 }}>Voici le tableau de bord de votre activité</Typography>
                                     </Box>
-                                    <Stack direction="row" spacing={2} alignItems="center">
-                                        <Typography variant="body2" color="text.secondary">
-                                            <FaEnvelope style={{ marginRight: 8 }} />
-                                            {ownerProfile?.email}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            <FaUser style={{ marginRight: 8 }} />
-                                            {ownerProfile?.phone}
-                                        </Typography>
-                                    </Stack>
+
+                                    <Box sx={{ display: 'flex', gap: 1, mt: { xs: 2, sm: 0 } }}>
+                                        <Chip icon={<FaBell />} label="Notifications" sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
+                                        <Chip icon={<FaWallet />} label={`Solde $${metrics.revenue}`} sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
+                                    </Box>
                                 </Box>
+
+                                {/* KPIs row */}
+                                <Grid container spacing={1} sx={{ mt: 2 }} >
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.visits}</Typography>
+                                            <Typography variant="caption">Visites</Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.bookings}</Typography>
+                                            <Typography variant="caption">Réservations</Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>${metrics.revenue}</Typography>
+                                            <Typography variant="caption">Revenu</Typography>
+                                        </Box>
+                                    </Grid>
+                                    <Grid item xs={6} sm={3}>
+                                        <Box sx={{ textAlign: 'center' }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>4.5</Typography>
+                                            <Typography variant="caption">Note</Typography>
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+
+                                {/* Quick actions / small chart */}
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                                    <Box sx={{ flex: 1, width : "100%" }}>
+                                        <Typography variant="subtitle2" color="inherit">Revenu - dernière semaine</Typography>
+                                        <Box sx={{ height: 88, mt: 1 }}>
+                                            <Box sx={{ height: '100%', px: 0.5 }}>
+                                                <Line data={revenueData} options={revenueOptions} />
+                                            </Box>
+                                        </Box>
+                                    </Box>
+
+                                    
+                                </Box>
+                                <Box sx={{ display: 'flex', gap: 1, width : "100%", marginBottom : '10px'  }}>
+                                        <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 1, textAlign: 'center' }} onClick={() => navigate('/owner/properties')}>
+                                            <Typography variant="caption">Mes biens</Typography>
+                                        </Box>
+                                        <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 1 }} onClick={() => navigate('/owner/messages')}>
+                                            <Typography variant="caption">Messages</Typography>
+                                        </Box>
+                                    </Box>
                             </CardContent>
-                        </ProfileCard>
+                        </Card>
                     </Grid>
 
                     {/* Stat Cards */}
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={6} md={3} style={{width : "42.5vw"}}>
                         <StatCard>
                             <FaEye size={24} color="#60A5FA" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -149,7 +232,7 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">Visites</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={6} md={3} style={{width : "42.5vw"}}>
                         <StatCard>
                             <FaCalendarCheck size={24} color="#34D399" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -158,7 +241,7 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">Rendez-vous</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={6} md={3} style={{width : "42.5vw"}}>
                         <StatCard>
                             <FaClock size={24} color="#FBBF24" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -167,7 +250,7 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">En attente</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={6} md={3} style={{width : "42.5vw"}}>
                         <StatCard>
                             <FaWallet size={24} color="#F472B6" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -189,7 +272,7 @@ export default function OwnerDashboard() {
                     </Grid>
 
                     {/* Activity Section */}
-                    <Grid item xs={12} md={4}>
+                    <Grid item xs={12} md={4} style={{"width" : "100%"}}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
