@@ -43,17 +43,19 @@ export default function OwnerLayout({ children }) {
   const navigate = useNavigate();
 
   React.useEffect(() => {
+    const ownerId = (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch(e){ return 'owner-123'; } })();
     const load = () => {
       try {
-        const msgs = JSON.parse(localStorage.getItem('owner_messages') || '[]');
-        const unread = msgs.filter(m => !m.read).length;
+        const msgs = JSON.parse(localStorage.getItem('owner_notifications_' + ownerId) || '[]');
+        const unread = msgs.filter(m => m.unread !== false).length;
         setOwnerUnread(unread);
       } catch (e) { setOwnerUnread(0); }
     };
     load();
-    const handler = (e) => { load(); };
+    const handler = () => { load(); };
+    window.addEventListener('owner_notifications_updated', handler);
     window.addEventListener('ndaku-owner-message', handler);
-    return () => window.removeEventListener('ndaku-owner-message', handler);
+    return () => { window.removeEventListener('owner_notifications_updated', handler); window.removeEventListener('ndaku-owner-message', handler); };
   }, []);
 
   const drawerWidth = 260;
@@ -199,7 +201,7 @@ export default function OwnerLayout({ children }) {
               }}
             >
               <Avatar
-                src={OwnerProfile.ProfileUrl || "/logo192.png"}
+                src={OwnerProfile.profileUrl || ""}
                 sx={{
                   width: 32,
                   height: 32,

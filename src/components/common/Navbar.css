@@ -1,6 +1,7 @@
 /* Theme Variables */
 :root {
   --header-height: 72px;
+  --header-height-mobile: 52px;
   --primary: var(--ndaku-primary);
   --primary-dark: #0d9c78;
   --primary-light: var(--ndaku-primary-100);
@@ -284,18 +285,23 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 320px;
-  max-width: 420px;
+  width: 360px;
+  max-height: calc(100vh - 100px);
   background: var(--bg);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-dropdown);
-  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 16px;
   opacity: 0;
   visibility: hidden;
   transform-origin: top right;
   transform: translateY(-6px) scale(0.98);
-  transition: all 0.18s ease;
-  z-index: 120;
+  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 9999;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .kn-notif-menu.show {
@@ -306,10 +312,23 @@
 
 .kn-notif-item {
   display: flex;
-  gap: 8px;
-  padding: 10px;
+  gap: 12px;
+  padding: 12px;
   border-radius: 8px;
   align-items: flex-start;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+  margin-bottom: 4px;
+}
+
+.kn-notif-item:hover {
+  background: var(--primary-light);
+  transform: translateX(2px);
+}
+
+.kn-notif-item:active {
+  transform: translateX(4px);
 }
 
 .kn-notif-item + .kn-notif-item { border-top: 1px solid var(--border); }
@@ -317,9 +336,59 @@
 .kn-notif-item-body { flex: 1; }
 .kn-notif-title { font-weight: 700; color: var(--text); font-size: 13px; }
 .kn-notif-text { font-size: 13px; color: var(--text-light); margin-top: 4px; }
-.kn-notif-actions { margin-left: 8px; }
-.kn-notif-actions button { background: transparent; border: none; cursor: pointer; color: var(--text-light); }
-.kn-notif-empty { padding: 12px; color: var(--text-light); text-align: center; }
+.kn-notif-actions { 
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.kn-notif-item:hover .kn-notif-actions {
+  opacity: 1;
+}
+.kn-notif-actions button { 
+  background: transparent; 
+  border: none; 
+  cursor: pointer; 
+  color: var(--text-light);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.kn-notif-actions button:hover { 
+  background: rgba(220, 53, 69, 0.1);
+  color: var(--danger);
+}
+.kn-notif-empty { 
+  padding: 16px; 
+  color: var(--text-light); 
+  text-align: center;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Style du titre et du texte des notifications */
+.kn-notif-title {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.kn-notif-text {
+  font-size: 13px;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+/* Ajout d'une bordure subtile entre les notifications */
+.kn-notif-item + .kn-notif-item {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 4px;
+  padding-top: 12px;
+}
 
 /* User dropdown menu */
 .kn-user-wrap { position: relative; display: flex; }
@@ -339,6 +408,79 @@
   .kn-cta-group.ct-1 { display: none; }
   .kn-compact-actions { display: flex; }
   .kn-menu-toggle { display: block; }
+}
+
+/* Mobile adjustments to mimic owner navbar: smaller, translucent white, tighter spacing */
+@media (max-width: 720px) {
+  .kn-header {
+    height: var(--header-height-mobile);
+    /* slightly translucent white to match owner style but keep content readable */
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(6px);
+    box-shadow: none;
+  }
+
+  .kn-nav {
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .kn-brand-logo {
+    height: 30px;
+  }
+
+  .kn-brand-text {
+    font-size: 16px;
+  }
+
+  .kn-menu-toggle {
+    font-size: 20px;
+    padding: 6px;
+  }
+
+  /* tighter CTAs and icons */
+  .kn-cta, .kn-cta-group .MuiButton-root, .kn-user-btn, .kn-notif-btn {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+
+  .kn-user-icon {
+    font-size: 16px;
+  }
+
+  /* Icônes uniformes (utiliser la même classe pour bell/user/bars) */
+  .kn-icon {
+    display: inline-block;
+    vertical-align: middle;
+    color: inherit; /* héritage de la couleur du parent */
+    font-size: var(--icon-size);
+    line-height: 1;
+    transition: transform 0.18s ease, color 0.12s ease;
+  }
+
+  /* L'icône utilisateur peut avoir une légère variante mais reste alignée */
+  .kn-user-icon {
+    font-size: var(--icon-size);
+    display: inline-block;
+    vertical-align: middle;
+
+  }
+
+  .kn-notif-badge { top: 2px; right: 2px; min-width: 14px; height: 14px; line-height: 14px; font-size: 11px }
+
+  .kn-drawer {
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  /* reduce spacing between icons and compact actions */
+  .kn-compact-actions { gap: 8px; }
+  .kn-compact-actions .kn-cta { padding: 6px; }
+  .kn-cta-group { gap: 8px; }
+
+  /* smaller clickable areas but maintain accessibility */
+  .kn-menu-link { padding: 6px 8px; }
+  .kn-dropdown-toggle { padding: 6px 8px; }
 }
 
 .kn-cta {
@@ -503,6 +645,9 @@
   .ct-1 {
     display: none;
   }
+  .kn-notif-menu {
+    width : 294px;
+  }
 }
 
 /* Responsive Design */
@@ -517,6 +662,21 @@
 
   .kn-nav {
     padding: 0 16px;
+  }
+}
+
+/* Badge Animation */
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  80% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 

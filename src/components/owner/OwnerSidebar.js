@@ -12,16 +12,17 @@ import {
   Divider,
   Avatar,
 } from '@mui/material';
-
+import { useOwnerProfile } from '../../hooks/useOwnerProfile';
 export default function OwnerSidebar({ collapsed }) {
   const location = useLocation();
+  const { ownerProfile, loading, error } = useOwnerProfile();
 
   return (
     <Box sx={{ mt: 2 }}>
       {!collapsed && (
         <Box sx={{ px: 3, mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Avatar src="/logo192.png" />
+            <Avatar src={ownerProfile?.profileUrl || ownerProfile?.Avatar || "" } />
             <Box>
               <Typography variant="subtitle2" fontWeight="600">
                 Propriétaire

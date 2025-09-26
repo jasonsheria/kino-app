@@ -7,6 +7,31 @@ import { useNotifications } from '../../contexts/NotificationContext';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { Button } from '@mui/material';
 
+// Données de test pour les notifications
+const TEST_NOTIFICATIONS = [
+  {
+    id: 'notif1',
+    title: 'Nouvelle réservation',
+    message: 'Une nouvelle réservation a été effectuée pour votre appartement',
+    unread: true,
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: 'notif2',
+    title: 'Message reçu',
+    message: 'Vous avez reçu un nouveau message concernant votre annonce',
+    unread: true,
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: 'notif3',
+    title: 'Paiement reçu',
+    message: 'Le paiement de la réservation #1234 a été confirmé',
+    unread: true,
+    timestamp: new Date().toISOString()
+  }
+];
+
 const Navbar = () => {
   const location = useLocation();
   const [isSticky, setIsSticky] = useState(false);
@@ -132,9 +157,17 @@ const Navbar = () => {
   }, [location]);
 
   const { user } = useAuth();
-  const { notifications, removeNotification } = useNotifications();
+  const { notifications: realNotifications, removeNotification, markAllRead, markRead } = useNotifications();
+  // Fusionner les notifications réelles avec les données de test
+  const notifications = [...(realNotifications || []), ...TEST_NOTIFICATIONS];
+
+  // Style commun pour les icônes (géré via CSS .kn-icon)
   const { isConnected } = useWebSocket();
   const socketConnected = isConnected();
+
+  const unreadCount = (notifications || []).filter(n => n.unread).length;
+  // unread list for the dropdown (show newest first)
+  const unreadList = (notifications || []).filter(n => n.unread).slice().reverse();
 
   return (
     <header className={`kn-header ${isSticky ? 'sticky' : ''} ${isHidden ? 'hidden' : ''}`} ref={headerRef}>
@@ -204,28 +237,32 @@ const Navbar = () => {
           {/* Notifications & user status */}
           <div className="kn-notif-wrap">
             <Button
-              variant="contained"
-              color="primary"
               onClick={() => setNotifOpen(!notifOpen)}
+              className="kn-icon-btn"
               aria-label="Afficher les notifications"
               title="Notifications"
             >
-              <FaBell aria-hidden="true" />
-              {notifications?.length > 0 && (
-                <span className="kn-notif-badge">{notifications.length}</span>
+              <FaBell aria-hidden="true" className="kn-icon" />
+              {unreadCount > 0 && (
+                <span className="kn-notif-badge">{unreadCount}</span>
               )}
             </Button>
 
-            <div className={`kn-notif-menu ${notifOpen ? 'show' : ''}`} role="menu">
-              {notifications?.length > 0 ? (
-                notifications.slice().reverse().map((n) => (
-                  <div key={n.id || n._id} className="kn-notif-item">
+            <div
+              className={`kn-notif-menu ${notifOpen ? 'show' : ''}`}
+              role="menu"
+              aria-hidden={!notifOpen}
+              style={notifOpen ? { zIndex: 140 } : undefined}
+            >
+              {unreadList.length > 0 ? (
+                unreadList.map((n) => (
+                  <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
                     <div className="kn-notif-item-body">
                       <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
                       <div className="kn-notif-text">{n.message || n.details || n.text}</div>
                     </div>
                     <div className="kn-notif-actions">
-                      <button onClick={() => removeNotification(n.id || n._id)} aria-label="Supprimer">✕</button>
+                      <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
                     </div>
                   </div>
                 ))
@@ -254,7 +291,7 @@ const Navbar = () => {
           {user ? (
             <div className="kn-user-wrap" ref={userMenuRef}>
               <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
-                <FaUserCircle className="kn-user-icon" />
+                <FaUserCircle className="kn-user-icon kn-icon" />
                 <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
               </button>
 
@@ -290,18 +327,45 @@ const Navbar = () => {
           {user ? (
             <div className="kn-user-wrap" ref={userMenuRef}>
               <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
-                <FaUserCircle className="kn-user-icon" />
+                <FaUserCircle className="kn-user-icon kn-icon" />
                 <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
               </button>
+
+              <div className="kn-notif-wrap">
               <Button
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="kn-cta kn-user-btn"
+                className="kn-icon-btn"
                 aria-label="Afficher les notifications"
                 title="Notifications"
               >
                 <FaBell aria-hidden="true" />
-                {notifications?.length > 0 && <span className="kn-notif-badge">{notifications.length}</span>}
-              </Button>
+                {unreadCount > 0 && (
+                  <span className="kn-notif-badge">{unreadCount}</span>
+                )}
+              </Button>                
+              <div
+                  className={`kn-notif-menu ${notifOpen ? 'show' : ''}`}
+                  role="menu"
+                  aria-hidden={!notifOpen}
+                  style={notifOpen ? { zIndex: 1400 } : undefined}
+                >
+                  {unreadList.length > 0 ? (
+                    unreadList.map((n) => (
+                      <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
+                        <div className="kn-notif-item-body">
+                          <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
+                          <div className="kn-notif-text">{n.message || n.details || n.text}</div>
+                        </div>
+                        <div className="kn-notif-actions">
+                          <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="kn-notif-empty">Aucune notification</div>
+                  )}
+                </div>
+              </div>
 
               <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
                 <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
@@ -313,14 +377,20 @@ const Navbar = () => {
           )}
 
           <Button
-            variant="outlined"
-            color="success"
+            variant="text"
             onClick={() => setIsDrawerOpen(true)}
             aria-label="Ouvrir le menu"
-            className="kn-menu-toggle"
+            className="kn-icon-btn kn-menu-toggle"
             title="Ouvrir le menu"
+            sx={{
+              color: 'var(--icon-color)',
+              '&:hover': {
+                background: 'var(--icon-hover-bg)',
+                transform: 'scale(1.05)'
+              }
+            }}
           >
-            <FaBars aria-hidden="true" />
+            <FaBars aria-hidden="true" className="kn-icon" />
           </Button>
         </div>
       </nav>
@@ -427,8 +497,7 @@ const Navbar = () => {
               </Button>
 
               {user ? (
-                <
-                >
+                <>
                 </>
               ) : (
                 <Button

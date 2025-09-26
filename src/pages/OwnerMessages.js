@@ -165,11 +165,12 @@ export default function OwnerMessages(){
       <div className="owner-messages-shell">
         <div className="owner-messages-toolbar">
           <h4>Messages</h4>
+        
+        </div>
           <div className="owner-messages-search">
             <input placeholder="Rechercher par nom ou texte" className="form-control" value={query} onChange={(e)=>setQuery(e.target.value)} />
             <button className="btn owner-btn-primary" onClick={()=>{ setComposeOpen(true); }} title="Nouveau message">Nouveau</button>
           </div>
-        </div>
 
         {ownerMessages.length===0 && <div className="alert alert-info">Aucun message pour le moment.</div>}
 

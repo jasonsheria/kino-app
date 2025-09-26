@@ -282,7 +282,7 @@
   .badge {
     font-size: 0.9rem;
     padding: 8px 12px;
-   color: #00bc9b;
+   color: white;
   }
 }
 
@@ -481,9 +481,9 @@ html, body, #root { height:100%; }
 @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
 
 /* Enhanced visuals for OwnerMessages */
-.owner-messages-shell{ display:flex; flex-direction:column; gap:12px; }
+.owner-messages-shell{ display:flex; flex-direction:column; gap:12px; margin : 0.75rem }
 .owner-messages-toolbar h4{ margin:0; font-size:1.25rem; letter-spacing:0.2px; }
-.owner-messages-search .form-control{ min-width:220px; border-radius:10px; padding:10px 12px; border:1px solid #eef2f6; }
+.owner-messages-search .form-control{ min-width:75%; border-radius:10px; padding:10px 12px; border:1px solid #eef2f6; }
 .owner-messages-search .btn{ height:42px; border-radius:10px; padding:8px 14px; }
 
 .owner-msg-wrap{ display:flex; gap:16px; align-items:stretch; }
@@ -520,7 +520,6 @@ html, body, #root { height:100%; }
 @media (max-width: 768px){
   .owner-thread-wrap{ width:100%; }
   .owner-msg-list{ max-width:100%; }
-  .owner-messages-search .form-control{ min-width:120px; }
 }
 
 /* OwnerProfile improvements */

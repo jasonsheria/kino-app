@@ -2,7 +2,8 @@
 
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { showToast } from '../common/ToastManager';
 import { agents, properties } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
@@ -105,6 +106,68 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const nextImg = () => { const l = imgs.length || 1; setLightboxIndex((lightboxIndex + 1) % l); };
   const prevImg = () => { const l = imgs.length || 1; setLightboxIndex((lightboxIndex - 1 + l) % l); };
 
+  const lightboxRef = useRef(null);
+  const touchStartX = useRef(null);
+
+  // Keyboard navigation and touch swipe for lightbox
+  useEffect(() => {
+    if (!showLightbox) return;
+
+    // lock body scroll
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+        return;
+      }
+      if (e.key === 'ArrowRight') {
+        nextImg();
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        prevImg();
+        return;
+      }
+    };
+
+    const onTouchStart = (e) => {
+      touchStartX.current = e.touches && e.touches[0] ? e.touches[0].clientX : null;
+    };
+    const onTouchMove = (e) => {
+      // prevent default to avoid rubber-band on iOS when necessary
+      // but allow pointer events for buttons to work
+    };
+    const onTouchEnd = (e) => {
+      if (!touchStartX.current) return;
+      const endX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : null;
+      if (endX === null) return;
+      const diff = touchStartX.current - endX;
+      const threshold = 40; // px
+      if (diff > threshold) {
+        nextImg();
+      } else if (diff < -threshold) {
+        prevImg();
+      }
+      touchStartX.current = null;
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    const node = lightboxRef.current || document.body;
+    node.addEventListener && node.addEventListener('touchstart', onTouchStart, { passive: true });
+    node.addEventListener && node.addEventListener('touchmove', onTouchMove, { passive: true });
+    node.addEventListener && node.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      node.removeEventListener && node.removeEventListener('touchstart', onTouchStart);
+      node.removeEventListener && node.removeEventListener('touchmove', onTouchMove);
+      node.removeEventListener && node.removeEventListener('touchend', onTouchEnd);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showLightbox, lightboxRef, lightboxIndex, imgs.length]);
+
   // Pour la map, on prend la géoloc de l'agent (sinon défaut Kinshasa)
   const mainPos = agent?.geoloc || { lat: -4.325, lng: 15.322 };
 
@@ -144,9 +207,9 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         <div className="d-flex justify-content-end mt-3">
           <button className="btns btn-primary btn-sm fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>Voir le bien</button>
         </div>
-        {/* Agent lié */}
+        {/* Agent lié : toujours affiché, mais flouté/muted tant que non-réservé; le bouton de réservation reste actif */}
         {agent && (
-          <div className="property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s">
+          <div className={`property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
             <div className="property-agent-inner">
               <div className="agent-left">
                 <div className="agent-avatar-wrapper">
@@ -158,27 +221,25 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
                 </div>
               </div>
               <div className="agent-right">
-                {!isReserved ? (
-                  <div className="agent-action-wrap">
-                    <button 
-                      className="btns btn-primary reserve-btn"
-                      title="Réserver une visite"
-                      onClick={() => onOpenBooking ? onOpenBooking(property, agent) : navigate(`/properties/${property.id}`)}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7.5M19 21v-6m-3 3h6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Réserver une visite
-                    </button>
-                  </div>
-                ) : (
-                  <div className="agent-contact-buttons">
-                    <span className="badge bg-success reserve-badge">Réservé</span>
-                    <button className="btns btn-outline-success ms-2 contact-icon" title="WhatsApp" onClick={()=>setShowContact(true)}><FaWhatsapp /></button>
+                {/* Always show reserve button */}
+              
+
+                {/* Contact icons visible only when reserved (or remain hidden while muted) */}
+                {isReserved && (
+                  <>
+                    <button className="btns btn-outline-success contact-icon ms-2" title="WhatsApp" onClick={()=>setShowContact(true)} aria-label={`Contacter ${agent.name} via WhatsApp`}><FaWhatsapp /></button>
                     {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-                    <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary ms-2 contact-icon" title="Facebook"><FaFacebook /></a>
-                    <button className="btns btn-outline-dark ms-2 contact-icon" title="Téléphone" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
-                  </div>
+                    {agent.facebook && (
+                      <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary contact-icon ms-2" title="Facebook" aria-label={`Visiter la page Facebook de ${agent.name}`}><FaFacebook /></a>
+                    )}
+                    <button className="btns btn-outline-dark contact-icon ms-2" title="Téléphone" aria-label={`Appeler ${agent.name}`} onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
+                  </>
+                )}
+
+                {/* Small reserved dot when reserved */}
+                {isReserved && <span className="reserved-dot ms-2" aria-hidden="true" title="Réservé" />}
+                {!isReserved && (
+                  <button className="btns btn-success btn-sm fw-bold" onClick={() => onOpenBooking(property)}><FaRegMoneyBillAlt className="me-1"/>Réserver</button>
                 )}
               </div>
             </div>
@@ -186,14 +247,15 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         )}
       {/* Booking modal is now mounted at page-level (Home) to allow full-screen presentation */}
       </div>
-      {/* Lightbox */}
-      {showLightbox && imgs.length > 0 && (
-        <div className="lightbox position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center animate__animated animate__fadeIn" style={{background:'rgba(0,0,0,0.8)',zIndex:2000}}>
-          <button className="btns btn-light position-absolute top-0 end-0 m-3" onClick={closeLightbox}>&times;</button>
-          <button className="btns btn-light position-absolute start-0 top-50 translate-middle-y ms-3" onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
-          <img src={imgs[lightboxIndex % imgs.length]} alt="" style={{maxHeight:'80vh', maxWidth:'90vw', borderRadius:8, boxShadow:'0 4px 32px #0008'}} />
-          <button className="btns btn-light position-absolute end-0 top-50 translate-middle-y me-3" onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
-        </div>
+      {/* Lightbox rendered via Portal to body so it always covers the full viewport */}
+      {showLightbox && imgs.length > 0 && createPortal(
+        <div className="lightbox-full animate__animated animate__fadeIn" role="dialog" aria-modal="true" onClick={closeLightbox}>
+          <button className="lightbox-close" onClick={closeLightbox} aria-label="Fermer la lightbox">×</button>
+          <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImg(); }} aria-label="Image précédente">‹</button>
+          <img src={imgs[lightboxIndex % imgs.length]} alt={displayName} className="lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImg(); }} aria-label="Image suivante">›</button>
+        </div>,
+        document.body
       )}
 
   {/* ...aucune carte ni suggestions ici, à déplacer dans PropertyDetails... */}
