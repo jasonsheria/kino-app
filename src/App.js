@@ -14,6 +14,7 @@ import NotificationProvider from './contexts/NotificationContext';
 import { GoogleOAuthProvider } from '@react-oauth/google'; // Nouvel import
 import GoogleAuthPromptInternal from '../src/auth/GoogleAuthPrompt'; // Renommé pour éviter conflit de nom
 import { SnackbarProvider } from 'notistack';
+import { showToast } from './components/common/ToastManager';
 import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
 function App() {
@@ -49,6 +50,18 @@ function App() {
     return () => {
       try { /* no-op: sync will stop on page unload */ } catch (e) { }
     };
+  }, []);
+
+  // Listen for property load errors dispatched by fakedata module
+  React.useEffect(() => {
+    const onErr = (e) => {
+      try {
+        const msg = (e && e.detail && e.detail.message) ? e.detail.message : 'Impossible de charger les biens depuis le serveur.';
+        showToast(msg, 'error', 7000);
+      } catch (err) { console.error('ndaku:properties-error handler', err); }
+    };
+    window.addEventListener('ndaku:properties-error', onErr);
+    return () => window.removeEventListener('ndaku:properties-error', onErr);
   }, []);
 
   // Global call modal integration

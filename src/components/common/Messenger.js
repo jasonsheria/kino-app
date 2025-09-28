@@ -26,7 +26,7 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
   const fileInput = useRef();
   const bodyRef = useRef();
   // Simuler messages par agent
-  const agentMessages = allMessages.filter(m => m.fromId === selectedAgentId || m.toId === selectedAgentId);
+  const agentMessages = allMessages.filter(m => String(m.fromId) === String(selectedAgentId) || String(m.toId) === String(selectedAgentId));
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -92,10 +92,10 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
           <div className="sidebar-list" style={{flex:1,overflowY:'auto'}}>
             {agents.map(agent => {
               // Dernier message
-              const lastMsg = allMessages.filter(m => m.fromId === agent.id || m.toId === agent.id).sort((a,b)=>b.time-a.time)[0];
-              const unread = allMessages.filter(m => m.fromId === agent.id && !m.read).length;
+              const lastMsg = allMessages.filter(m => String(m.fromId) === String(agent.id) || String(m.toId) === String(agent.id)).sort((a,b)=>b.time-a.time)[0];
+              const unread = allMessages.filter(m => String(m.fromId) === String(agent.id) && !m.read).length;
               return (
-                <div key={agent.id} className={`sidebar-contact${selectedAgentId===agent.id?' active':''}`} onClick={()=>setSelectedAgentId(agent.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',cursor:'pointer',background:selectedAgentId===agent.id?'#e9f7f3':'',borderBottom:'1px solid #f1f1f1'}}>
+                <div key={agent.id} className={`sidebar-contact${String(selectedAgentId)===String(agent.id)?' active':''}`} onClick={()=>setSelectedAgentId(agent.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',cursor:'pointer',background:String(selectedAgentId)===String(agent.id)?'#e9f7f3':'',borderBottom:'1px solid #f1f1f1'}}>
                   <img src={agent.photo} alt={agent.name} className="agent-avatar" style={{width:44,height:44}} />
                   <div style={{flex:1}}>
                     <div style={{fontWeight:700,fontSize:'1.05em',color:'#0a223a'}}>{agent.name}</div>
@@ -112,9 +112,9 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
           {/* Header chat */}
             <div className="messenger-header" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1.5px solid #e9f7f3'}}>
             <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12}}>
-              <img src={agents.find(a=>a.id===selectedAgentId)?.photo} alt="avatar" className="agent-avatar" style={{width:44,height:44}} />
+              <img src={agents.find(a=>String(a.id)===String(selectedAgentId))?.photo} alt="avatar" className="agent-avatar" style={{width:44,height:44}} />
               <div>
-                <div className="agent-name" style={{fontWeight:700,fontSize:'1.1em'}}>{agents.find(a=>a.id===selectedAgentId)?.name}</div>
+                <div className="agent-name" style={{fontWeight:700,fontSize:'1.1em'}}>{agents.find(a=>String(a.id)===String(selectedAgentId))?.name}</div>
                 <div className="agent-role" style={{fontSize:'0.92em',color:'var(--ndaku-primary)'}}>Agent immobilier</div>
               </div>
             </div>
@@ -123,9 +123,9 @@ const MessengerWidget = ({ open, onClose, userId = 1 }) => {
           {/* Body chat */}
           <div className="messenger-body" ref={bodyRef} style={{flex:1,overflowY:'auto',padding:'18px 18px 10px 18px',background:'#f7f7f7'}}>
             {agentMessages.length===0 && <div style={{color:'#888',textAlign:'center',marginTop:40}}>Aucun message avec cet agent.</div>}
-            {agentMessages.map((msg, i) => (
+                {agentMessages.map((msg, i) => (
               <div key={msg.id||i} className={`msg-bubble ${msg.fromId===userId?'user':'agent'}`}> 
-                {msg.fromId!==userId && <img src={agents.find(a=>a.id===msg.fromId)?.photo} alt="avatar" className="msg-avatar" />}
+                {msg.fromId!==userId && <img src={agents.find(a=>String(a.id)===String(msg.fromId))?.photo} alt="avatar" className="msg-avatar" />}
                 <div className="msg-content">
                   <div className="msg-text">{msg.text}</div>
                   <div className="msg-time">{formatTime(msg.time)} {msg.fromId===userId && getStatusIcon(msg.status||'sent')}</div>

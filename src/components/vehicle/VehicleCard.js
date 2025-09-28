@@ -9,7 +9,7 @@ import { FaCar, FaTachometerAlt, FaPalette, FaCalendarAlt, FaGasPump, FaCogs, Fa
 
 const VehicleCard = ({ vehicle }) => {
   const [imgIdx, setImgIdx] = useState(0);
-  const agent = agents.find(a => a.id === vehicle.agentId);
+  const agent = agents.find(a => String(a.id) === String(vehicle.agentId));
   const nextImg = () => setImgIdx((imgIdx + 1) % vehicle.images.length);
   const prevImg = () => setImgIdx((imgIdx - 1 + vehicle.images.length) % vehicle.images.length);
   const [showContact, setShowContact] = useState(false);

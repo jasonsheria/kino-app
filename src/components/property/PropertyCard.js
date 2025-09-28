@@ -19,7 +19,8 @@ import L from 'leaflet';
 const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const agent = agents.find(a => a.id === property.agentId);
+  // find agent by string id so hex/string ids work
+  const agent = agents.find(a => String(a.id) === String(property.agentId));
   const location = useLocation();
   const { user } = useAuth();
   const [showContact, setShowContact] = useState(false);
@@ -44,7 +45,6 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         setIsReserved(true);
       }
     };
-    window.addEventListener('property-reserved', handler);
     const storageHandler = (e) => {
       if (e.key === 'reserved_properties') {
         try {
@@ -53,9 +53,8 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         } catch (err) { /* ignore */ }
       }
     };
+    window.addEventListener('property-reserved', handler);
     window.addEventListener('storage', storageHandler);
-    return () => window.removeEventListener('property-reserved', handler);
-    // cleanup storage listener too
     return () => {
       window.removeEventListener('property-reserved', handler);
       window.removeEventListener('storage', storageHandler);
@@ -78,7 +77,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const displayName = property.name || property.title || 'Bien immobilier';
 
   // Suggestions (autres biens, exclure le courant)
-  const suggestions = properties.filter(p => p.id !== property.id).slice(0, 3);
+  const suggestions = properties.filter(p => String(p.id) !== String(property.id)).slice(0, 3);
 
   // Custom marker icons
   const redIcon = new L.Icon({
@@ -174,7 +173,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   return (
     <div className="card shadow-lg border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
-        <img src={imgs[0]} alt={displayName} className="property-img" />
+        <img src={process.env.REACT_APP_BACKEND_APP_URL+ imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay" />
         <div className="badges">
           <div className="badge status-badge">{property.status || ''}</div>
@@ -252,7 +251,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         <div className="lightbox-full animate__animated animate__fadeIn" role="dialog" aria-modal="true" onClick={closeLightbox}>
           <button className="lightbox-close" onClick={closeLightbox} aria-label="Fermer la lightbox">×</button>
           <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImg(); }} aria-label="Image précédente">‹</button>
-          <img src={imgs[lightboxIndex % imgs.length]} alt={displayName} className="lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <img src={process.env.REACT_APP_BACKEND_APP_URL+imgs[lightboxIndex % imgs.length]} alt={displayName} className="lightbox-img" onClick={(e) => e.stopPropagation()} />
           <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImg(); }} aria-label="Image suivante">›</button>
         </div>,
         document.body

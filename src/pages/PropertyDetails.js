@@ -34,7 +34,7 @@ function ImageCarousel({ images = [], name = '' }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden" style={{height:420}}>
-        <img src={images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{objectFit:'cover'}} />
+        <img src={process.env.REACT_APP_BACKEND_APP_URL+images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{objectFit:'cover'}} />
         {images.length > 1 && (
           <>
             <button className="btn btn-outline-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" onClick={prev}>&lsaquo;</button>
@@ -51,7 +51,7 @@ function ImageCarousel({ images = [], name = '' }) {
       <div className="d-flex gap-2 mt-2 overflow-auto py-2">
         {images.map((img, idx) => (
           <div key={idx} className={`thumb rounded overflow-hidden ${idx===current? 'border-success':'border-0'}`} style={{width:120, flex:'0 0 auto', cursor:'pointer'}} onClick={() => setCurrent(idx)}>
-            <img src={img} alt={`${name}-thumb-${idx}`} style={{width:'100%', height:70, objectFit:'cover'}} />
+            <img src={process.env.REACT_APP_BACKEND_APP_URL+img} alt={`${name}-thumb-${idx}`} style={{width:'100%', height:70, objectFit:'cover'}} />
           </div>
         ))}
       </div>
@@ -62,10 +62,28 @@ function ImageCarousel({ images = [], name = '' }) {
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  // compute property and derived values first
-  const property = properties.find(p => p.id === Number(id));
-  const agent = property ? agents.find(a => a.id === property.agentId) : null;
-  const suggestions = property ? properties.filter(p => p.id !== property.id).slice(0, 2) : [];
+  // local state for the property so we can refresh when global `properties` array is updated
+  const [property, setProperty] = useState(() => properties.find(p => String(p.id) === String(id)));
+  // Evaluation modal state
+  const [showEvaluation, setShowEvaluation] = useState(false);
+  const [answers, setAnswers] = useState({});
+  const [evaluationResult, setEvaluationResult] = useState(null);
+  const [evaluationError, setEvaluationError] = useState('');
+  // refresh property when fakedata finishes loading and emits an event
+  useEffect(() => {
+    const refresh = () => setProperty(properties.find(p => String(p.id) === String(id)));
+    // initial attempt
+    refresh();
+    window.addEventListener('ndaku:properties-updated', refresh);
+    window.addEventListener('ndaku:properties-error', refresh);
+    return () => {
+      window.removeEventListener('ndaku:properties-updated', refresh);
+      window.removeEventListener('ndaku:properties-error', refresh);
+    };
+  }, [id]);
+
+  const agent = property ? agents.find(a => String(a.id) === String(property.agentId)) : null;
+  const suggestions = property ? properties.filter(p => String(p.id) !== String(property.id)).slice(0, 2) : [];
   const videos = property?.virtualTourVideos && property.virtualTourVideos.length ? property.virtualTourVideos : (property?.virtualTour ? [property.virtualTour] : []);
 
   // Hooks - declared unconditionally to satisfy rules of hooks
@@ -73,9 +91,12 @@ const PropertyDetails = () => {
   const [selectedVideo, setSelectedVideo] = useState(0);
 
   // Neighborhood scores state (can be updated by evaluation)
+  // Compute initial neighborhood deterministically without reading `property` when missing
   const initialNeighborhood = (() => {
-    if (property.neighborhood) return property.neighborhood;
-    const seed = property.id || 7;
+    if (property && property.neighborhood) return property.neighborhood;
+    // create a small deterministic numeric seed from the route id (works for numeric ids and hex strings)
+    const idStr = String(id || '7');
+    const seed = Math.abs(Array.from(idStr).reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) | 0, 7));
     const clamp = v => Math.max(10, Math.min(95, v));
     return {
       eau: clamp((seed * 37) % 90),
@@ -85,6 +106,22 @@ const PropertyDetails = () => {
     };
   })();
   const [neighborhoodScores, setNeighborhoodScores] = useState(initialNeighborhood);
+
+  // If property not found, render a friendly message instead of throwing
+  if (!property) {
+    return (
+      <div>
+        <Navbar />
+        <div className="container" style={{ marginTop: 150 }}>
+          <div className="alert alert-warning mt-4">Annonce introuvable. Le bien demandé n'existe pas ou a été supprimé.</div>
+          <div className="mb-4">
+            <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>Retour</button>
+          </div>
+        </div>
+        <FooterPro />
+      </div>
+    );
+  }
 
   const toYoutubeEmbed = (url) => {
     if (!url) return url;
@@ -99,11 +136,7 @@ const PropertyDetails = () => {
   // keep backward-compatible reference
   const neighborhood = neighborhoodScores;
 
-  // Evaluation modal state
-  const [showEvaluation, setShowEvaluation] = useState(false);
-  const [answers, setAnswers] = useState({});
-  const [evaluationResult, setEvaluationResult] = useState(null);
-  const [evaluationError, setEvaluationError] = useState('');
+
 
   const evaluationQuestions = [
     {
@@ -272,12 +305,12 @@ const PropertyDetails = () => {
               <h5 className="fw-bold text-primary mb-2">Suggestions</h5>
               <div className="row g-3">
                 {suggestions.map(sug => {
-                  const sugAgent = agents.find(a => a.id === sug.agentId);
+                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
                   return (
                     <div className="col-12" key={sug.id}>
                       <div className="card border-0 shadow-sm h-100" style={{cursor:'pointer'}} onClick={() => navigate(`/properties/${sug.id}`)}>
                         <div className="d-flex align-items-center gap-2 p-2">
-                          <img src={sug.images[0]} alt={sug.name} className="rounded" style={{width:110, height:80, objectFit:'cover'}} />
+                          <img src={process.env.REACT_APP_BACKEND_APP_URL+sug.images[0]} alt={sug.name} className="rounded" style={{width:110, height:80, objectFit:'cover'}} />
                           <div className="flex-grow-1">
                             <div className="fw-semibold small text-success">{sug.name}</div>
                             <div className="small text-muted">{sug.type} • {sug.price.toLocaleString()} $</div>
@@ -298,7 +331,7 @@ const PropertyDetails = () => {
                   <Popup><b>{property.name}</b><br/>{property.address}</Popup>
                 </Marker>
                 {suggestions.map(sug => {
-                  const sugAgent = agents.find(a => a.id === sug.agentId);
+                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
                   const pos = sugAgent?.geoloc || { lat: -4.325, lng: 15.322 };
                   return (
                     <Marker key={sug.id} position={[pos.lat, pos.lng]} icon={new L.Icon({iconUrl: require('../img/leaflet/marker-icon-2x-blue.png'), iconSize:[25,41], iconAnchor:[12,41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize:[41,41]})}>
@@ -378,8 +411,15 @@ const AgentBlockWithReservation = ({ agent, property }) => {
   const handleSuccess = () => {
     setIsReserved(true);
     setShowBooking(false);
-    try { const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]'); if (!reserved.includes(property.id)) { reserved.push(property.id); localStorage.setItem('reserved_properties', JSON.stringify(reserved)); } } catch(e){}
+    try {
+      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+      if (!reserved.includes(String(property.id))) {
+        reserved.push(String(property.id));
+        localStorage.setItem('reserved_properties', JSON.stringify(reserved));
+      }
+    } catch(e){}
   };
+
 
   return (
     <div className="property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light">

@@ -106,13 +106,13 @@ const MapView = () => {
         {/* Tracer les routes entre la position utilisateur et chaque bien */}
         {userPosition && filtered.map((p) => (
           <Polyline
-            key={'route-' + p.id}
+            key={'route-' + String(p.id)}
             positions={[userPosition, getCoords(p.address)]}
             pathOptions={{ color: 'red', weight: 2, dashArray: '6 8' }}
           />
         ))}
         {filtered.map((p) => {
-          const agent = agents.find(a => a.id === p.agentId);
+          const agent = agents.find(a => String(a.id) === String(p.agentId));
           return (
             <Marker key={p.id} position={getCoords(p)}>
               <Popup>
@@ -150,7 +150,7 @@ const MapView = () => {
       </MapContainer>
       {openMessenger && (
         <Messenger
-          agent={agents.find(a => a.id === openMessenger)}
+          agent={agents.find(a => String(a.id) === String(openMessenger))}
           onClose={() => setOpenMessenger(null)}
         />
       )}

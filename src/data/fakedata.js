@@ -1,227 +1,5 @@
 // Données factices pour tests
-export const properties = [
-  {
-    id: 1,
-    name: "Appartement Moderne",
-    description: "Bel appartement au centre-ville, lumineux et spacieux, idéal pour une famille.",
-    type: "Appartement",
-    price: 120000,
-    address: "123 Avenue Kasa-Vubu, Kinshasa",
-    images: [require('../img/property-1.jpg'), require('../img/property-2.jpg')],
-    agentId: 1,
-    geoloc: { lat: -4.3386, lng: 15.2986 },
-    status: "vente",
-    visitFee: 5000,
-    chambres: 3,
-    douches: 2,
-    salon: 1,
-    cuisine: 1,
-    sdb: 2,
-  },
-  {
-    id: 2,
-    name: "Villa avec Jardin",
-    description: "Grande villa avec jardin privatif, piscine et garage. Quartier résidentiel calme.",
-    type: "Villa",
-    price: 350000,
-    address: "45 Avenue du Fleuve, Gombe, Kinshasa",
-    images: [require('../img/property-3.jpg'), require('../img/property-4.jpg')],
-    agentId: 2,
-    geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
-    visitFee: 8000,
-    chambres: 5,
-    douches: 3,
-    salon: 2,
-    cuisine: 1,
-    sdb: 3,
-  },
-  {
-    id: 3,
-    name: "Terrain à bâtir",
-    description: "Terrain de 500m² prêt à bâtir, proche des commodités et transports.",
-    type: "Terrain",
-    price: 80000,
-    address: "Route Matadi, Mont Ngafula, Kinshasa",
-    images: [require('../img/property-5.jpg')],
-    agentId: 3,
-    geoloc: { lat: -4.4841, lng: 15.2471 },
-    status: "vente",
-    visitFee: 3000,
-  },
-  {
-    id: 9,
-    name: "Place commerciale premium",
-    description: "Emplacement idéal pour supermarché ou restaurant, fort passage, parking inclus.",
-    type: "Place commerciale",
-    price: 300000,
-    address: "Avenue du Commerce, Gombe, Kinshasa",
-    images: [require('../img/property-4.jpg'), require('../img/property-3.jpg')],
-    agentId: 1,
-    geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
-    visitFee: 15000,
-    superficie: 350,
-  },
-  {
-    id: 10,
-    name: "Terrain vide à usage mixte",
-    description: "Grand terrain vide, parfait pour projet immobilier ou entrepôt, accès facile.",
-    type: "Terrain vide",
-    price: 120000,
-    address: "Route de Matadi, Mont Ngafula, Kinshasa",
-    images: [require('../img/property-5.jpg')],
-    agentId: 3,
-    geoloc: { lat: -4.4841, lng: 15.2471 },
-    status: "vente",
-    visitFee: 7000,
-    superficie: 800,
-  },
-  {
-    id: 11,
-    name: "Boutique moderne centre-ville",
-    description: "Boutique rénovée, vitrine sur rue passante, idéale prêt-à-porter ou téléphonie.",
-    type: "Boutique",
-    price: 70000,
-    address: "Boulevard du 30 Juin, Gombe, Kinshasa",
-    images: [require('../img/property-2.jpg')],
-    agentId: 2,
-    geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "location",
-    superficie: 45,
-  },
-  {
-    id: 12,
-    name: "Magasin/entrepôt sécurisé",
-    description: "Grand espace de stockage, accès camion, sécurité 24h/24, idéal grossiste.",
-    type: "Magasin",
-    price: 95000,
-    address: "Zone industrielle, Limete, Kinshasa",
-    images: [require('../img/property-6.jpg')],
-    agentId: 2,
-    geoloc: { lat: -4.3892, lng: 15.3486 },
-    status: "location",
-    superficie: 200,
-  },
-  {
-    id: 4,
-    name: "Maison familiale",
-    description: "Maison familiale 4 chambres, 2 salles de bain, salon spacieux, cuisine moderne.",
-    type: "Maison",
-    price: 180000,
-    address: "12 Avenue de la Paix, Limete, Kinshasa",
-    images: [require('../img/property-6.jpg')],
-    agentId: 1,
-    geoloc: { lat: -4.3892, lng: 15.3486 },
-    status: "location",
-    chambres: 4,
-    douches: 2,
-    salon: 1,
-    cuisine: 1,
-    sdb: 2,
-  },
-  {
-    id: 5,
-    name: "Studio Meublé",
-    description: "Studio meublé, idéal pour étudiant ou jeune professionnel, proche université.",
-    type: "Studio",
-    price: 40000,
-    address: "Rue Université, Bandalungwa, Kinshasa",
-    images: [require('../img/property-2.jpg')],
-    agentId: 2,
-    geoloc: { lat: -4.3450, lng: 15.2850 },
-    status: "location",
-    chambres: 1,
-    douches: 1,
-    salon: 1,
-    cuisine: 1,
-    sdb: 1,
-  },
-  {
-    id: 6,
-    name: "Appartement Haut Standing",
-    description: "Appartement haut standing, vue sur le fleuve, sécurité 24h/24, parking.",
-    type: "Appartement",
-    price: 250000,
-    address: "Boulevard du 30 Juin, Gombe, Kinshasa",
-    images: [require('../img/property-1.jpg')],
-    agentId: 3,
-    geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
-    chambres: 2,
-    douches: 2,
-    salon: 1,
-    cuisine: 1,
-    sdb: 2,
-  },
-  {
-    id: 7,
-    name: "Maison de Ville",
-    description: "Maison de ville rénovée, 3 chambres, terrasse, proche commerces et écoles.",
-    type: "Maison",
-    price: 150000,
-    address: "Avenue des écoles, Kintambo, Kinshasa",
-    images: [require('../img/property-3.jpg')],
-    agentId: 1,
-    geoloc: { lat: -4.3600, lng: 15.2850 },
-    status: "vente",
-  },
-  {
-    id: 8,
-    name: "Penthouse Luxueux",
-    description: "Penthouse luxueux avec grande terrasse, jacuzzi, vue panoramique sur Kinshasa.",
-    type: "Penthouse",
-    price: 500000,
-    address: "Immeuble Prestige, Gombe, Kinshasa",
-    images: [require('../img/property-4.jpg')],
-    agentId: 2,
-    geoloc: { lat: -4.3208, lng: 15.3126 },
-    status: "vente",
-  },
-  // nouvelles salles de fêtes ajoutées
-  {
-    id: 101,
-    title: 'Grande Salle de fête - Gombe',
-    type: 'Salle de fête',
-    address: 'Gombe, Kinshasa',
-    price: 200000,
-    images: [require('../img/salles/salle_gombe.jpg')],
-    bedrooms: 0,
-    area: 350,
-    description: 'Grande salle équipée pour mariages, conférences et événements professionnels. Parking et cuisine disponible.',
-    features: ['Parking', 'Cuisine', 'Scène', 'Toilettes'],
-    agentId: 2,
-    geoloc: { lat: -4.3208, lng: 15.3126 }
-  },
-  {
-    id: 102,
-    title: 'Salle événementielle moderne - La Gombe',
-    type: 'Salle de fête',
-    address: 'Gombe, Kinshasa',
-    price: 150000,
-    images: [require('../img/salles/salle_modern.jpg')],
-    bedrooms: 0,
-    area: 280,
-    description: 'Espace moderne avec sonorisation, éclairage LED et mobilier modulable. Idéal pour réceptions et soirées.',
-    features: ['Sonorisation', 'Eclairage LED', 'Mobilier'],
-    agentId: 3,
-    geoloc: { lat: -4.3208, lng: 15.3126 }
-  },
-  {
-    id: 103,
-    title: 'Salle polyvalente - Kinshasa Centre',
-    type: 'Salle de fête',
-    address: 'Kinshasa Centre, Kinshasa',
-    price: 120000,
-    images: [require('../img/salles/salle_centre.jpg')],
-    bedrooms: 0,
-    area: 220,
-    description: 'Salle polyvalente proche des transports, excellente pour séminaires et cérémonies familiales.',
-    features: ['Proche transport', 'Climatisation'],
-    agentId: 1,
-    geoloc: { lat: -4.3250, lng: 15.3220 }
-  },
-];
+export const properties = [];
 
 export const agents = [
   {
@@ -343,3 +121,138 @@ export const subscriptions = [
   { id: 1, name: "Basic", price: 0, features: ["Publier 1 bien"] },
   { id: 2, name: "Pro", price: 29, features: ["Publier 10 biens", "Mise en avant"] },
 ];
+
+// --- Runtime replacement with real server data (non-blocking) ---
+// This module exports mutable arrays. On module load we try to fetch
+// real data from the backend and replace the arrays in-place so
+// other modules that imported these arrays see the updated values.
+(() => {
+  const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL).replace(/\/$/, '');
+
+  async function safeFetchJSON(url) {
+    try {
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch (err) {
+      // ignore - we keep fake data
+      return null;
+    }
+  }
+
+  // Fetch properties and agents in background and mutate exported arrays
+  (async () => {
+    try {
+      // try Mobilier endpoints first (backend exposes mobilier controller), then properties paths
+      const tryUrls = [`${API_BASE}/api/mobilier`];
+      let propsResp = null;
+      let triedUrl = null;
+      for (const u of tryUrls) {
+        triedUrl = u;
+        try {
+          const r = await fetch(u, { credentials: 'include' });
+          if (!r.ok) {
+            // capture body text to help debugging 404/500
+            let bodyText = null;
+            try { bodyText = await r.text(); } catch(e) { bodyText = null; }
+            console.warn(`ndaku:fakedata - non-ok response from ${u}: ${r.status} ${r.statusText}`, bodyText ? { bodyText } : null);
+            continue;
+          }
+          // try parse json
+          try { propsResp = await r.json(); } catch(e) { propsResp = null; }
+          if (propsResp) break;
+        } catch (e) {
+          console.warn(`ndaku:fakedata - fetch failed for ${u}:`, e?.message || e);
+          propsResp = null;
+        }
+      }
+      // backend might return { data: [...] } or an array directly
+      const rawProps = propsResp && (Array.isArray(propsResp) ? propsResp : propsResp.data || propsResp.properties) || null;
+      if (rawProps && Array.isArray(rawProps) && rawProps.length > 0) {
+        // map to expected front-end shape
+        const mapped = rawProps.map(p => ({
+          id: p._id || p.id || p.propertyId || p.pid || String(Math.random()),
+          name: p.name || p.title || p.label || '',
+          title: p.title || p.name || '',
+          description: p.description || p.excerpt || '',
+          type: p.type || p.category || '',
+          price: p.price || p.amount || 0,
+          address: p.address || p.location || (p.addressLine ? `${p.addressLine}` : ''),
+          images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : (i.url || i.path || ''))) : (p.image ? [p.image] : []),
+          agentId: p.agentId || (p.agent && (p.agent._id || p.agent.id)) || null,
+          geoloc: p.geoloc || p.location || p.coords || null,
+          status: p.status || p.availability || '',
+          visitFee: p.visitFee || p.fee || 0,
+          chambres: p.chambres || p.bedrooms || 0,
+          douches: p.douches || p.bathrooms || 0,
+          salon: p.salon || p.livingRooms || 0,
+          cuisine: p.cuisine || p.kitchens || 0,
+          sdb: p.sdb || p.baths || 0,
+          superficie: p.superficie || p.area || p.size || null,
+        }));
+        // inplace replace
+        properties.splice(0, properties.length, ...mapped);
+        // notify listeners
+        try { window.dispatchEvent(new CustomEvent('ndaku:properties-updated', { detail: { properties: mapped } })); } catch (e) { }
+      } else {
+        // No properties received - log and notify UI with tried urls
+        const errMsg = `ndaku:fakedata - no properties returned (tried ${tryUrls.join(', ')})`;
+        try { console.error(errMsg, { triedUrl, response: propsResp }); } catch (e) { /* ignore */ }
+        try { window.dispatchEvent(new CustomEvent('ndaku:properties-error', { detail: { message: errMsg, triedUrl, triedUrls: tryUrls, response: propsResp } })); } catch (e) { }
+        // don't block UI with alert by default; keep console and event for app to show toast
+      }
+
+      // agents endpoint may also be under /api/agents
+      const tryAgentUrls = [`${API_BASE}/api/agents`, `${API_BASE}/agents`];
+      let agentsResp = null;
+      let triedAgentUrl = null;
+      for (const u of tryAgentUrls) {
+        agentsResp = await safeFetchJSON(u);
+        triedAgentUrl = u;
+        if (agentsResp) break;
+      }
+      const rawAgents = agentsResp && (Array.isArray(agentsResp) ? agentsResp : agentsResp.data || agentsResp.items) || null;
+      if (rawAgents && Array.isArray(rawAgents) && rawAgents.length > 0) {
+        const mappedAgents = rawAgents.map(a => ({
+          id: a._id || a.id || String(Math.random()),
+          name: a.name || a.fullName || a.username || '',
+          address: a.address || a.location || '',
+          email: a.email || '',
+          phone: a.phone || a.telephone || '',
+          whatsapp: a.whatsapp || '',
+          facebook: a.facebook || '',
+          photo: a.photo || a.avatar || '',
+          status: a.status || 'Actif',
+          subscription: a.subscription || 'Basic',
+          geoloc: a.geoloc || a.location || null,
+          busyDates: a.busyDates || [],
+          properties: a.properties || []
+        }));
+        agents.splice(0, agents.length, ...mappedAgents);
+        try { window.dispatchEvent(new CustomEvent('ndaku:agents-updated', { detail: { agents: mappedAgents } })); } catch (e) { }
+      } else {
+        const errMsg = `ndaku:fakedata - no agents returned (tried ${tryAgentUrls.join(', ')})`;
+        try { console.error(errMsg, { triedAgentUrl, response: agentsResp }); } catch (e) { }
+        try { window.dispatchEvent(new CustomEvent('ndaku:agents-error', { detail: { message: errMsg, triedUrl: triedAgentUrl, triedUrls: tryAgentUrls, response: agentsResp } })); } catch (e) { }
+      }
+    } catch (err) {
+      // silent
+      console.warn('ndaku:fakedata - could not fetch live data', err?.message || err);
+    }
+  })();
+
+  // Set current user from localStorage if available
+  try {
+    const tmp = localStorage.getItem('ndaku_user') || localStorage.getItem('ndaku-user') || null;
+    if (tmp) {
+      const u = JSON.parse(tmp);
+      if (u && typeof u === 'object') {
+        // Replace exported users array content
+        users.splice(0, users.length, { id: u.id || u._id || u.userId || 'me', name: u.name || u.fullName || u.email || 'Utilisateur', email: u.email || '', role: u.role || 'user', properties: u.properties || [] });
+        try { window.dispatchEvent(new CustomEvent('ndaku:users-updated', { detail: { users } })); } catch (e) { }
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+})();

@@ -11,8 +11,8 @@ export function useGlobalCallModal() {
     // Handler global pour tous les boutons téléphone
     const handler = (e) => {
       const { meta } = e.detail || {};
-      let agent = null;
-      if (meta?.agentId) agent = agents.find(a => a.id === meta.agentId);
+  let agent = null;
+  if (meta?.agentId) agent = agents.find(a => String(a.id) === String(meta.agentId));
       setCall({ open: true, agent, status: 'connecting', muted: false, volume: 1 });
       // Simule la connexion puis passage à "in-call"
       setTimeout(() => setCall(c => ({ ...c, status: 'in-call' })), 1200);
