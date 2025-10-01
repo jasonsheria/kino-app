@@ -100,30 +100,6 @@ const Home = () => {
         }
     }, []);
 
-    // track loading of both recommendations; hide preloader when both done or when safety timeout fires
-    const [propsLoaded, setPropsLoaded] = React.useState(false);
-    const [vehLoaded, setVehLoaded] = React.useState(false);
-    React.useEffect(() => {
-        let mounted = true;
-        (async () => {
-            await loadRecommendations('properties');
-            if (!mounted) return;
-            setPropsLoaded(true);
-        })();
-        (async () => {
-            await loadRecommendations('vehicles');
-            if (!mounted) return;
-            setVehLoaded(true);
-        })();
-        return () => { mounted = false; };
-    }, [loadRecommendations]);
-
-    React.useEffect(() => {
-        if (propsLoaded && vehLoaded) setLoading(false);
-    }, [propsLoaded, vehLoaded]);
-
-
-
     // Configuration des catégories et filtres
     const propertyConfig = React.useMemo(() => ({
         categories: {
@@ -158,18 +134,6 @@ const Home = () => {
         }
     }), []);
 
-    // État local pour les résultats filtrés
-    const [filteredResults, setFilteredResults] = React.useState(properties);
-    
-    // Comptage des biens par catégorie
-    const categoryCounts = React.useMemo(() => {
-        const counts = {};
-        Object.entries(propertyConfig.categories).forEach(([key, category]) => {
-            counts[key] = properties.filter(category.filter).length;
-        });
-        return counts;
-    }, [properties, propertyConfig]);
-
     // Fonction de filtrage principale
     const applyFilters = React.useCallback((props, activeFilter, activeCommune) => {
         let results = [...props];
@@ -192,6 +156,62 @@ const Home = () => {
         
         return results;
     }, [propertyConfig]);
+
+    // État local pour les résultats filtrés et le chargement
+    const [filteredResults, setFilteredResults] = React.useState(properties);
+    const [propertiesLoading, setPropertiesLoading] = React.useState(true);
+
+    // track loading of both recommendations; hide preloader when both done or when safety timeout fires
+    const [propsLoaded, setPropsLoaded] = React.useState(false);
+    const [vehLoaded, setVehLoaded] = React.useState(false);
+    React.useEffect(() => {
+        let mounted = true;
+        (async () => {
+            await loadRecommendations('properties');
+            if (!mounted) return;
+            setPropsLoaded(true);
+        })();
+        (async () => {
+            await loadRecommendations('vehicles');
+            if (!mounted) return;
+            setVehLoaded(true);
+        })();
+        return () => { mounted = false; };
+    }, [loadRecommendations]);
+
+    React.useEffect(() => {
+        if (propsLoaded && vehLoaded) setLoading(false);
+    }, [propsLoaded, vehLoaded]);
+
+    // Écouter l'événement de mise à jour des propriétés
+    React.useEffect(() => {
+        const handlePropertiesUpdate = () => {
+            setPropertiesLoading(false);
+            const results = applyFilters(properties, filter, commune);
+            setFilteredResults(results);
+        };
+        const handlePropertiesError = () => {
+            setPropertiesLoading(false);
+        };
+
+        window.addEventListener('ndaku:properties-updated', handlePropertiesUpdate);
+        window.addEventListener('ndaku:properties-error', handlePropertiesError);
+
+        // Nettoyage
+        return () => {
+            window.removeEventListener('ndaku:properties-updated', handlePropertiesUpdate);
+            window.removeEventListener('ndaku:properties-error', handlePropertiesError);
+        };
+    }, [applyFilters, filter, commune]);
+
+    // Comptage des biens par catégorie
+    const categoryCounts = React.useMemo(() => {
+        const counts = {};
+        Object.entries(propertyConfig.categories).forEach(([key, category]) => {
+            counts[key] = properties.filter(category.filter).length;
+        });
+        return counts;
+    }, [properties, propertyConfig]);
 
     // Effet pour mettre à jour les résultats filtrés
     React.useEffect(() => {
@@ -716,7 +736,8 @@ const Home = () => {
                     ))}
                     {filteredResults.length === 0 && (
                         <div className="col-12 text-center py-4">
-                            <p className="text-muted">Aucun bien ne correspond aux critères sélectionnés.</p>
+                            {!propertiesLoading && <p className="text-muted">Aucun bien ne correspond aux critères sélectionnés.</p>}
+                            {propertiesLoading && <p className="text-muted">Chargement des biens...</p>}
                         </div>
                     )}
                 </div>

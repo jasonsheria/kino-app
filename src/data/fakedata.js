@@ -172,12 +172,12 @@ export const subscriptions = [
         // map to expected front-end shape
         const mapped = rawProps.map(p => ({
           id: p._id || p.id || p.propertyId || p.pid || String(Math.random()),
-          name: p.name || p.title || p.label || '',
+          name: p.name || p.label || '',
           title: p.title || p.name || '',
           description: p.description || p.excerpt || '',
           type: p.type || p.category || '',
-          price: p.price || p.amount || 0,
-          address: p.address || p.location || (p.addressLine ? `${p.addressLine}` : ''),
+          price: p.prix || p.amount || 0,
+          address: p.adresse || p.location || (p.addressLine ? `${p.addressLine}` : ''),
           images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : (i.url || i.path || ''))) : (p.image ? [p.image] : []),
           agentId: p.agentId || (p.agent && (p.agent._id || p.agent.id)) || null,
           geoloc: p.geoloc || p.location || p.coords || null,
@@ -185,10 +185,13 @@ export const subscriptions = [
           visitFee: p.visitFee || p.fee || 0,
           chambres: p.chambres || p.bedrooms || 0,
           douches: p.douches || p.bathrooms || 0,
-          salon: p.salon || p.livingRooms || 0,
-          cuisine: p.cuisine || p.kitchens || 0,
-          sdb: p.sdb || p.baths || 0,
+          salon: p.salons || p.livingRooms || 0,
+          cuisine: p.cuisines || p.kitchens || 0,
+          sdb: p.salles_de_bain || p.baths || 0,
           superficie: p.superficie || p.area || p.size || null,
+          commune : p.commune || '',
+          ville : p.ville || '',
+          pays : p.pays || 'RDC',
         }));
         // inplace replace
         properties.splice(0, properties.length, ...mapped);
