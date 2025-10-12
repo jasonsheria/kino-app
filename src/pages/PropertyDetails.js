@@ -89,6 +89,8 @@ const PropertyDetails = () => {
   // Hooks - declared unconditionally to satisfy rules of hooks
   const [showVirtual, setShowVirtual] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(0);
+  // map selection state for floating detail panel
+  const [selectedMapProperty, setSelectedMapProperty] = useState(null);
 
   // Neighborhood scores state (can be updated by evaluation)
   // Compute initial neighborhood deterministically without reading `property` when missing
@@ -324,22 +326,76 @@ const PropertyDetails = () => {
               </div>
             </div>
 
-            <div className="rounded-4 overflow-hidden border" style={{height:260}}>
+            <div className="rounded-4 overflow-hidden border" style={{height:260, position:'relative'}}>
               <MapContainer center={[mainPos.lat, mainPos.lng]} zoom={13} style={{height:'100%',width:'100%'}} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[mainPos.lat, mainPos.lng]} icon={new L.Icon({iconUrl: require('../img/leaflet/marker-icon-2x-red.png'), iconSize:[25,41], iconAnchor:[12,41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize:[41,41]})}>
-                  <Popup><b>{property.name}</b><br/>{property.address}</Popup>
+                {/* Main property marker */}
+                <Marker position={[property.geoloc?.lat || mainPos.lat, property.geoloc?.lng || mainPos.lng]} icon={new L.Icon({iconUrl: require('../img/leaflet/marker-icon-2x-red.png'), iconSize:[25,41], iconAnchor:[12,41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize:[41,41]})} eventHandlers={{ click: () => setSelectedMapProperty(property) }}>
+                  <Popup>
+                    <div style={{width:220}}>
+                      <div style={{display:'flex',gap:8}}>
+                        <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL+property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{width:80,height:60,objectFit:'cover',borderRadius:6}} />
+                        <div style={{flex:1}}>
+                          <div style={{fontWeight:700}}>{property.titre || property.name}</div>
+                          <div style={{fontSize:12,color:'#666'}}>{property.adresse || property.address}</div>
+                          <div style={{marginTop:6,fontWeight:700,color:'#0f5132'}}>{(property.prix || property.price || 0).toLocaleString()} $</div>
+                        </div>
+                      </div>
+                      <div style={{display:'flex',gap:8,marginTop:8,justifyContent:'flex-end'}}>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${property._id || property.id}`)}>Voir</button>
+                        <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: property.agentId || property.agent } }))}>Contacter</button>
+                      </div>
+                    </div>
+                  </Popup>
                 </Marker>
+
                 {suggestions.map(sug => {
-                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
-                  const pos = sugAgent?.geoloc || { lat: -4.325, lng: 15.322 };
+                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId) || String(a._id) === String(sug.agentId));
+                  const posSrc = sug.geoloc || sug.lat && sug.lng ? { lat: sug.geoloc?.lat || sug.lat, lng: sug.geoloc?.lng || sug.lng } : sugAgent?.geoloc;
+                  const pos = posSrc || { lat: -4.325, lng: 15.322 };
                   return (
-                    <Marker key={sug.id} position={[pos.lat, pos.lng]} icon={new L.Icon({iconUrl: require('../img/leaflet/marker-icon-2x-blue.png'), iconSize:[25,41], iconAnchor:[12,41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize:[41,41]})}>
-                      <Popup><b>{sug.name}</b><br/>{sug.address}</Popup>
+                    <Marker key={sug._id || sug.id} position={[pos.lat, pos.lng]} icon={new L.Icon({iconUrl: require('../img/leaflet/marker-icon-2x-blue.png'), iconSize:[25,41], iconAnchor:[12,41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize:[41,41]})} eventHandlers={{ click: () => setSelectedMapProperty(sug) }}>
+                      <Popup>
+                        <div style={{width:200}}>
+                          <div style={{display:'flex',gap:8}}>
+                            <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL+sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{width:72,height:56,objectFit:'cover',borderRadius:6}} />
+                            <div style={{flex:1}}>
+                              <div style={{fontWeight:700}}>{sug.titre || sug.name}</div>
+                              <div style={{fontSize:12,color:'#666'}}>{sug.adresse || sug.address}</div>
+                              <div style={{marginTop:6,fontWeight:700,color:'#0f5132'}}>{(sug.prix || sug.price || 0).toLocaleString()} $</div>
+                            </div>
+                          </div>
+                          <div style={{display:'flex',gap:8,marginTop:8,justifyContent:'flex-end'}}>
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${sug._id || sug.id}`)}>Voir</button>
+                            <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: sug.agentId || sug.agent } }))}>Contacter</button>
+                          </div>
+                        </div>
+                      </Popup>
                     </Marker>
                   );
                 })}
               </MapContainer>
+
+              {/* Floating detail panel when a marker is selected */}
+              {selectedMapProperty && (
+                <div style={{position:'absolute', right:12, top:12, width:320, zIndex:9999}}>
+                  <div className="card shadow-lg" style={{borderRadius:10, overflow:'hidden'}}>
+                    <div style={{display:'flex'}}>
+                      <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL+selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{width:120,height:90,objectFit:'cover'}} />
+                      <div style={{padding:12,flex:1}}>
+                        <div style={{fontWeight:700}}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
+                        <div style={{fontSize:12,color:'#666'}}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
+                        <div style={{marginTop:6,fontWeight:700,color:'#0f5132'}}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
+                        <div style={{marginTop:8, display:'flex', gap:8}}>
+                          <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
+                          <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
+                          <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

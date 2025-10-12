@@ -60,7 +60,7 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     address: initial.address || '',
     description: initial.description || '',
     commune: initial.commune || 'Gombe',
-    agentId: initial.agentId || (agents && agents[0] && agents[0].id) || null,
+    agentId: initial.agentId || (agents && agents[0] && agents[0]._id) || null,
     chambres: initial.chambres || initial.bedrooms || '0',
     douches: initial.douches || '0',
     salon: initial.salon || '1',
@@ -74,6 +74,10 @@ export default function OwnerPropertyForm({onSave, initial={}}){
 
   const [p, setP] = useState(defaults);
   const [errors, setErrors] = useState({});
+  const [remoteAgents, setRemoteAgents] = useState([]);
+  const [agentsLoading, setAgentsLoading] = useState(false);
+  const [agentsError, setAgentsError] = useState(null);
+  const mountedRef = useRef(true);
 
   // images as array for multi-upload
   const [images, setImages] = useState(initial.images ? initial.images.slice() : (defaults.image ? [defaults.image] : []));
@@ -185,11 +189,66 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     if(sampleOwners && sampleOwners[0] && sampleOwners[0].preferredAgents) return sampleOwners[0].preferredAgents;
     return null;
   }, [ownerDraft]);
+  // Fetch agents from backend (prefer user-scoped endpoint). Fallback to local fake data if unavailable.
+  useEffect(()=>{ return ()=>{ mountedRef.current = false; }; }, []);
+
+  const fetchAgents = async () => {
+    try{
+      setAgentsLoading(true);
+      setAgentsError(null);
+      const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/+$/, '');
+      const token = localStorage.getItem('ndaku_auth_token');
+      const tryUrls = [`${base}/api/agents/me`, `${base}/api/agents?site=${process.env.REACT_APP_SITE_ID || ''}`, `${base}/api/agents`];
+      let got = null;
+      for(const u of tryUrls){
+        console.log('OwnerPropertyForm:fetch - trying', u);
+        try{
+          const res = await fetch(u, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+          console.log('OwnerPropertyForm:fetch - response status', u, res.status);
+          if(!res.ok) continue;
+          const json = await res.json();
+          console.log('OwnerPropertyForm:fetch - json', u, json);
+          const items = Array.isArray(json) ? json : (json.data || json.items || json.agents || json);
+          if(items && Array.isArray(items) && items.length){ got = items; break; }
+        }catch(e){ console.warn('OwnerPropertyForm:fetch - error fetching', u, e); }
+      }
+      if(!mountedRef.current) return;
+      if(got && Array.isArray(got) && got.length){
+        const mapped = got.map(a => ({ id: a._id || a.id || a.userId, prenom: a.prenom || a.firstName || '', nom: a.nom || a.lastName || '', name: a.name || a.fullName || '', raw: a }));
+        console.log('OwnerPropertyForm:fetch - mapped remote agents', mapped);
+        if(mountedRef.current) setRemoteAgents(mapped);
+      }
+    }catch(e){ if(mountedRef.current) setAgentsError(e?.message || String(e)); }
+    finally{ if(mountedRef.current) setAgentsLoading(false); }
+  };
+
+  useEffect(()=>{ fetchAgents(); }, [preferredAgentIds]);
 
   const agentOptions = useMemo(()=>{
-    if(preferredAgentIds && preferredAgentIds.length){ return agents.filter(a=> preferredAgentIds.includes(a.id)); }
-    return agents;
-  }, [preferredAgentIds]);
+    let opts = [];
+    if(remoteAgents && remoteAgents.length){
+      if(preferredAgentIds && preferredAgentIds.length){
+        const filtered = remoteAgents.filter(a => preferredAgentIds.some(pref => String(pref) === String(a.id) || String(pref) === String(a._id) || String(pref) === String(a.raw && a.raw._id) || String(pref) === String(a.raw && a.raw.id)));
+        console.log('OwnerPropertyForm:agentOptions - filtered remoteAgents by preferredAgentIds', { preferredAgentIds, filteredCount: filtered.length });
+        // if filtering yields results, use them; otherwise fall back to remoteAgents
+        opts = (filtered && filtered.length) ? filtered : remoteAgents;
+      } else {
+        opts = remoteAgents;
+      }
+    } else {
+      if(preferredAgentIds && preferredAgentIds.length){
+        const filtered = agents.filter(a=> preferredAgentIds.some(pref => String(pref) === String(a.id) || String(pref) === String(a._id)));
+        opts = (filtered && filtered.length) ? filtered : agents;
+      } else {
+        opts = agents;
+      }
+    }
+    console.log('OwnerPropertyForm:agentOptions computed', { preferredAgentIds, remoteAgentsCount: (remoteAgents||[]).length, optsCount: (opts||[]).length, optsSample: (opts||[]).slice(0,3) });
+    return opts;
+  }, [remoteAgents, preferredAgentIds]);
+
+  // Log on render to confirm component mounts
+  console.log('OwnerPropertyForm:render - component mounted', { initial, defaults });
 
   // image helpers
   const addFiles = (fileList)=>{
@@ -340,11 +399,12 @@ export default function OwnerPropertyForm({onSave, initial={}}){
                 select
                 label="Agent"
                 value={p.agentId || ''}
-                onChange={(e) => setP({ ...p, agentId: Number(e.target.value) })}
+                onChange={(e) => setP({ ...p, agentId: e.target.value })}
+                helperText={agentsLoading ? 'Chargement des agents...' : agentsError ? `Erreur: ${agentsError}` : ''}
               >
                 {agentOptions.map((a) => (
-                  <MenuItem key={a.id} value={a.id}>
-                    {a.name}
+                  <MenuItem key={a.id || a._id } value={a.id || a._id}>
+                    {a.prenom && a.nom ? `${a.prenom} ${a.nom}` : (a.name || a.fullName || a.prenom || a.nom || `Agent ${a.prenom, a.nom}`)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -353,6 +413,17 @@ export default function OwnerPropertyForm({onSave, initial={}}){
                   Agents suggérés selon vos préférences
                 </Typography>
               )}
+              <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Agents trouvés: {agentOptions ? agentOptions.length : 0}
+                </Typography>
+                <Button size="small" variant="outlined" onClick={() => fetchAgents()} disabled={agentsLoading}>
+                  {agentsLoading ? 'Chargement...' : 'Réessayer'}
+                </Button>
+                {agentsError && (
+                  <Typography variant="caption" color="error" sx={{ ml: 1 }}>{agentsError}</Typography>
+                )}
+              </Box>
             </Grid>
           </Grid>
 

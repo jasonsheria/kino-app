@@ -1,5 +1,5 @@
 const API_URL = process.env.REACT_APP_BACKEND_APP_URL;
-
+const SITE_ID = process.env.REACT_APP_SITE_ID || '689255f6c544155ff0443a9b';
 if (!API_URL) {
   console.warn('REACT_APP_BACKEND_APP_URL is not defined in .env file');
 }

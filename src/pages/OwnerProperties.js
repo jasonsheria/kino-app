@@ -95,7 +95,12 @@ export default function OwnerProperties() {
     'MAISON',
     'VILLA',
     'TERRAIN',
-    'BUREAU'
+    'BUREAU',
+    'STUDIO',
+    'GARAGE',
+    'VOITURE',
+    'MOTO',
+    'AUTRE'
   ], []);
 
   const [stats, setStats] = useState({
@@ -225,6 +230,7 @@ export default function OwnerProperties() {
         commune: p.commune,
         quartier: p.quartier,
         categorie: p.type,
+        agent : p?.agentId,
         statut: p.status || 'vente',
         chambres: Number(p.chambres) || 0,
         douches: Number(p.douches) || 0,
@@ -234,7 +240,7 @@ export default function OwnerProperties() {
         superficie: Number(p.superficie) || 0,
         status: p.status || 'vente',
         proprietaireType: 'Owner',
-        proprietaire: user?.id,
+        proprietaire: user?.id || user?._id,
         geoloc: p.geoloc,
         features: p.features || []
       };
@@ -266,6 +272,8 @@ export default function OwnerProperties() {
 
       // Ensure keepImages is part of the JSON payload because backend reads @Body('data')
       const finalData = { ...propertyData };
+  // Include agentId if selected so backend can link property to an agent
+  if (p.agent) finalData.agent = p.agentId;
       if (derivedKeepImages.length) finalData.keepImages = derivedKeepImages;
       // Ajouter les données JSON
       formData.append('data', JSON.stringify(finalData));
@@ -300,7 +308,7 @@ export default function OwnerProperties() {
       formData.append('chambres', p.chambres || '');
       formData.append('douches', p.douches || '');
       formData.append('salon', p.salon || '1');
-      formData.append('cuisine', p.cuisine || '1');
+      formData.append('cuisine', p.cuisine || '');
       formData.append('sdb', p.sdb || '');
       formData.append('superficie', p.superficie || '');
       formData.append('status', p.status || 'vente');
@@ -664,25 +672,7 @@ export default function OwnerProperties() {
                     type: p.type,
                     price: p.prix,
                     address: p.adresse,
-                    images: p.images && p.images.length > 0
-                      ? p.images.map(img => {
-                          try {
-                            // If it's already a full URL, return as-is
-                            if (img.startsWith('http')) return img;
-
-                            // Ensure backend base URL has no trailing slash
-                            const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/+$/, '');
-
-                            // Images stored in DB are relative paths beginning with `/uploads/...`
-                            const resolved = img.startsWith('/') ? `${base}${img}` : `${base}/${img}`;
-                            console.log('Resolved image URL for property', p._id, resolved);
-                            return resolved;
-                          } catch (e) {
-                            console.error('Error resolving image URL', e, img);
-                            return placeholderImage;
-                          }
-                        })
-                      : [placeholderImage],
+                    images: p.images,
                     agentId: p.agentId,
                     geoloc: p.geoloc || { lat: -4.3250, lng: 15.3220 },
                     status: p.statut,

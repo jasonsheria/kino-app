@@ -205,12 +205,20 @@ export const subscriptions = [
         // don't block UI with alert by default; keep console and event for app to show toast
       }
 
-      // agents endpoint may also be under /api/agents
-      const tryAgentUrls = [`${API_BASE}/api/agents`, `${API_BASE}/agents`];
+      // agents endpoint may also be under /api/agents; prefer user-scoped /api/agents/me using auth token
+      const token = localStorage.getItem('ndaku_auth_token');
+      const tryAgentUrls = [`${API_BASE}/api/agents/me`, `${API_BASE}/api/agents`, `${API_BASE}/agents`];
       let agentsResp = null;
       let triedAgentUrl = null;
       for (const u of tryAgentUrls) {
-        agentsResp = await safeFetchJSON(u);
+        try {
+          const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+          const r = await fetch(u, { headers });
+          if (!r.ok) continue;
+          try { agentsResp = await r.json(); } catch (e) { agentsResp = null; }
+        } catch (e) {
+          agentsResp = null;
+        }
         triedAgentUrl = u;
         if (agentsResp) break;
       }
@@ -219,12 +227,14 @@ export const subscriptions = [
         const mappedAgents = rawAgents.map(a => ({
           id: a._id || a.id || String(Math.random()),
           name: a.name || a.fullName || a.username || '',
+          prenom : a.prenom || '',
           address: a.address || a.location || '',
           email: a.email || '',
           phone: a.phone || a.telephone || '',
           whatsapp: a.whatsapp || '',
           facebook: a.facebook || '',
-          photo: a.photo || a.avatar || '',
+          photo: a.image || a.avatar || '',
+          image : a.image || '',
           status: a.status || 'Actif',
           subscription: a.subscription || 'Basic',
           geoloc: a.geoloc || a.location || null,

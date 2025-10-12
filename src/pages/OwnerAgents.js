@@ -3,6 +3,7 @@ import OwnerLayout from '../components/owner/OwnerLayout';
 import AgentCard from '../components/agent/AgentCard';
 import '../styles/owner.css';
 import { agents as globalAgents, owners } from '../data/fakedata';
+import api from '../services/api.service';
 import {
   Box,
   Grid,
@@ -19,6 +20,8 @@ import {
   useMediaQuery,
   InputAdornment,
   IconButton,
+  Snackbar,
+  Alert,
   Grow,
   Slide
 } from '@mui/material';
@@ -28,39 +31,191 @@ import { forwardRef } from 'react';
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
+const SITE_ID = process.env.REACT_APP_SITE_ID || '689255f6c544155ff0443a9b';
+
+// small wrapper for agents endpoints
+const agentAPI = {
+  // If userId is present, call the authenticated endpoint `/api/agents/me` (server reads user from JWT).
+  // Otherwise call the public site-scoped endpoint `/api/agents?site=`.
+  list: ({ siteId, userId } = {}) => {
+      // call the authenticated endpoint; token must be present in api instance
+      return api.get('/api/agents/me', { params: { site: siteId, user: userId } });
+  },
+  get: (id) => api.get(`/api/agents/${id}`),
+  create: (data) => api.post(`/api/agents`, data),
+  update: (id, data) => api.put(`/api/agents/${id}`, data),
+  remove: (id) => api.delete(`/api/agents/${id}`),
+  upload: (file) => {
+    const fd = new FormData(); fd.append('file', file);
+    return api.post(`/api/agents/upload`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  }
+};
 
 export default function OwnerAgents(){
   const owner = owners[0] || { id:1, preferredAgents: [] };
   const ownerId = owner.id;
 
-  const [items, setItems] = useState([]);
-  useEffect(()=>{
+  // helper: validate a Mongo ObjectId (24 hex chars)
+  const isValidObjectId = (val) => typeof val === 'string' && /^[a-fA-F0-9]{24}$/.test(val);
+
+  // Attempt to resolve a valid site id from several places: owner.site_id, ownerId (if ObjectId), or logged user
+  // const resolveSiteId = ()=>{
+  //   if (isValidObjectId(owner.site_id)) return owner.site_id;
+  //   if (isValidObjectId(ownerId)) return ownerId;
+  //   try{
+  //     const raw = localStorage.getItem('ndaku_user');
+  //     if(!raw) return null;
+  //     const user = JSON.parse(raw);
+  //     if(user){
+  //       if(isValidObjectId(user.site_id)) return user.site_id;
+  //       if(isValidObjectId(user.site)) return user.site;
+  //       if(isValidObjectId(user.id)) return user.id;
+  //     }
+  //   }catch(e){ /* ignore parse errors */ }
+  //   return null;
+  // };
+
+  // get current logged user id from localStorage (if available and valid ObjectId)
+  const getCurrentUserId = ()=>{
     try{
-      const s = JSON.parse(localStorage.getItem(`owner_agents_${ownerId}`)||'null');
-      setItems(Array.isArray(s)?s: owner.preferredAgents.map(id=> globalAgents.find(a=>a.id===id)).filter(Boolean));
-    }catch(e){
-      setItems(owner.preferredAgents.map(id=> globalAgents.find(a=>a.id===id)).filter(Boolean));
-    }
+      const raw = localStorage.getItem('ndaku_user');
+      if(!raw) return null;
+      const user = JSON.parse(raw);
+      const candidate = user?._id || user?.id || user?.userId || user?.id;
+      if(isValidObjectId(candidate)) return candidate;
+    }catch(e){ /* ignore */ }
+    return null;
+  };
+
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [notification, setNotification] = useState({ open: false, msg: '', severity: 'info' });
+
+  useEffect(()=>{
+    let mounted = true;
+    const fetchAgents = async ()=>{
+      setLoading(true); setError(null);
+      try{
+        const siteId = process.env.REACT_APP_SITE_ID || owner.site_id || (isValidObjectId(ownerId) ? ownerId : null);
+        if(!siteId){
+          // no valid site id; fallback to local data
+          console.warn('No valid site_id found for agents list');
+          setError(new Error('Missing or invalid site_id'));
+          return;
+        }
+        const userId = getCurrentUserId();
+        let res;
+        if(userId){
+          // try authenticated route first; if it fails (401/500) fallback to site route
+          try{
+            res = await agentAPI.list({ siteId, userId });
+          }catch(innerErr){
+            console.warn('Authenticated agents fetch failed, falling back to site-scoped list', innerErr);
+            res = await api.get('/api/agents', { params: { site: siteId } });
+          }
+        }else{
+          res = await api.get('/api/agents/me', { params: { user: userId } });
+        }
+        if(!mounted) return;
+        setItems(Array.isArray(res.data) ? res.data : []);
+      }catch(e){
+        console.warn('Failed to load agents from API, falling back to local', e);
+        setItems(owner.preferredAgents.map(id=> globalAgents.find(a=>a.id===id)).filter(Boolean));
+        setError(e);
+      }finally{
+        if(mounted) setLoading(false);
+      }
+    };
+    fetchAgents();
+    return ()=> { mounted = false; };
   },[ownerId]);
-  const persist = (next)=>{ try{ localStorage.setItem(`owner_agents_${ownerId}`, JSON.stringify(next)); }catch(e){} setItems(next); };
+
+  const persist = (next)=>{ setItems(next); };
 
   const [filter, setFilter] = useState('');
   const filtered = useMemo(()=> items.filter(a=> !filter || a.name.toLowerCase().includes(filter.toLowerCase())),[items, filter]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [edit, setEdit] = useState(null);
-  const openAdd = ()=>{ setEdit({ firstName:'', lastName:'', middleName:'', name:'', email:'', phone:'', facebook:'', address:'', photo: '' }); setModalOpen(true); };
+  const openAdd = ()=>{ setEdit({ firstName:'', lastName:'', middleName:'', name:'', email:'', phone:'', telephone:'', facebook:'', linkedin:'', twitter:'', address:'', photo: '' }); setModalOpen(true); };
   const openEdit = (a)=>{ setEdit({ ...a }); setModalOpen(true); };
-  const remove = (id)=>{ if(!window.confirm('Supprimer cet agent associé ?')) return; const next = items.filter(x=> x.id!==id); persist(next); };
+  const removeAgent = async (id)=>{
+    // nicer confirmation using window.confirm for now; could be replaced by a Dialog
+    if(!window.confirm('Supprimer cet agent associé ?')) return;
+    try{
+      console.debug('[agents] remove payload id=', id);
+      await agentAPI.remove(id);
+      const next = items.filter(x=> (x._id || x.id) !== id);
+      persist(next);
+      console.info('[agents] removed', id);
+      setNotification({ open: true, msg: 'Agent supprimé', severity: 'success' });
+    }catch(e){
+      console.error('Failed to remove agent', e, e?.response?.data || 'no response body');
+      setNotification({ open: true, msg: 'Erreur lors de la suppression', severity: 'error' });
+    }
+  };
 
   const save = (form)=>{
     if(!form.name && !(form.firstName || form.lastName)){
       window.alert('Nom ou prénom requis'); return;
     }
-    let next;
-    if(form.id) next = items.map(x=> x.id===form.id ? form : x);
-    else next = [{ ...form, id: Date.now(), photo: form.photo || (globalAgents[0] && globalAgents[0].photo) }, ...items];
-    persist(next); setModalOpen(false);
+    (async ()=>{
+      try{
+        const siteId = process.env.REACT_APP_SITE_ID || owner.site_id || (isValidObjectId(ownerId) ? ownerId : null);
+        if(!siteId){
+          window.alert('Impossible d\'effectuer l\'opération : site_id manquant ou invalide.');
+          return;
+        }
+        const userId = getCurrentUserId();
+        // Normalize frontend form fields to backend schema keys
+        // backend expects: nom (last name), prenom (first name), adresse, telephone, image, site_id, etc.
+        const prenom = form.firstName || (form.name ? form.name.split(' ')[0] : '');
+        const nom = form.lastName || (form.name ? form.name.split(' ').slice(1).join(' ') : '');
+        const adresse = form.address || form.adresse || '';
+        const telephone = form.telephone || form.phone || '';
+        const image = form.photo || form.image || '';
+        const payload = {
+          nom,
+          prenom,
+          email: form.email || '',
+          adresse,
+          telephone,
+          image,
+          facebook: form.facebook || '',
+          linkedin: form.linkedin || '',
+          twitter: form.twitter || '',
+          messenger: form.messenger || '',
+          site_id: siteId,
+        };
+        console.debug('[agents] save payload:', payload, 'userId=', userId);
+        setSaving(true);
+        let res;
+        if(form._id || form.id){
+          const id = form._id || form.id;
+          res = await agentAPI.update(id, payload);
+          const next = items.map(x=> (x._id || x.id) === id ? res.data : x);
+          persist(next);
+          console.info('[agents] updated', id, res.data);
+          setNotification({ open: true, msg: 'Agent modifié', severity: 'success' });
+        }else{
+          res = await agentAPI.create(payload);
+          const next = [res.data, ...items];
+          persist(next);
+          console.info('[agents] created', res.data);
+          setNotification({ open: true, msg: 'Agent créé', severity: 'success' });
+        }
+        setModalOpen(false);
+        setSaving(false);
+      }catch(e){
+        console.error('Failed to save agent', e, e?.response?.data || 'no response');
+        // Map axios / server response to user-friendly message
+        const serverMsg = e?.response?.data?.message || e?.response?.data || e.message || 'Erreur serveur';
+        setNotification({ open: true, msg: `Erreur: ${serverMsg}`, severity: 'error' });
+        setSaving(false);
+      }
+    })();
   };
 
   const theme = useTheme();
@@ -72,7 +227,7 @@ export default function OwnerAgents(){
         {/* Header + actions */}
         <Stack spacing={2} sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box>
+            <Box>²
               <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>Agents associés</Typography>
               <Typography variant="body2" color="text.secondary">Gérez vos agents et favoris</Typography>
             </Box>
@@ -143,7 +298,7 @@ export default function OwnerAgents(){
                   </Box>
                   <Box sx={{ mt: 2, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                     <Button size="small" variant="outlined" onClick={()=>openEdit(a)} sx={{ borderRadius: 0 }}>Editer</Button>
-                    <Button size="small" variant="outlined" color="error" onClick={()=>remove(a.id)} sx={{ borderRadius: 0 }}>Supprimer</Button>
+                    <Button size="small" variant="outlined" color="error" onClick={()=>removeAgent(a._id || a.id)} sx={{ borderRadius: 0 }}>Supprimer</Button>
                   </Box>
                 </Paper>
               </Grow>
@@ -215,11 +370,31 @@ export default function OwnerAgents(){
               <TextField
                 label="Téléphone"
                 size="small"
-                value={edit?.phone||''}
-                onChange={e=> setEdit({...edit, phone:e.target.value})}
+                value={edit?.telephone||edit?.phone||''}
+                onChange={e=> setEdit({...edit, telephone:e.target.value, phone:e.target.value})}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}
                 fullWidth
               />
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="LinkedIn"
+                  size="small"
+                  value={edit?.linkedin||''}
+                  onChange={e=> setEdit({...edit, linkedin:e.target.value})}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  label="Twitter"
+                  size="small"
+                  value={edit?.twitter||''}
+                  onChange={e=> setEdit({...edit, twitter:e.target.value})}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}
+                  fullWidth
+                />
+              </Grid>
               <TextField
                 label="Facebook"
                 size="small"
@@ -254,12 +429,18 @@ export default function OwnerAgents(){
                       id="agent-photo-input"
                       type="file"
                       style={{ display: 'none' }}
-                      onChange={e=>{
+                      onChange={async e=>{
                         const f = e.target.files && e.target.files[0];
                         if(!f) return;
-                        const reader = new FileReader();
-                        reader.onload = (ev)=> setEdit({...edit, photo: ev.target.result});
-                        reader.readAsDataURL(f);
+                        try{
+                          const res = await agentAPI.upload(f);
+                          setEdit({...edit, photo: res.data.url});
+                        }catch(err){
+                          console.error('Upload failed', err);
+                          const reader = new FileReader();
+                          reader.onload = (ev)=> setEdit({...edit, photo: ev.target.result});
+                          reader.readAsDataURL(f);
+                        }
                       }}
                     />
                     <label htmlFor="agent-photo-input">
@@ -275,9 +456,14 @@ export default function OwnerAgents(){
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
             <Button onClick={()=>setModalOpen(false)} sx={{ borderRadius: 0 }}>Annuler</Button>
-            <Button variant="contained" onClick={()=> save(edit || { name: '', email:'', phone:'' })} sx={{ borderRadius: 0 }}>Enregistrer</Button>
+            <Button variant="contained" onClick={()=> save(edit || { name: '', email:'', phone:'' })} sx={{ borderRadius: 0 }} disabled={saving}>{saving ? 'Enregistrement...' : 'Enregistrer'}</Button>
           </DialogActions>
         </Dialog>
+        <Snackbar open={notification.open} autoHideDuration={4000} onClose={()=> setNotification({...notification, open:false})} anchorOrigin={{ vertical:'bottom', horizontal:'center' }}>
+          <Alert onClose={()=> setNotification({...notification, open:false})} severity={notification.severity} sx={{ width: '100%' }}>
+            {notification.msg}
+          </Alert>
+        </Snackbar>
       </Box>
     </OwnerLayout>
   );

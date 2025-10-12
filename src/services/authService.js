@@ -1,9 +1,25 @@
 import { authAPI } from './api.service';
 
+// Parse JSON safely: return null if input is null/undefined/"undefined" or invalid JSON
+// Keep this function local to the module to avoid changing external APIs.
+function safeJSONParse(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  if (value === 'undefined') return null;
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    // If parse fails, return null instead of throwing so app can recover
+    console.warn('safeJSONParse: failed to parse value from localStorage', e);
+    return null;
+  }
+}
+
 class AuthService {
   constructor() {
     this.token = localStorage.getItem('ndaku_auth_token');
-    this.user = JSON.parse(localStorage.getItem('ndaku_user') || 'null');
+    // Safe parse in case localStorage contains the string "undefined" or other invalid JSON
+    this.user = safeJSONParse(localStorage.getItem('ndaku_user'));
   }
 
   setAuthToken(token) {

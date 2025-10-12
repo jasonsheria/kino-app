@@ -7,6 +7,8 @@ import {
   FaMapMarkerAlt, 
   FaWhatsapp, 
   FaFacebook, 
+  FaLinkedin,
+  FaTwitter,
   FaPhoneAlt, 
   FaEnvelope,
   FaComments,
@@ -211,7 +213,10 @@ const AgentCard = ({ agent }) => {
 
   const handleWhatsApp = (e) => {
     e.stopPropagation(); // Empêche la propagation de l'événement
-    window.open(`https://wa.me/${agent.phone}`, '_blank');
+    const raw = agent.telephone || agent.phone || agent.whatsapp || agent.telephone;
+    if (!raw) return window.alert('Numéro WhatsApp non disponible');
+    const digits = String(raw).replace(/[^0-9+]/g, '');
+    window.open(`https://wa.me/${digits}`, '_blank');
   };
 
   const handleEmail = (e) => {
@@ -221,8 +226,21 @@ const AgentCard = ({ agent }) => {
 
   const handleMessenger = (e) => {
     e.stopPropagation(); // Empêche la propagation de l'événement
-    window.open(agent.messenger || `https://m.me/${agent.facebook}`, '_blank');
+    if (agent.messenger) return window.open(agent.messenger, '_blank');
+    if (agent.facebook) return window.open(agent.facebook.startsWith('http') ? agent.facebook : `https://m.me/${agent.facebook}`, '_blank');
+    window.alert('Messenger/ Facebook non disponible');
   };
+
+  const safeOpen = (url, fallbackPath) => {
+    if (!url && !fallbackPath) return;
+    const resolved = url || fallbackPath;
+    const final = String(resolved).startsWith('http') ? resolved : `https://${String(resolved).replace(/^\/\//, '')}`;
+    window.open(final, '_blank');
+  };
+
+  const handleFacebook = (e) => { e.stopPropagation(); if(!agent.facebook) return window.alert('Facebook non disponible'); safeOpen(agent.facebook, `facebook.com/${agent.facebook}`); };
+  const handleLinkedin = (e) => { e.stopPropagation(); if(!agent.linkedin) return window.alert('LinkedIn non disponible'); safeOpen(agent.linkedin, `www.linkedin.com/in/${agent.linkedin}`); };
+  const handleTwitter = (e) => { e.stopPropagation(); if(!agent.twitter) return window.alert('Twitter non disponible'); safeOpen(agent.twitter, `twitter.com/${agent.twitter}`); };
 
   return (
     <motion.div
@@ -239,7 +257,7 @@ const AgentCard = ({ agent }) => {
               badgeContent={agent.isCertified ? 'Certifié' : null}
               anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
             >
-              <Avatar src={agent.photo} alt={agent.name} sx={{ width: 56, height: 56 }} />
+              <Avatar src={agent.image} alt={agent.name} sx={{ width: 56, height: 56 }} />
             </Badge>
           }
           title={<Typography variant="h6" sx={{ fontWeight: 'bold' }}>{agent.name}</Typography>}
@@ -247,15 +265,46 @@ const AgentCard = ({ agent }) => {
         />
         <CardContent>
           <Box display="flex" flexDirection="column" gap={1}>
-            <Chip label={`Expérience : ${agent.experience} ans`} color="success" variant="outlined" />
-            <Chip label={`Affaires réalisées : ${agent.dealsCount}`} color="primary" variant="outlined" />
-            <Chip label={`Statut : ${agent.status}`} color={agent.status === 'Actif' ? 'success' : 'default'} variant="outlined" />
+            <Chip label={`Expérience : ${agent.experience ?? 0} ans`} color="success" variant="outlined" />
+            <Chip label={`Affaires réalisées : ${agent.dealsCount ?? 0}`} color="primary" variant="outlined" />
+            <Chip label={`Statut : ${agent.status ?? 'Inconnu'}`} color={agent.status === 'Actif' ? 'success' : 'default'} variant="outlined" />
+
+            {/* Contact lines */}
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+              {(agent.telephone || agent.phone) && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <FaPhoneAlt />
+                  <Typography variant="body2">{agent.telephone || agent.phone}</Typography>
+                </Box>
+              )}
+              {agent.email && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <FaEnvelope />
+                  <Typography variant="body2">{agent.email}</Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* Social links rendered inline */}
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+              {agent.facebook && (
+                <IconButton size="small" onClick={handleFacebook} aria-label="facebook"><FaFacebook /></IconButton>
+              )}
+              {agent.linkedin && (
+                <IconButton size="small" onClick={handleLinkedin} aria-label="linkedin"><FaLinkedin /></IconButton>
+              )}
+              {agent.twitter && (
+                <IconButton size="small" onClick={handleTwitter} aria-label="twitter"><FaTwitter /></IconButton>
+              )}
+            </Box>
           </Box>
         </CardContent>
-        <CardActions sx={{ justifyContent: 'space-around', padding: 2 }}>
+          <CardActions sx={{ justifyContent: 'space-around', padding: 2, flexWrap: 'wrap', gap: 1 }}>
           <IconButton
             color="success"
             onClick={handleCall}
+            title="Appeler"
+            aria-label={`Appeler ${agent.name}`}
             sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
           >
             <FaPhoneAlt />
@@ -263,6 +312,8 @@ const AgentCard = ({ agent }) => {
           <IconButton
             color="primary"
             onClick={handleWhatsApp}
+            title="Envoyer un message WhatsApp"
+            aria-label={`WhatsApp ${agent.name}`}
             sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
           >
             <FaWhatsapp />
@@ -270,13 +321,32 @@ const AgentCard = ({ agent }) => {
           <IconButton
             color="info"
             onClick={handleMessenger}
+            title="Messenger"
+            aria-label={`Messenger ${agent.name}`}
             sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
           >
             <FaFacebookMessenger />
           </IconButton>
+          {agent.facebook && (
+            <IconButton color="primary" onClick={handleFacebook} title="Facebook" aria-label={`Facebook ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
+              <FaFacebook />
+            </IconButton>
+          )}
+          {agent.linkedin && (
+            <IconButton color="primary" onClick={handleLinkedin} title="LinkedIn" aria-label={`LinkedIn ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
+              <FaLinkedin />
+            </IconButton>
+          )}
+          {agent.twitter && (
+            <IconButton color="primary" onClick={handleTwitter} title="Twitter" aria-label={`Twitter ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
+              <FaTwitter />
+            </IconButton>
+          )}
           <IconButton
             color="warning"
             onClick={handleEmail}
+            title="Envoyer un e-mail"
+            aria-label={`Envoyer un e-mail à ${agent.name}`}
             sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
           >
             <FaEnvelope />
