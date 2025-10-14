@@ -47,6 +47,12 @@ const AgentContactModal = ({ agent, open, onClose }) => {
 
   if (!open) return null;
 
+  // Safe accessor for agent fields to avoid calling .replace on undefined
+  const agentName = agent?.prenom || agent?.name || 'Agent';
+  const agentImageUrl = (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.image || '');
+  const rawWhatsapp = agent?.whatsapp || agent?.phone || '';
+  const whatsappNumber = rawWhatsapp ? String(rawWhatsapp).replace(/[^\d]/g, '') : '';
+
   const startTimer = () => {
     setCallTime(0);
     timerRef.current = setInterval(() => setCallTime(t => t + 1), 1000);
@@ -158,21 +164,25 @@ const AgentContactModal = ({ agent, open, onClose }) => {
           aria-label="Fermer"
         >&times;</button>
         <div className="agent-contact-header">
-          <img src={agent.photo} alt={agent.name} className="agent-avatar" />
+          <img src={agentImageUrl} alt={agentName} className="agent-avatar" />
           <div>
-            <div className="fw-bold text-success" style={{fontSize:'1.1rem'}}>{agent.name}</div>
+            <div className="fw-bold text-success" style={{fontSize:'1.1rem'}}>{agentName}</div>
             <div className="small text-muted">Agent immobilier</div>
           </div>
         </div>
 
         <div className="agent-contact-actions">
-          <a
-            href={`https://wa.me/${agent.whatsapp.replace(/[^\d]/g, '')}?text=Bonjour,%20je%20suis%20intéressé(e)%20par%20vos%20services`}
-            target="_blank" rel="noopener noreferrer"
-            className="btn btn-success w-100 mb-2"
-          >
-            Message WhatsApp
-          </a>
+          {whatsappNumber ? (
+            <a
+              href={`https://wa.me/${whatsappNumber}?text=Bonjour,%20je%20suis%20intéressé(e)%20par%20vos%20services`}
+              target="_blank" rel="noopener noreferrer"
+              className="btn btn-success w-100 mb-2"
+            >
+              Message WhatsApp
+            </a>
+          ) : (
+            <button className="btn btn-secondary w-100 mb-2" disabled>WhatsApp indisponible</button>
+          )}
 
           <div className="webrtc-controls mb-2">
             {!isCalling ? (
@@ -220,8 +230,8 @@ const AgentContactModal = ({ agent, open, onClose }) => {
               <div className="call-panel">
                 <div className="call-info-left">
                   <div className="fw-bold">En appel</div>
-                  <div className="small text-muted">
-                    <span>Avec {agent.name}</span>
+                    <div className="small text-muted">
+                    <span>Avec {agentName}</span>
                     <span className="mx-2">•</span>
                     <span>{formatTime(callTime)}</span>
                   </div>

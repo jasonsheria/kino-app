@@ -952,7 +952,7 @@ img {
 
 /* Promotions cards responsiveness: ensure images stack and text flows */
 .card img {
-  width: 58%;
+  /* width: 58%; */
   height: auto;
   object-fit: cover;
 }

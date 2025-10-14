@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { properties, agents } from '../data/fakedata';
@@ -89,6 +89,7 @@ const PropertyDetails = () => {
   // Hooks - declared unconditionally to satisfy rules of hooks
   const [showVirtual, setShowVirtual] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(0);
+  const [virtualPlayerRef, setVirtualPlayerRef] = useState(null);
   // map selection state for floating detail panel
   const [selectedMapProperty, setSelectedMapProperty] = useState(null);
 
@@ -409,7 +410,7 @@ const PropertyDetails = () => {
                 {videos[selectedVideo] && (videos[selectedVideo].includes('youtube') || videos[selectedVideo].includes('youtu') || videos[selectedVideo].includes('watch?v=' ) || videos[selectedVideo].includes('youtu.be')) ? (
                   <iframe src={toYoutubeEmbed(videos[selectedVideo])} title="Visite virtuelle" style={{width:'100%', height:420, border:0}} />
                 ) : (
-                  <video src={videos[selectedVideo]} controls style={{width:'100%', height:420, objectFit:'cover'}} />
+                  <video ref={(el)=>setVirtualPlayerRef(el)} src={videos[selectedVideo]} controls style={{width:'100%', height:420, objectFit:'cover'}} />
                 )}
               </div>
 
@@ -428,6 +429,17 @@ const PropertyDetails = () => {
             </div>
           </div>
         )}
+        {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
+        <AnimatePresence>
+          {showVirtual && videos && videos.length > 0 && (
+            <VirtualTourModal
+              videos={videos}
+              selectedIndex={selectedVideo}
+              onClose={() => setShowVirtual(false)}
+              onSelect={(i) => setSelectedVideo(i)}
+            />
+          )}
+        </AnimatePresence>
       </div>
   <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
    {/* Call to action */}
@@ -448,6 +460,91 @@ const PropertyDetails = () => {
 
   );
 };
+
+// Animated modal to show virtual tour videos with controls and thumbnails
+function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => {}, onSelect = () => {} }) {
+  const [index, setIndex] = useState(selectedIndex || 0);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef(null);
+
+  useEffect(() => { setIndex(selectedIndex || 0); }, [selectedIndex]);
+
+  const toYoutubeEmbedLocal = (url) => {
+    if (!url) return url;
+    try {
+      if (url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
+      if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'www.youtube.com/embed/');
+    } catch (e) {}
+    return url;
+  };
+
+  const current = videos[index];
+  const isYoutube = (url) => url && (url.includes('youtube') || url.includes('youtu') || url.includes('watch?v=') || url.includes('youtu.be'));
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); } else { videoRef.current.pause(); setPlaying(false); }
+  };
+  const toggleMute = () => { if (!videoRef.current) return; videoRef.current.muted = !videoRef.current.muted; setMuted(videoRef.current.muted); };
+  const next = () => { const nextIdx = (index + 1) % videos.length; setIndex(nextIdx); onSelect(nextIdx); };
+  const prev = () => { const prevIdx = (index - 1 + videos.length) % videos.length; setIndex(prevIdx); onSelect(prevIdx); };
+  const goFull = () => { if (!videoRef.current) return; if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen(); else if (videoRef.current.webkitRequestFullscreen) videoRef.current.webkitRequestFullscreen(); };
+
+  return (
+    <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} style={{position:'fixed', inset:0, zIndex:12000, display:'flex', alignItems:'center', justifyContent:'center'}}>
+      <div style={{position:'absolute', inset:0, background:'rgba(0,0,0,0.55)'}} onClick={onClose} />
+      <motion.div initial={{y:40, scale:0.98}} animate={{y:0, scale:1}} exit={{y:20, scale:0.99}} transition={{type:'spring', stiffness:300, damping:30}} style={{width:'min(1100px,96%)', maxHeight:'92vh', background:'#fff', borderRadius:12, overflow:'hidden', zIndex:12001}}>
+        <div style={{display:'flex', flexDirection:'column', height:'100%'}}>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:12, borderBottom:'1px solid rgba(0,0,0,0.06)'}}>
+            <div style={{fontWeight:700}}>Visite virtuelle</div>
+            <div style={{display:'flex', gap:8}}>
+              <button className="btn btn-sm btn-outline-secondary" onClick={prev}>Préc.</button>
+              <button className="btn btn-sm btn-outline-secondary" onClick={next}>Suiv.</button>
+              <button className="btn btn-sm btn-outline-secondary" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
+              <button className="btn btn-sm btn-outline-secondary" onClick={goFull}>Plein écran</button>
+              <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
+            </div>
+          </div>
+
+          <div style={{padding:12, display:'flex', gap:12, flex:1, overflow:'hidden'}}>
+            <div style={{flex:'1 1 0', minWidth:0, display:'flex', alignItems:'center', justifyContent:'center', background:'#000'}}>
+              {current && isYoutube(current) ? (
+                <iframe src={toYoutubeEmbedLocal(current)} title={`video-${index}`} style={{width:'100%', height:'100%', border:0}} />
+              ) : (
+                <video ref={videoRef} src={current} controls style={{width:'100%', height:'100%', objectFit:'contain'}} muted={muted} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+              )}
+            </div>
+
+            <div style={{width:260, display:'flex', flexDirection:'column', gap:8}}>
+              <div style={{fontSize:14, fontWeight:700}}>Liste des vidéos</div>
+              <div style={{overflowY:'auto', flex:1, paddingRight:6}}>
+                {videos.map((v, i) => (
+                  <div key={i} className={`d-flex gap-2 align-items-center p-2 rounded ${i===index? 'border border-success':'border-0'}`} style={{cursor:'pointer'}} onClick={() => { setIndex(i); onSelect(i); }}>
+                    <div style={{width:88, height:56, flex:'0 0 auto', overflow:'hidden', borderRadius:6, background:'#ddd'}}>
+                      {isYoutube(v) ? (
+                        <img src={`https://img.youtube.com/vi/${(v.split('v=')[1]||v.split('/').pop()).split('&')[0]}/mqdefault.jpg`} style={{width:'100%', height:'100%', objectFit:'cover'}} alt={`thumb-${i}`} />
+                      ) : (
+                        <video src={v} style={{width:'100%', height:'100%', objectFit:'cover'}} muted />
+                      )}
+                    </div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600}}>Vidéo {i+1}</div>
+                      <div className="small text-muted text-truncate" style={{maxWidth:140}}>{String(v).split('/').pop()}</div>
+                    </div>
+                    <div style={{flex:'0 0 auto'}}>
+                      <button className="btn btn-sm btn-outline-primary" onClick={(e)=>{ e.stopPropagation(); setIndex(i); onSelect(i); if (videoRef.current && !isYoutube(v)) { videoRef.current.play(); } }}>Lire</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 // Local helper component for agent block with reservation logic
 const AgentBlockWithReservation = ({ agent, property }) => {

@@ -2,60 +2,6 @@
 export const properties = [];
 
 export const agents = [
-  {
-    id: 1,
-    name: "Jean Dupont",
-    address: "123 Avenue Kasa-Vubu, Kinshasa",
-    email: "jean@agence.com",
-    phone: "+243 810 000 001",
-    whatsapp: "+243810000001",
-    facebook: "https://facebook.com/jean.dupont",
-    photo: require('../img/about.jpg'),
-    status: "Actif",
-    subscription: "Pro",
-    geoloc: { lat: -4.325, lng: 15.322 },
-    // busyDates should be array of ISO date strings (YYYY-MM-DD)
-    busyDates: [
-      new Date(Date.now() + 2 * 24 * 3600 * 1000).toISOString().slice(0, 10),
-      new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().slice(0, 10)
-    ],
-    properties: [1, 4, 7],
-  },
-  {
-    id: 2,
-    name: "Marie Mbala",
-    address: "45 Avenue du Fleuve, Gombe, Kinshasa",
-    email: "marie@agence.com",
-    phone: "+243 810 000 002",
-    whatsapp: "+243810000002",
-    facebook: "https://facebook.com/marie.mbala",
-    photo: require('../img/about.jpg'),
-    status: "Actif",
-    subscription: "Pro",
-    geoloc: { lat: -4.320, lng: 15.300 },
-    busyDates: [
-      new Date(Date.now() + 1 * 24 * 3600 * 1000).toISOString().slice(0, 10),
-      new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString().slice(0, 10)
-    ],
-    properties: [2, 5, 8],
-  },
-  {
-    id: 3,
-    name: "Patrick Ilunga",
-    address: "Route Matadi, Mont Ngafula, Kinshasa",
-    email: "patrick@agence.com",
-    phone: "+243 810 000 003",
-    whatsapp: "+243810000003",
-    facebook: "https://facebook.com/patrick.ilunga",
-    photo: require('../img/about.jpg'),
-    status: "Actif",
-    subscription: "Basic",
-    geoloc: { lat: -4.350, lng: 15.280 },
-    busyDates: [
-      new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString().slice(0, 10)
-    ],
-    properties: [3, 6],
-  },
 ];
 
 export const owners = [
@@ -179,7 +125,8 @@ export const subscriptions = [
           price: p.prix || p.amount || 0,
           address: p.adresse || p.location || (p.addressLine ? `${p.addressLine}` : ''),
           images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : (i.url || i.path || ''))) : (p.image ? [p.image] : []),
-          agentId: p.agentId || (p.agent && (p.agent._id || p.agent.id)) || null,
+          agentId:  p.agent  || p.agentId || null,
+          agent : p.agent || null,
           geoloc: p.geoloc || p.location || p.coords || null,
           status: p.status || p.availability || '',
           visitFee: p.visitFee || p.fee || 0,
@@ -225,7 +172,7 @@ export const subscriptions = [
       const rawAgents = agentsResp && (Array.isArray(agentsResp) ? agentsResp : agentsResp.data || agentsResp.items) || null;
       if (rawAgents && Array.isArray(rawAgents) && rawAgents.length > 0) {
         const mappedAgents = rawAgents.map(a => ({
-          id: a._id || a.id || String(Math.random()),
+          id: a._id || a.id,
           name: a.name || a.fullName || a.username || '',
           prenom : a.prenom || '',
           address: a.address || a.location || '',

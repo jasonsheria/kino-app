@@ -19,8 +19,23 @@ import L from 'leaflet';
 const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  // find agent by string id so hex/string ids work
-  const agent = agents.find(a => String(a.id) === String(property.agentId));
+  // Resolve agent robustly:
+  // 1) if property.agent is an embedded object, use it
+  // 2) try to find in the local `agents` array by matching multiple id fields
+  // 3) if local `agents` is empty, try fetching user-scoped agents from the API
+  const [resolvedAgent, setResolvedAgent] = useState(() => {
+    try {
+      if (property && property.agent && typeof property.agent === 'object') return property.agent;
+      const found = agents && agents.length ? agents.find(a => {
+        const propAgentIds = [property.agent, property.agentId, property.agent_id, property._id, property.id].map(v => v && String(v));
+        const candidateIds = [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id, a.email, a.phone].map(v => v && String(v));
+        return candidateIds.some(cid => cid && propAgentIds.some(pid => pid && pid === cid));
+      }) : null;
+      return found || null;
+    } catch (e) { return null; }
+  });
+  const [remoteAgentsLoading, setRemoteAgentsLoading] = useState(false);
+  const [remoteAgentsError, setRemoteAgentsError] = useState(null);
   const location = useLocation();
   const { user } = useAuth();
   const [showContact, setShowContact] = useState(false);
@@ -34,8 +49,65 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   });
 
   useEffect(() => {
-    console.log(`PropertyCard mounted for ${property.id} - initial isReserved:`, isReserved);
-  }, []);
+    // attempt to resolve agent when component mounts or when property/agents change
+    const tryResolve = async () => {
+      if (resolvedAgent) return;
+      // If property includes embedded agent object, use it
+      if (property && property.agent && typeof property.agent === 'object') {
+        setResolvedAgent(property.agent);
+        return;
+      }
+
+      // Try local agents first
+      if (agents && agents.length) {
+        const found = agents.find(a => {
+          const propAgentIds = [property.agent, property.agentId, property.agent_id, property._id, property.id].map(v => v && String(v));
+          const candidateIds = [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id].map(v => v && String(v));
+          return candidateIds.some(cid => cid && propAgentIds.some(pid => pid && pid === cid));
+        });
+        if (found) {
+          setResolvedAgent(found);
+          return;
+        }
+      }
+
+      // If no local agents, try fetching user-scoped agents from backend
+      if ((!agents || agents.length === 0) && !remoteAgentsLoading) {
+        setRemoteAgentsLoading(true);
+        try {
+          const token = localStorage.getItem('ndaku_auth_token');
+          const base = process.env.REACT_APP_BACKEND_APP_URL || '';
+          const urls = [`${base}/api/agents/me`, `${base}/api/agents?site=${process.env.REACT_APP_SITE_ID || ''}`];
+          let data = null;
+          for (const u of urls) {
+            try {
+              const res = await fetch(u, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+              if (!res.ok) continue;
+              const json = await res.json();
+              if (Array.isArray(json) && json.length) { data = json; break; }
+              // some endpoints wrap data
+              if (json && Array.isArray(json.data) && json.data.length) { data = json.data; break; }
+            } catch (e) {
+              // ignore and try next
+            }
+          }
+          if (data && data.length) {
+            const found = data.find(a => {
+              const propAgentIds = [property.agent, property.agentId, property.agent_id, property._id, property.id].map(v => v && String(v));
+              const candidateIds = [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id].map(v => v && String(v));
+              return candidateIds.some(cid => cid && propAgentIds.some(pid => pid && pid === cid));
+            });
+            if (found) setResolvedAgent(found);
+          }
+        } catch (err) {
+          setRemoteAgentsError(err.message || 'failed');
+        } finally {
+          setRemoteAgentsLoading(false);
+        }
+      }
+    };
+    tryResolve();
+  }, [property, resolvedAgent]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -167,8 +239,10 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     };
   }, [showLightbox, lightboxRef, lightboxIndex, imgs.length]);
 
+  // For map and agent UI use the resolvedAgent
+  const agentResolved = resolvedAgent;
   // Pour la map, on prend la géoloc de l'agent (sinon défaut Kinshasa)
-  const mainPos = agent?.geoloc || { lat: -4.325, lng: 15.322 };
+  const mainPos = agentResolved?.geoloc || { lat: -4.325, lng: 15.322 };
 
   return (
     <div className="card shadow-lg border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
@@ -207,16 +281,16 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
           <button className="btns btn-primary btn-sm fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>Voir le bien</button>
         </div>
         {/* Agent lié : toujours affiché, mais flouté/muted tant que non-réservé; le bouton de réservation reste actif */}
-        {agent && (
+        {agentResolved && (
           <div className={`property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
             <div className="property-agent-inner">
               <div className="agent-left">
                 <div className="agent-avatar-wrapper">
-                  <img src={agent.photo} alt={agent.name} className="agent-thumb" />
+                  <img src={(process.env.REACT_APP_BACKEND_APP_URL || '') + agentResolved.image} alt={agentResolved.prenom || agentResolved.name} className="agent-thumb" />
                 </div>
                 <div className="agent-meta">
-                  <div className="agent-name fw-semibold small">{agent.name}</div>
-                  <div className="agent-phone small text-muted">{agent.phone}</div>
+                  <div className="agent-name fw-semibold small">{agentResolved.name || agentResolved.prenom}</div>
+                  <div className="agent-phone small text-muted">{agentResolved.phone}</div>
                 </div>
               </div>
               <div className="agent-right">
@@ -226,12 +300,12 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
                 {/* Contact icons visible only when reserved (or remain hidden while muted) */}
                 {isReserved && (
                   <>
-                    <button className="btns btn-outline-success contact-icon ms-2" title="WhatsApp" onClick={()=>setShowContact(true)} aria-label={`Contacter ${agent.name} via WhatsApp`}><FaWhatsapp /></button>
-                    {showContact && <AgentContactModal agent={agent} open={showContact} onClose={()=>setShowContact(false)} />}
-                    {agent.facebook && (
-                      <a href={agent.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary contact-icon ms-2" title="Facebook" aria-label={`Visiter la page Facebook de ${agent.name}`}><FaFacebook /></a>
+                    <button className="btns btn-outline-success contact-icon ms-2" title="WhatsApp" onClick={()=>setShowContact(true)} aria-label={`Contacter ${agentResolved.name || agentResolved.prenom} via WhatsApp`}><FaWhatsapp /></button>
+                    {showContact && <AgentContactModal agent={agentResolved} open={showContact} onClose={()=>setShowContact(false)} />}
+                    {agentResolved.facebook && (
+                      <a href={agentResolved.facebook} target="_blank" rel="noopener noreferrer" className="btns btn-outline-primary contact-icon ms-2" title="Facebook" aria-label={`Visiter la page Facebook de ${agentResolved.name || agentResolved.prenom}`}><FaFacebook /></a>
                     )}
-                    <button className="btns btn-outline-dark contact-icon ms-2" title="Téléphone" aria-label={`Appeler ${agent.name}`} onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, propertyId: property.id } } }))}><FaPhone /></button>
+                    <button className="btns btn-outline-dark contact-icon ms-2" title="Téléphone" aria-label={`Appeler ${agentResolved.name || agentResolved.prenom}`} onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agentResolved.id || agentResolved._id, propertyId: property.id } } }))}><FaPhone /></button>
                   </>
                 )}
 
