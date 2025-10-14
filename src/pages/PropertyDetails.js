@@ -15,7 +15,7 @@ import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
 
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
-function ImageCarousel({ images = [], name = '' }) {
+function ImageCarousel({ images = [], name = '', onOpen = ()=>{} }) {
   const [current, setCurrent] = useState(0);
   const autoplayRef = useRef();
   useEffect(() => {
@@ -33,8 +33,8 @@ function ImageCarousel({ images = [], name = '' }) {
 
   return (
     <div className="image-carousel">
-      <div className="carousel-main position-relative rounded overflow-hidden" style={{height:420}}>
-        <img src={process.env.REACT_APP_BACKEND_APP_URL+images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{objectFit:'cover'}} />
+      <div className="carousel-main position-relative rounded overflow-hidden" style={{height:'min(420px,55vh)'}}>
+        <img src={process.env.REACT_APP_BACKEND_APP_URL+images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{objectFit:'cover', cursor:'zoom-in'}} onClick={() => onOpen(current)} />
         {images.length > 1 && (
           <>
             <button className="btn btn-outline-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" onClick={prev}>&lsaquo;</button>
@@ -48,10 +48,10 @@ function ImageCarousel({ images = [], name = '' }) {
         </div>
       </div>
 
-      <div className="d-flex gap-2 mt-2 overflow-auto py-2">
+        <div className="d-flex gap-2 mt-2 overflow-auto py-2">
         {images.map((img, idx) => (
           <div key={idx} className={`thumb rounded overflow-hidden ${idx===current? 'border-success':'border-0'}`} style={{width:120, flex:'0 0 auto', cursor:'pointer'}} onClick={() => setCurrent(idx)}>
-            <img src={process.env.REACT_APP_BACKEND_APP_URL+img} alt={`${name}-thumb-${idx}`} style={{width:'100%', height:70, objectFit:'cover'}} />
+            <img src={process.env.REACT_APP_BACKEND_APP_URL+img} alt={`${name}-thumb-${idx}`} style={{width:'100%', height:70, objectFit:'cover'}} onClick={() => onOpen(idx)} />
           </div>
         ))}
       </div>
@@ -82,7 +82,13 @@ const PropertyDetails = () => {
     };
   }, [id]);
 
-  const agent = property ? agents.find(a => String(a.id) === String(property.agentId)) : null;
+  // Resolve agent robustly: prefer embedded `property.agent`, then local `agents`, then try fetching user-scoped agents
+  const [resolvedAgent, setResolvedAgent] = useState(() => {
+    try {
+      if (property && property.agent && typeof property.agent === 'object') return property.agent;
+      return property ? agents.find(a => String(a.id) === String(property.agentId) || String(a._id) === String(property.agentId) || String(a.id) === String(property.agent) || String(a._id) === String(property.agent)) : null;
+    } catch (e) { return null; }
+  });
   const suggestions = property ? properties.filter(p => String(p.id) !== String(property.id)).slice(0, 2) : [];
   const videos = property?.virtualTourVideos && property.virtualTourVideos.length ? property.virtualTourVideos : (property?.virtualTour ? [property.virtualTour] : []);
 
@@ -92,6 +98,32 @@ const PropertyDetails = () => {
   const [virtualPlayerRef, setVirtualPlayerRef] = useState(null);
   // map selection state for floating detail panel
   const [selectedMapProperty, setSelectedMapProperty] = useState(null);
+
+  // Try fetching user-scoped agents if we couldn't resolve and local agents list is empty
+  useEffect(() => {
+    let mounted = true;
+    const tryFetch = async () => {
+      if (resolvedAgent) return;
+      if (agents && agents.length) return; // local agents present
+      try {
+        const token = localStorage.getItem('ndaku_auth_token');
+        const base = process.env.REACT_APP_BACKEND_APP_URL || '';
+        const res = await fetch(`${base}/api/agents/me`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (!res.ok) return;
+        const json = await res.json();
+        const list = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : []);
+        if (!mounted) return;
+        if (list && list.length) {
+          const found = list.find(a => String(a.id) === String(property.agentId) || String(a._id) === String(property.agentId) || String(a.id) === String(property.agent) || String(a._id) === String(property.agent));
+          if (found) setResolvedAgent(found);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    tryFetch();
+    return () => { mounted = false; };
+  }, [resolvedAgent, property]);
 
   // Neighborhood scores state (can be updated by evaluation)
   // Compute initial neighborhood deterministically without reading `property` when missing
@@ -222,7 +254,7 @@ const PropertyDetails = () => {
     shadowUrl: require('../img/leaflet/marker-shadow.png'),
     shadowSize: [41, 41]
   });
-  const mainPos = agent?.geoloc || { lat: -4.325, lng: 15.322 };
+  const mainPos = resolvedAgent?.geoloc || { lat: -4.325, lng: 15.322 };
 
   return (
     <div>
@@ -296,8 +328,8 @@ const PropertyDetails = () => {
                 )}
 
                 {/* Agent block (responsive, reuse property styles) */}
-                {agent && (
-                  <AgentBlockWithReservation agent={agent} property={property} />
+                {resolvedAgent && (
+                  <AgentBlockWithReservation agent={resolvedAgent} property={property} />
                 )}
               </div>
             </div>

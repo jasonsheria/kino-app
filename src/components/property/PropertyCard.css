@@ -55,6 +55,7 @@
     background: rgba(0,0,0,0.92);
     z-index: 99999;
     padding: 24px;
+    transition: opacity 220ms ease;
   }
   .lightbox-img{
     max-width: 96vw;
@@ -82,6 +83,17 @@
   @media (max-width: 680px){
     .lightbox-img{ max-width: 96vw; max-height: 88vh; }
     .lightbox-prev, .lightbox-next{ padding: 8px 10px; font-size: 18px; }
+    .lightbox-full{ padding:12px; }
+    .lightbox-img{ border-radius:6px; }
+  }
+  .carousel-main { transition: transform 360ms cubic-bezier(.2,.9,.2,1); }
+  .carousel-main:active { transform: scale(.995); }
+
+  /* Improved mobile responsive sizes */
+  @media (max-width: 520px) {
+    .property-card.fixed-size { min-height: 360px; max-height: none; }
+    .property-image { height: 180px; }
+    .property-img { transition: transform 260ms ease; }
   }
 .property-card:active {
   transform: translateY(0px);
