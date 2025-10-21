@@ -298,7 +298,7 @@
     font-size: 14px;
     margin: 8px 0;
   }
-  
+
   .features-row {
     gap: 8px;
     margin-top: 8px;
@@ -535,7 +535,7 @@
 
 /* smaller pill on very small screens to avoid layout break */
 @media (max-width:420px){
-  .reserve-badge{padding:6px 8px;font-size:0.82rem}
+  .reserve-badge{padding:6px 8px;font-size:0.82rem; display :none}
 }
 
 /* Responsive behaviour: on small screens make cards full width and stack content */

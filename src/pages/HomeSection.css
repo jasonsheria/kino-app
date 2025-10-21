@@ -180,7 +180,8 @@
   .property-card .card-img-top,
   .property-card .property-img,
   .vehicle-card .card-img-top {
-    /* height: 160px; */
+    height: 160px;
+    object-fit: cover;
   }
 }
 
@@ -238,130 +239,132 @@ html, body {
 .container, .container-fluid {
   width: 100%;
   max-width: 100vw;
-  @media (max-width: 767.98px) {
-    /* Optimisation mobile de la première section : titre, carousel, texte, bouton */
-    .hero-section {
-      min-height: auto;
-      background: white;
-    }
-
-    .hero-section .row {
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-
-    .hero-title {
-      order: 1;
-      margin-bottom: 1.2rem;
-      line-height: 1.18;
-  background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 50%, #d7263d 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-align: center;
-      width: 100%;
-      letter-spacing: -1px;
-      font-weight: 900;
-      padding: 0 0.5rem;
-    }
-
-    .carousel-section {
-      order: 2;
-      min-height: 220px;
-      margin-bottom: 1.2rem;
-      width: 100vw;
-      left: 50%;
-      right: 50%;
-      transform: translateX(-50%);
-      position: relative;
-      border-radius: 18px;
-  box-shadow: 0 4px 24px var(--ndaku-primary-100);
-      overflow: hidden;
-    }
-
-    .text-section {
-      order: 3;
-      padding: 1.2rem 1.2rem 0.5rem 1.2rem;
-      text-align: justify;
-      width: 100%;
-      margin: 0 auto;
-      font-size: 1.05rem;
-      color: #0a223a;
-      line-height: 1.5;
-      max-width: 600px;
-    }
-
-    .hero-desc {
-      margin-bottom: 1.1rem;
-      line-height: 1.5;
-      text-align: justify;
-      color: #0a223a;
-      padding: 0 0.2rem;
-    }
-
-    .hero-btn {
-      order: 4;
-      font-size: 1.08rem;
-      min-width: 160px;
-      padding: 0.85rem 2.2rem;
-      margin: 1.2rem auto 2rem auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      border-radius: 999px;
-  background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 100%);
-      color: #fff !important;
-  box-shadow: 0 6px 24px var(--ndaku-primary-33);
-      border: none;
-      letter-spacing: 0.5px;
-      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
-      width: max-content;
-      font-family: inherit;
-      outline: none;
-    }
-
-    .hero-btn:hover, .hero-btn:focus {
-      transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 10px 32px var(--ndaku-primary-44);
-  background: linear-gradient(90deg, #0a223a 0%, var(--ndaku-primary) 100%);
-      color: #fff;
-    }
-@media (min-width: 768px) {
-  .hero-section .row {
-    flex-direction: row;
-    align-items: center;
-  }
-  .hero-title {
-    text-align: left;
-    padding-left: 1.5rem;
-    font-size: clamp(2.2rem, 5vw, 3.2rem);
-    margin-bottom: 1.5rem;
-  }
-  .text-section {
-    text-align: justify;
-    padding: 1.5rem 2rem 1rem 1.5rem;
-    font-size: 1.12rem;
-    max-width: 700px;
-  }
-  .hero-btn {
-    margin-left: 0;
-    margin-right: 0;
-    font-size: 1.12rem;
-    padding: 1rem 2.8rem;
-  }
 }
 
-    .hero-section .container-fluid {
-      padding: 0;
-    }
+@media (max-width: 767.98px) {
+  /* Optimisation mobile de la première section : titre, carousel, texte, bouton */
+  .hero-section {
+    min-height: auto;
+    background: white;
+  }
 
-    .hero-section .col-12 {
-      padding: 0;
+  .hero-section .row {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+
+  .hero-title {
+    order: 1;
+    margin-bottom: 1.2rem;
+    line-height: 1.18;
+    background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 50%, #d7263d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    width: 100%;
+    letter-spacing: -1px;
+    font-weight: 900;
+    padding: 0 0.5rem;
+  }
+
+  .carousel-section {
+    order: 2;
+    min-height: 220px;
+    margin-bottom: 1.2rem;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    transform: translateX(-50%);
+    position: relative;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px var(--ndaku-primary-100);
+    overflow: hidden;
+  }
+
+  .text-section {
+    order: 3;
+    padding: 1.2rem 1.2rem 0.5rem 1.2rem;
+    text-align: justify;
+    width: 100%;
+    margin: 0 auto;
+    font-size: 1.05rem;
+    color: #0a223a;
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .hero-desc {
+    margin-bottom: 1.1rem;
+    line-height: 1.5;
+    text-align: justify;
+    color: #0a223a;
+    padding: 0 0.2rem;
+  }
+
+  .hero-btn {
+    order: 4;
+    font-size: 1.08rem;
+    min-width: 160px;
+    padding: 0.85rem 2.2rem;
+    margin: 1.2rem auto 2rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--ndaku-primary) 0%, #0a223a 100%);
+    color: #fff !important;
+    box-shadow: 0 6px 24px var(--ndaku-primary-33);
+    border: none;
+    letter-spacing: 0.5px;
+    transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+    width: max-content;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .hero-btn:hover, .hero-btn:focus {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 10px 32px var(--ndaku-primary-44);
+    background: linear-gradient(90deg, #0a223a 0%, var(--ndaku-primary) 100%);
+    color: #fff;
+  }
+
+  @media (min-width: 768px) {
+    .hero-section .row {
+      flex-direction: row;
+      align-items: center;
     }
+    .hero-title {
+      text-align: left;
+      padding-left: 1.5rem;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      margin-bottom: 1.5rem;
+    }
+    .text-section {
+      text-align: justify;
+      padding: 1.5rem 2rem 1rem 1.5rem;
+      font-size: 1.12rem;
+      max-width: 700px;
+    }
+    .hero-btn {
+      margin-left: 0;
+      margin-right: 0;
+      font-size: 1.12rem;
+      padding: 1rem 2.8rem;
+    }
+  }
+
+  .hero-section .container-fluid {
+    padding: 0;
+  }
+
+  .hero-section .col-12 {
+    padding: 0;
   }
 }
 

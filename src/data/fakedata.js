@@ -154,7 +154,7 @@ export const subscriptions = [
 
       // agents endpoint may also be under /api/agents; prefer user-scoped /api/agents/me using auth token
       const token = localStorage.getItem('ndaku_auth_token');
-      const tryAgentUrls = [`${API_BASE}/api/agents/me`, `${API_BASE}/api/agents`, `${API_BASE}/agents`];
+      const tryAgentUrls = [`${API_BASE}/api/agents/me?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/api/agents?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/agents?site=${process.env.REACT_APP_SITE_ID}`];
       let agentsResp = null;
       let triedAgentUrl = null;
       for (const u of tryAgentUrls) {
@@ -189,6 +189,7 @@ export const subscriptions = [
           properties: a.properties || []
         }));
         agents.splice(0, agents.length, ...mappedAgents);
+        console.log("fakedata.js - loaded live agents:", mappedAgents);
         try { window.dispatchEvent(new CustomEvent('ndaku:agents-updated', { detail: { agents: mappedAgents } })); } catch (e) { }
       } else {
         const errMsg = `ndaku:fakedata - no agents returned (tried ${tryAgentUrls.join(', ')})`;
@@ -199,6 +200,7 @@ export const subscriptions = [
       // silent
       console.warn('ndaku:fakedata - could not fetch live data', err?.message || err);
     }
+    console.log('ndaku:fakedata - live data fetch attempt completed agents',agents);
   })();
 
   // Set current user from localStorage if available
