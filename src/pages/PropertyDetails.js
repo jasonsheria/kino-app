@@ -13,7 +13,7 @@ import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
-
+import { Button } from '@mui/material';
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   const [current, setCurrent] = useState(0);
@@ -35,12 +35,6 @@ function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
         <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{ objectFit: 'cover', cursor: 'zoom-in' }} onClick={() => onOpen(current)} />
-        {images.length > 1 && (
-          <>
-            <button className="btn btn-outline-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" onClick={prev}>&lsaquo;</button>
-            <button className="btn btn-outline-light position-absolute top-50 end-0 translate-middle-y me-2 shadow" onClick={next}>&rsaquo;</button>
-          </>
-        )}
         <div className="carousel-dots position-absolute bottom-0 w-100 d-flex justify-content-center gap-1 mb-2">
           {images.map((_, i) => (
             <button key={i} className={`dot btn btn-sm ${i === current ? 'btn-success' : 'btn-light'}`} onClick={() => setCurrent(i)} style={{ width: 10, height: 10, padding: 0, borderRadius: 20 }} />
@@ -322,7 +316,7 @@ const PropertyDetails = () => {
     return (
       <div>
         <Navbar />
-        <div className="container" style={{ marginTop: 150 }}>
+        <div className="container" style={{ marginTop: 85 }}>
           <div className="alert alert-warning mt-4">Annonce introuvable. Le bien demandé n'existe pas ou a été supprimé.</div>
           <div className="mb-4">
             <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>Retour</button>
@@ -434,7 +428,7 @@ const PropertyDetails = () => {
   return (
     <div>
       <Navbar />
-      <div className="container" style={{ "marginTop": "150px" }}>
+      <div className="container" style={{ "marginTop": "85px" }}>
         {/* Page header */}
         <div className="mb-4">
           <div className="small text-muted">Accueil / Annonces / Détails</div>
@@ -473,8 +467,11 @@ const PropertyDetails = () => {
                 )}
 
                 <div className="d-flex justify-content-end gap-2 mb-3">
-                  <button className="btn btn-outline-secondary btn-sm px-3 fw-bold" onClick={() => navigate(-1)}>Retour</button>
-                  <button className="btn btn-success btn-sm px-3 fw-bold" onClick={() => setShowVirtual(true)}>Visite virtuelle</button>
+                  <Button variant="contained"
+                  color="primary"
+                   onClick={() => navigate(-1)}>Retour</Button>
+                  <Button variant="contained"
+                  color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
                 </div>
 
                 {/* Neighborhood indices */}

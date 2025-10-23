@@ -133,7 +133,7 @@ export const subscriptions = [
           chambres: p.chambres || p.bedrooms || 0,
           douches: p.douches || p.bathrooms || 0,
           salon: p.salons || p.livingRooms || 0,
-          cuisine: p.cuisines || p.kitchens || 0,
+          cuisine: p.cuisine || p.kitchens || 0,
           sdb: p.salles_de_bain || p.baths || 0,
           superficie: p.superficie || p.area || p.size || null,
           commune : p.commune || '',

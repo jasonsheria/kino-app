@@ -56,52 +56,49 @@ const AppRoutes = () => (
     <Route path="/about" element={<About />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/voitures" element={<Voitures />} />
-  <Route path="/terrain" element={<Terrain />} />
-  <Route path="/appartement" element={<Appartement />} />
-  <Route path="/salle" element={<SalleFete />} />
+    <Route path="/terrain" element={<Terrain />} />
+    <Route path="/appartement" element={<Appartement />} />
+    <Route path="/salle" element={<SalleFete />} />
     <Route path="/properties/:id" element={<PropertyDetails />} />
     <Route path="/agents" element={<Agents />} />
     <Route path="/agents/:id" element={<AgentDetails />} />
     <Route path="/login" element={<Login />} />
-  <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/register" element={<Register />} />
-  <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
-  <Route path="/owner/onboard" element={<OwnerOnboard />} />
-  <Route path="/owner/request" element={<OwnerRequest />} />
-  <Route path="/owner/subscribe" element={<PrivateRoute><OwnerSubscribe /></PrivateRoute>} />
-  <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
-  <Route path="/payment/confirm" element={<PrivateRoute><PaymentConfirm /></PrivateRoute>} />
-  <Route path="/payment/cancel" element={<PrivateRoute><PaymentCancel /></PrivateRoute>} />
-  <Route path="/payment-simulation/:paymentId" element={<PrivateRoute><PaymentSimulation /></PrivateRoute>} />
-  <Route path="/owner/dashboard" element={<PrivateRoute><OwnerDashboard /></PrivateRoute>} />
-  <Route path="/owner/properties" element={<PrivateRoute><OwnerProperties /></PrivateRoute>} />
-  <Route path="/property/create" element={<PrivateRoute><PropertyCreate /></PrivateRoute>} />
-  <Route path="/owner/agents" element={<PrivateRoute><OwnerAgents /></PrivateRoute>} />
-  <Route path="/owner/appointments" element={<PrivateRoute><OwnerAppointments /></PrivateRoute>} />
-  <Route path="/owner/messages" element={<PrivateRoute><OwnerMessages /></PrivateRoute>} />
-  <Route path="/owner/profile" element={<PrivateRoute><OwnerProfile /></PrivateRoute>} />
-  <Route path="/owner/wallet" element={<PrivateRoute><OwnerWallet /></PrivateRoute>} />
-  <Route path="/owner/security" element={<PrivateRoute><OwnerSecurity /></PrivateRoute>} />
-  <Route path="/owner/settings" element={<PrivateRoute><OwnerSettings /></PrivateRoute>} />
-  <Route path="/owner/privacy" element={<PrivateRoute><OwnerPrivacy /></PrivateRoute>} />
-
-  {/* agency flows */}
-  
-  <Route path="/agency/onboard" element={<AgencyOnboard />} />
-  <Route path="/agency/login" element={<AgencyLogin />} />
-  <Route path="/agency/dashboard" element={<PrivateRoute><AgencyDashboard /></PrivateRoute>} />
-  <Route path="/agency/ads" element={<PrivateRoute><AgencyAds /></PrivateRoute>} />
-  <Route path="/agency/products" element={<PrivateRoute><AgencyProducts /></PrivateRoute>} />
-  <Route path="/agency/wallet" element={<PrivateRoute><AgencyWallet /></PrivateRoute>} />
-  <Route path="/agency/agents" element={<PrivateRoute><AgencyAgents /></PrivateRoute>} />
-  <Route path="/agency/messages" element={<PrivateRoute><AgencyMessages /></PrivateRoute>} />
-  <Route path="/agency/pay" element={<PrivateRoute><AgencyPay /></PrivateRoute>} />
-  <Route path="/agency/settings" element={<PrivateRoute><AgencySettings /></PrivateRoute>} />
-  <Route path="/agency/security" element={<PrivateRoute><AgencySecurity /></PrivateRoute>} />
-  <Route path="/agency/privacy" element={<PrivateRoute><AgencyPrivacy /></PrivateRoute>} />
-  <Route path="/add-property" element={<PrivateRoute><AddProperty /></PrivateRoute>} />
-  <Route path="/subscriptions" element={<PrivateRoute><Subscriptions /></PrivateRoute>} />
-  <Route path="*" element={<NotFound />} />
+    <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
+    <Route path="/owner/onboard" element={<OwnerOnboard />} />
+    <Route path="/owner/request" element={<OwnerRequest />} />
+    <Route path="/owner/subscribe" element={<PrivateRoute><OwnerSubscribe /></PrivateRoute>} />
+    <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+    <Route path="/payment/confirm" element={<PrivateRoute><PaymentConfirm /></PrivateRoute>} />
+    <Route path="/payment/cancel" element={<PrivateRoute><PaymentCancel /></PrivateRoute>} />
+    <Route path="/payment-simulation/:paymentId" element={<PrivateRoute><PaymentSimulation /></PrivateRoute>} />
+    <Route path="/owner/dashboard" element={<PrivateRoute><OwnerDashboard /></PrivateRoute>} />
+    <Route path="/owner/properties" element={<PrivateRoute><OwnerProperties /></PrivateRoute>} />
+    <Route path="/property/create" element={<PrivateRoute><PropertyCreate /></PrivateRoute>} />
+    <Route path="/owner/agents" element={<PrivateRoute><OwnerAgents /></PrivateRoute>} />
+    <Route path="/owner/appointments" element={<PrivateRoute><OwnerAppointments /></PrivateRoute>} />
+    <Route path="/owner/messages" element={<PrivateRoute><OwnerMessages /></PrivateRoute>} />
+    <Route path="/owner/profile" element={<PrivateRoute><OwnerProfile /></PrivateRoute>} />
+    <Route path="/owner/wallet" element={<PrivateRoute><OwnerWallet /></PrivateRoute>} />
+    <Route path="/owner/security" element={<PrivateRoute><OwnerSecurity /></PrivateRoute>} />
+    <Route path="/owner/settings" element={<PrivateRoute><OwnerSettings /></PrivateRoute>} />
+    <Route path="/owner/privacy" element={<PrivateRoute><OwnerPrivacy /></PrivateRoute>} />
+    <Route path="/agency/onboard" element={<AgencyOnboard />} />
+    <Route path="/agency/login" element={<AgencyLogin />} />
+    <Route path="/agency/dashboard" element={<PrivateRoute><AgencyDashboard /></PrivateRoute>} />
+    <Route path="/agency/ads" element={<PrivateRoute><AgencyAds /></PrivateRoute>} />
+    <Route path="/agency/products" element={<PrivateRoute><AgencyProducts /></PrivateRoute>} />
+    <Route path="/agency/wallet" element={<PrivateRoute><AgencyWallet /></PrivateRoute>} />
+    <Route path="/agency/agents" element={<PrivateRoute><AgencyAgents /></PrivateRoute>} />
+    <Route path="/agency/messages" element={<PrivateRoute><AgencyMessages /></PrivateRoute>} />
+    <Route path="/agency/pay" element={<PrivateRoute><AgencyPay /></PrivateRoute>} />
+    <Route path="/agency/settings" element={<PrivateRoute><AgencySettings /></PrivateRoute>} />
+    <Route path="/agency/security" element={<PrivateRoute><AgencySecurity /></PrivateRoute>} />
+    <Route path="/agency/privacy" element={<PrivateRoute><AgencyPrivacy /></PrivateRoute>} />
+    <Route path="/add-property" element={<PrivateRoute><AddProperty /></PrivateRoute>} />
+    <Route path="/subscriptions" element={<PrivateRoute><Subscriptions /></PrivateRoute>} />
+    <Route path="*" element={<NotFound />} />
   </Routes>
 );
 

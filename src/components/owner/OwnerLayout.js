@@ -43,7 +43,7 @@ export default function OwnerLayout({ children }) {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const ownerId = (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch(e){ return 'owner-123'; } })();
+    const ownerId = (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch (e) { return 'owner-123'; } })();
     const load = () => {
       try {
         const msgs = JSON.parse(localStorage.getItem('owner_notifications_' + ownerId) || '[]');
@@ -220,7 +220,7 @@ export default function OwnerLayout({ children }) {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         sx={{
-          width: { dm : drawerWidth},
+          width: { dm: drawerWidth },
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: drawerWidth,
@@ -300,11 +300,11 @@ export default function OwnerLayout({ children }) {
       >
         <ProfileCard onClose={() => setAnchorProfile(null)} />
         <Divider />
-        <MenuItem 
+        <MenuItem
           onClick={() => {
             setAnchorProfile(null);
             navigate('/owner/profile');
-          }} 
+          }}
           sx={{ py: 1.5 }}
         >
           <FaUser style={{ marginRight: 12 }} />
@@ -312,10 +312,10 @@ export default function OwnerLayout({ children }) {
         </MenuItem>
         <Divider />
         <MenuItem
-          onClick={() => { 
+          onClick={() => {
             localStorage.removeItem('ndaku_auth_token');
-            navigate('/'); 
-            setAnchorProfile(null); 
+            navigate('/');
+            setAnchorProfile(null);
           }}
           sx={{
             py: 1.5,
