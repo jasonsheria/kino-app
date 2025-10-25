@@ -237,8 +237,9 @@ const PropertyDetails = () => {
     } catch (e) { return null; }
   });
   const suggestions = property ? properties.filter(p => String(p.id) !== String(property.id)).slice(0, 2) : [];
-  const videos = property?.virtualTourVideos && property.virtualTourVideos.length ? property.virtualTourVideos : (property?.virtualTour ? [property.virtualTour] : []);
 
+  // Prefer new `property.videos` (array). Fall back to legacy virtualTour / virtualTourVideos.
+  const videos = (property?.videos && property.videos.length) ? property.videos : (property?.virtualTourVideos && property.virtualTourVideos.length ? property.virtualTourVideos : (property?.virtualTour ? [property.virtualTour] : []));
   // Hooks - declared unconditionally to satisfy rules of hooks
   const [showVirtual, setShowVirtual] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(0);
@@ -471,7 +472,7 @@ const PropertyDetails = () => {
                   color="primary"
                    onClick={() => navigate(-1)}>Retour</Button>
                   <Button variant="contained"
-                  color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
+                    color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
                 </div>
 
                 {/* Neighborhood indices */}
@@ -635,9 +636,9 @@ const PropertyDetails = () => {
         )}
         {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
         <AnimatePresence>
-          {showVirtual && videos && videos.length > 0 && (
+          {showVirtual && (
             <VirtualTourModal
-              videos={videos}
+              videos={videos && videos.length ? videos : []}
               selectedIndex={selectedVideo}
               onClose={() => setShowVirtual(false)}
               onSelect={(i) => setSelectedVideo(i)}

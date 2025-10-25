@@ -24,7 +24,7 @@ import AgentCard from '../components/agent/AgentCard';
 import ScrollReveal from '../components/common/ScrollReveal';
 import AgentContactModal from '../components/common/Messenger';
 import { showToast } from '../components/common/ToastManager';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 import authService from '../services/authService';
 
@@ -252,6 +252,7 @@ const Home = () => {
     }, [tIndex, testimonials]);
 
     const navigate = useNavigate();
+    const location = useLocation();
     // Booking modal state (moved here so modal is page-level and can be full-screen)
     const [bookingOpen, setBookingOpen] = React.useState(false);
     const [bookingProperty, setBookingProperty] = React.useState(null);
@@ -366,6 +367,18 @@ const Home = () => {
         const id = promo.id || promo.propertyId || '';
         if (id) navigate(`/property/${id}`);
     };
+
+    // Show notification if a navigation state message was passed (e.g. after successful payment)
+    React.useEffect(() => {
+        try {
+            const msg = location?.state?.message;
+            if (msg) {
+                showToast(msg, 'success', 7000);
+                // Clear the navigation state so the toast doesn't reappear on back/refresh
+                navigate(location.pathname, { replace: true, state: {} });
+            }
+        } catch (e) { /* ignore */ }
+    }, [location, navigate]);
 
     if (loading) return <Preloader />;
     return (

@@ -10,13 +10,14 @@ import {
   AlertTitle,
   Box,
 } from '@mui/material';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { motion } from 'framer-motion';
 
 const PaymentSimulation = () => {
-  const { paymentId } = useParams();
+  const { paymentId, accountId, plan } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState('processing');
   const [error, setError] = useState(null);
@@ -46,8 +47,8 @@ const PaymentSimulation = () => {
               status: 'completed',
               metadata: {
                 // Ces données devraient venir des query params
-                accountId: new URLSearchParams(window.location.search).get('accountId'),
-                plan: new URLSearchParams(window.location.search).get('plan')
+                accountId: accountId? accountId: searchParams.get('accountId'),
+                plan: plan? plan: searchParams.get('plan'),
               }
             })
           });
@@ -66,7 +67,8 @@ const PaymentSimulation = () => {
 
   const handleReturn = () => {
     if (status === 'success') {
-      navigate('/dashboard');
+      // Pass a welcome message to the landing page via navigation state
+      navigate('/owner/dashboard', { state: { message: 'Bienvenue sur Ndaku — bienvenue en tant que propriétaire !' } });
     } else {
       navigate('/payment');
     }

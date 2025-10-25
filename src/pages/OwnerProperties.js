@@ -249,59 +249,70 @@ export default function OwnerProperties() {
       const formData = new FormData();
 
       // Convertir les images base64 en fichiers
-      const imageFiles = await Promise.all(p.images.map(async (imageData, index) => {
-        // Si c'est déjà un File, on le retourne tel quel
+      const imageFiles = await Promise.all((p.images || []).map(async (imageData, index) => {
         if (imageData instanceof File) return imageData;
-        
-        // Si c'est une string base64, on la convertit en File
         if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
-          const response = await fetch(imageData);
-          const blob = await response.blob();
-          return new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
+          try {
+            const response = await fetch(imageData);
+            const blob = await response.blob();
+            return new File([blob], `image-${index}.jpg`, { type: 'image/jpeg' });
+          } catch (e) { console.warn('Failed converting image data URI', e); return null; }
         }
         return null;
       }));
 
-      // Derive keepImages from p.images (existing URLs that are not data URIs)
+      // Convertir les vidéos (File instances or data URIs) en File
+      const videoFiles = await Promise.all((p.videos || []).map(async (videoData, index) => {
+        if (videoData instanceof File) return videoData;
+        if (typeof videoData === 'string' && videoData.startsWith('data:video')) {
+          try {
+            const response = await fetch(videoData);
+            const blob = await response.blob();
+            const ext = (blob.type && blob.type.split('/')[1]) || 'mp4';
+            return new File([blob], `video-${index}.${ext}`, { type: blob.type || 'video/mp4' });
+          } catch (e) { console.warn('Failed converting video data URI', e); return null; }
+        }
+        return null;
+      }));
+
+      // Derive keepImages and keepVideos from inputs (existing URLs that are not data URIs)
       let derivedKeepImages = [];
+      let derivedKeepVideos = [];
       try {
         derivedKeepImages = (p.images || []).filter(img => typeof img === 'string' && !img.startsWith('data:'));
-      } catch (e) {
-        console.warn('Could not derive keepImages', e);
-      }
+      } catch (e) { console.warn('Could not derive keepImages', e); }
+      try {
+        derivedKeepVideos = (p.videos || []).filter(v => typeof v === 'string' && !v.startsWith('data:'));
+      } catch (e) { console.warn('Could not derive keepVideos', e); }
 
-      // Ensure keepImages is part of the JSON payload because backend reads @Body('data')
+      // Ensure keepImages/keepVideos are part of the JSON payload because backend reads @Body('data')
       const finalData = { ...propertyData };
-  // Include agentId if selected so backend can link property to an agent
-  if (p.agent) finalData.agent = p.agentId;
+      // Include agentId if selected so backend can link property to an agent
+      if (p.agent) finalData.agentId = p.agentId || p.agent;
       if (derivedKeepImages.length) finalData.keepImages = derivedKeepImages;
+      if (derivedKeepVideos.length) finalData.keepVideos = derivedKeepVideos;
       // Ajouter les données JSON
       formData.append('data', JSON.stringify(finalData));
 
-      // Ajouter les images
-      // For create: backend expects 'images'
-      // For update: backend expects 'newImages' (see mobilier.controller.ts)
+      // Ajouter les images/videos
+      // For create: backend expects 'images' and 'videos'
+      // For update: backend expects 'newImages' and 'newVideos' (see mobilier.controller.ts)
       if (editIndex != null) {
-        imageFiles.forEach(file => {
-          if (file) {
-            formData.append('newImages', file);
-          }
-        });
-        // Derive keepImages from p.images (existing URLs that are not data URIs)
+        imageFiles.forEach(file => { if (file) formData.append('newImages', file); });
+        videoFiles.forEach(file => { if (file) formData.append('newVideos', file); });
+
+        // append keepImages / keepVideos for update
         try {
           const keepImages = (p.images || []).filter(img => typeof img === 'string' && !img.startsWith('data:'));
-          if (keepImages.length) {
-            formData.append('keepImages', JSON.stringify(keepImages));
-          }
-        } catch (e) {
-          console.warn('Could not append derived keepImages', e);
-        }
+          if (keepImages.length) formData.append('keepImages', JSON.stringify(keepImages));
+        } catch (e) { console.warn('Could not append derived keepImages', e); }
+        try {
+          const keepVideos = (p.videos || []).filter(v => typeof v === 'string' && !v.startsWith('data:'));
+          if (keepVideos.length) formData.append('keepVideos', JSON.stringify(keepVideos));
+        } catch (e) { console.warn('Could not append derived keepVideos', e); }
       } else {
-        imageFiles.forEach(file => {
-          if (file) {
-            formData.append('images', file);
-          }
-        });
+        imageFiles.forEach(file => { if (file) formData.append('images', file); });
+        videoFiles.forEach(file => { if (file) formData.append('videos', file); });
       }
       
       // Ajouter les détails spécifiques

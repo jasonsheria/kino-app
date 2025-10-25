@@ -82,7 +82,12 @@ export default function OwnerPropertyForm({onSave, initial={}}){
   // images as array for multi-upload
   const [images, setImages] = useState(initial.images ? initial.images.slice() : (defaults.image ? [defaults.image] : []));
 
+  // videos as array (can contain File instances or existing URL strings)
+  const [videos, setVideos] = useState(initial.videos ? initial.videos.slice() : []);
+
+  // propagate images and videos into the draft object
   useEffect(()=>{ setP(prev => ({...prev, images})); }, [images]);
+  useEffect(()=>{ setP(prev => ({...prev, videos})); }, [videos]);
 
 
   const types = useMemo(()=>{
@@ -122,7 +127,7 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     return Object.keys(err).length === 0;
   };
 
-  const onSubmit = (e)=>{ e.preventDefault(); if(!validate()) return; onSave({...p, images}); };
+  const onSubmit = (e)=>{ e.preventDefault(); if(!validate()) return; onSave({...p, images, videos}); };
 
   // Leaflet map preview refs/state
   const mapDivRef = useRef(null);
@@ -132,8 +137,8 @@ export default function OwnerPropertyForm({onSave, initial={}}){
 
   useEffect(()=>{
     if(leafletReady) return;
-    // load leaflet css and script dynamically
-    const cssId = 'leaflet-css';
+  // load leaflet css and script dynamically
+  const cssId = 'leaflet-css';
     if(!document.getElementById(cssId)){
       const link = document.createElement('link');
       link.id = cssId;
@@ -258,6 +263,27 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     }));
     Promise.all(readers).then(imgs=> setImages(prev=> [...prev, ...imgs]));
   };
+  // video helpers
+  const addVideoFiles = (fileList) => {
+    const max = 5;
+    const allowed = Array.from(fileList).slice(0, max - videos.length);
+    const accepted = [];
+    const rejected = [];
+    for (const f of allowed) {
+      if (!f.type || !f.type.startsWith('video/')) { rejected.push({file: f, reason: 'type'}); continue; }
+      if (f.size > 10 * 1024 * 1024) { rejected.push({file: f, reason: 'size'}); continue; }
+      accepted.push(f);
+    }
+    if (rejected.length) {
+      const reasons = rejected.map(r => `${r.file.name} (${r.reason === 'size' ? 'trop volumineux' : 'type non supporté'})`).join(', ');
+      setErrors(prev => ({ ...prev, videos: `Certains fichiers n'ont pas été ajoutés: ${reasons}` }));
+      // clear the error after a short timeout
+      setTimeout(() => setErrors(prev => { const copy = { ...prev }; delete copy.videos; return copy; }), 6000);
+    }
+    if (accepted.length) setVideos(prev => [...prev, ...accepted]);
+  };
+
+  const removeVideo = (idx) => setVideos(prev => prev.filter((_, i) => i !== idx));
 
   const removeImage = (idx)=> setImages(prev=> prev.filter((_,i)=> i!==idx));
 
@@ -522,6 +548,34 @@ export default function OwnerPropertyForm({onSave, initial={}}){
                   </Button>
                 )}
               </Box>
+              
+                {/* Videos section */}
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Vidéos (max 5, mp4/mov)</Typography>
+                  <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+                    {videos.map((v, idx) => (
+                      <Paper key={idx} sx={{ position: 'relative', height: 90, overflow: 'hidden', borderRadius: 0, border: `1px solid ${theme.palette.divider}` }}>
+                        {typeof v === 'string' ? (
+                          <video src={v} style={{ width: '100%', height: '90px', objectFit: 'cover' }} />
+                        ) : (
+                          <video src={URL.createObjectURL(v)} style={{ width: '100%', height: '90px', objectFit: 'cover' }} />
+                        )}
+                        <IconButton size="small" onClick={() => removeVideo(idx)} sx={{ position: 'absolute', right: 4, top: 4, bgcolor: 'rgba(255,255,255,0.9)' }}>
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Paper>
+                    ))}
+                    {videos.length < 5 && (
+                      <Button component="label" variant="outlined" sx={{ height: 90, borderRadius: 0, borderStyle: 'dashed', borderColor: theme.palette.divider }}>
+                        <Stack spacing={1} alignItems="center">
+                          <CloudUploadIcon />
+                          <Typography variant="caption" color="text.secondary">Ajouter une vidéo</Typography>
+                        </Stack>
+                        <input type="file" accept="video/*" multiple hidden onChange={(e) => addVideoFiles(e.target.files)} />
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField

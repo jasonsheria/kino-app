@@ -157,12 +157,7 @@ export default function OwnerRequest() {
     setConfirmOpen(false);
 
     try {
-      console.log('=== Début de la soumission ===');
-      console.log('Types de biens:', types);
-      console.log('Données du formulaire:', form);
-      console.log('Fichier d\'identité:', idFile);
-      console.log('Fichiers de propriété:', propTitleFiles);
-
+     
       // Créer le FormData avec tous les fichiers et données
       const formData = new FormData();
 
@@ -170,9 +165,9 @@ export default function OwnerRequest() {
       const metaData = {
         types,
         form,
-        propTitleFiles: propTitleFiles.map(file => file.name)
+        propTitleFiles: propTitleFiles.map(file => file.name),
+        subscriptionEndDate : new Date(Date.now() + 7*24*60*60*1000) //7 jours d'essai gratuit
       };
-      console.log('Métadonnées à envoyer:', metaData);
       formData.append('meta', JSON.stringify(metaData));
 
       // Ajouter la pièce d'identité
@@ -188,7 +183,6 @@ export default function OwnerRequest() {
         formData.append('userToken', token);
       }
 
-      console.log('Token d\'authentification:', token ? 'Présent' : 'Absent');
       
       // Envoyer la requête à l'API avec le token dans les headers
       const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/create`, {
@@ -199,9 +193,7 @@ export default function OwnerRequest() {
         body: formData
       });
 
-      console.log('Statut de la réponse:', response.status);
       const responseText = await response.text();
-      console.log('Réponse du serveur:', responseText);
 
       if (!response.ok) {
         throw new Error(responseText);
@@ -216,10 +208,8 @@ export default function OwnerRequest() {
       setInfoOpen(true);
 
       // Redirection après 2 secondes
-      setTimeout(() => {
-        navigate('/owner/subscribe');
-      }, 2000);
-
+     
+        // navigate('login#/owner/subscribe'+`?ownerId=${result.ownerId || ''}`+`type=owner`);
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
       setValidationError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.');

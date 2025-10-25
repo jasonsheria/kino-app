@@ -150,7 +150,7 @@ const StyledCard = styled(motion.div)`
 
 export default function Payment() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -167,7 +167,7 @@ export default function Payment() {
     cvv: '',
     mobileNumber: '',
   });
-
+  const navigate = useNavigate();
   const handleFormChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -288,7 +288,10 @@ export default function Payment() {
       const paymentData = await response.json();
 
       // Redirection vers FreshPay
-      window.location.href = paymentData.paymentUrl;
+      navigate(`${paymentData.paymentUrl}`, { replace: true });
+      // creer une redirection avec navigate en y ajoutant les parametre
+      // window.location.href = `/login#${paymentData.paymentUrl}`;
+
 
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Une erreur est survenue lors du paiement';
