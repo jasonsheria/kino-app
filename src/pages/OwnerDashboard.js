@@ -223,7 +223,16 @@ export default function OwnerDashboard() {
                     </Grid>
 
                     {/* Stat Cards */}
-                    <Grid item xs={12} sm={6} md={3} style={{width : "42vw"}}>
+                    <Grid item xs={12} md={12} style={{"width" : "100%", display : 'flex', flexDirection : 'row', justifyContent : 'space-betwen' }}>
+                    
+                    <Grid item xs={12} md={3} 
+                    style={{
+                       
+                        margin: '10px',
+                        width : '100%',
+
+                    }}
+                    >
                         <StatCard>
                             <FaEye size={24} color="#60A5FA" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -232,7 +241,14 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">Visites</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} style={{width : "42vw"}}>
+                    <Grid item xs={12} md={3}
+                    style={{
+                        
+                        margin: '10px',
+                        width : '100%',
+
+                    }}
+                    >
                         <StatCard>
                             <FaCalendarCheck size={24} color="#34D399" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -241,7 +257,15 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">Rendez-vous</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} style={{width : "42vw"}}>
+                    <Grid item xs={12} md={3}
+                    style={{
+                      
+                      
+                        margin: '10px',
+                        width : '100%',
+
+                    }}
+                    >
                         <StatCard>
                             <FaClock size={24} color="#FBBF24" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -250,7 +274,14 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">En attente</Typography>
                         </StatCard>
                     </Grid>
-                    <Grid item xs={12} sm={6} md={3} style={{width : "42.5vw"}}>
+                    <Grid item xs={12}  md={3}
+                    style={{
+                        
+                        margin: '10px',
+                        width : '100%',
+
+                    }}
+                    >
                         <StatCard>
                             <FaWallet size={24} color="#F472B6" />
                             <Typography variant="h4" component="div" sx={{ mt: 2 }}>
@@ -259,8 +290,11 @@ export default function OwnerDashboard() {
                             <Typography color="text.secondary">Revenus</Typography>
                         </StatCard>
                     </Grid>
+                    </Grid>
+
+
                     {/* Calendar Section */}
-                    <Grid item xs={12} md={8}>
+                    <Grid item xs={12} md={12} style={{"width" : "100%"}}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>

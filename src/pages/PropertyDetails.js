@@ -34,7 +34,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
-        <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100 h-100" style={{ objectFit: 'cover', cursor: 'zoom-in' }} onClick={() => onOpen(current)} />
+        <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100" style={{ objectFit: 'cover', cursor: 'zoom-in' }} onClick={() => onOpen(current)} />
         <div className="carousel-dots position-absolute bottom-0 w-100 d-flex justify-content-center gap-1 mb-2">
           {images.map((_, i) => (
             <button key={i} className={`dot btn btn-sm ${i === current ? 'btn-success' : 'btn-light'}`} onClick={() => setCurrent(i)} style={{ width: 10, height: 10, padding: 0, borderRadius: 20 }} />
@@ -61,6 +61,8 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const videoRef = useRef(null);
+  const [videoError, setVideoError] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
 
   useEffect(() => { setIndex(selectedIndex || 0); }, [selectedIndex]);
 
@@ -76,6 +78,16 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const current = videos[index];
   const isYoutube = (url) => url && (url.includes('youtube') || url.includes('youtu') || url.includes('watch?v=') || url.includes('youtu.be'));
 
+  // Try to guess MIME type from file extension for <source> tag
+  const getVideoType = (url) => {
+    if (!url || typeof url !== 'string') return '';
+    const u = url.split('?')[0].toLowerCase();
+    if (u.endsWith('.mp4')) return 'video/mp4';
+    if (u.endsWith('.webm')) return 'video/webm';
+    if (u.endsWith('.ogg') || u.endsWith('.ogv')) return 'video/ogg';
+    return 'video/mp4'; // fallback guess
+  };
+
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); } else { videoRef.current.pause(); setPlaying(false); }
@@ -84,7 +96,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const next = () => { const nextIdx = (index + 1) % videos.length; setIndex(nextIdx); onSelect(nextIdx); };
   const prev = () => { const prevIdx = (index - 1 + videos.length) % videos.length; setIndex(prevIdx); onSelect(prevIdx); };
   const goFull = () => { if (!videoRef.current) return; if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen(); else if (videoRef.current.webkitRequestFullscreen) videoRef.current.webkitRequestFullscreen(); };
-
+  
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 12000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} onClick={onClose} />
@@ -106,7 +118,39 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
               {current && isYoutube(current) ? (
                 <iframe src={toYoutubeEmbedLocal(current)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} />
               ) : (
-                <video ref={videoRef} src={current} controls style={{ width: '100%', height: '100%', objectFit: 'contain' }} muted={muted} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
+                // If there is no current video or the browser cannot play it, show a friendly message
+                current ? (
+                  videoError ? (
+                      <div style={{ color: '#fff', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 700, marginBottom: 8 }}>Impossible de lire la vidéo</div>
+                        <div className="small">Le navigateur ne prend pas en charge ce format ou la source est invalide.</div>
+                        <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'center' }}>
+                          <button className="btn btn-sm btn-light" onClick={() => { setVideoError(false); setVideoKey(k => k + 1); }}>Réessayer</button>
+                          <a className="btn btn-sm btn-outline-light" href={process.env.REACT_APP_BACKEND_APP_URL+current} target="_blank" rel="noopener noreferrer">Télécharger</a>
+                        </div>
+                      </div>
+                    ) : (
+                      <video
+                        key={videoKey}
+                        ref={videoRef}
+                        controls
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        muted={muted}
+                        onPlay={() => setPlaying(true)}
+                        onPause={() => setPlaying(false)}
+                        onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
+                      >
+                        <source src={process.env.REACT_APP_BACKEND_APP_URL+current} type={getVideoType(current)} />
+                        {/* Fallback text for very old browsers */}
+                        Votre navigateur ne prend pas en charge la lecture de vidéos.
+                      </video>
+                    )
+                ) : (
+                  <div style={{ color: '#fff', textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, marginBottom: 8 }}>Aucune vidéo disponible</div>
+                    <div className="small">Cette annonce ne contient pas de source vidéo valide.</div>
+                  </div>
+                )
               )}
             </div>
 
@@ -145,9 +189,11 @@ const AgentBlockWithReservation = ({ agent, property }) => {
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [isReserved, setIsReserved] = useState(() => {
-    try { 
-      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String); return reserved.includes(String(property.id)) || Boolean(property.isReserved); } catch (e) { return Boolean(property.isReserved); 
-      }
+    try {
+      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String); return reserved.includes(String(property.id)) || Boolean(property.isReserved);
+    } catch (e) {
+      return Boolean(property.isReserved);
+    }
   });
 
   useEffect(() => {
@@ -252,6 +298,7 @@ const PropertyDetails = () => {
 
   // Try fetching user-scoped agents if we couldn't resolve and local agents list is empty
   useEffect(() => {
+
     let mounted = true;
     const tryFetch = async () => {
       if (resolvedAgent) return;
@@ -425,261 +472,283 @@ const PropertyDetails = () => {
     shadowSize: [41, 41]
   });
   const mainPos = resolvedAgent?.geoloc || { lat: -4.325, lng: 15.322 };
+  const defaultPosition = {lat: -4.325, lng: 15.322};
+const propertyPosition = property.geoloc?.lat && property.geoloc?.lng ? property.geoloc : defaultPosition;
+const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition;
 
-  return (
-    <div>
-      <Navbar />
-      <div className="container" style={{ "marginTop": "85px" }}>
-        {/* Page header */}
-        <div className="mb-4">
-          <div className="small text-muted">Accueil / Annonces / Détails</div>
-          <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
-          <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
-        </div>
-        <div className="row">
-          <div className="col-12 col-lg-7 mb-4 mb-lg-0">
-            <div className="card shadow-lg border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
-              <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
-              <div className="card-body">
-                <div className="d-flex align-items-start justify-content-between">
-                  <div>
-                    <h3 className="fw-bold text-primary mb-2">{property.name}</h3>
-                    <div className="mb-2">
-                      <span className="badge bg-info text-dark me-2">{property.type}</span>
-                      {property.status && <span className="badge bg-secondary">{property.status}</span>}
-                    </div>
-                  </div>
-                  <div className="text-end">
-                    <div className="fs-5 text-success fw-bold"><FaRegMoneyBillAlt className="me-2" />{property.price.toLocaleString()} $</div>
+
+return (
+  <div>
+    <Navbar />
+    <div className="container" style={{ "marginTop": "85px" }}>
+      {/* Page header */}
+      <div className="mb-4">
+        <div className="small text-muted">Accueil / Annonces / Détails</div>
+        <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
+        <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
+      </div>
+      <div className="row">
+        <div className="col-12 col-lg-7 mb-4 mb-lg-0">
+          <div className="card shadow-lg border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
+            <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
+            <div className="card-body">
+              <div className="d-flex align-items-start justify-content-between">
+                <div>
+                  <h3 className="fw-bold text-primary mb-2">{property.name}</h3>
+                  <div className="mb-2">
+                    <span className="badge bg-info text-dark me-2">{property.type}</span>
+                    {property.status && <span className="badge bg-secondary">{property.status}</span>}
                   </div>
                 </div>
+                <div className="text-end">
+                  <div className="fs-5 text-success fw-bold"><FaRegMoneyBillAlt className="me-2" />{property.price.toLocaleString()} $</div>
+                </div>
+              </div>
 
-                <div className="mb-2 text-muted"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
-                <p className="text-secondary small">{property.description}</p>
+              <div className="mb-2 text-muted"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
+              <p className="text-secondary small">{property.description}</p>
 
-                {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
-                  <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
-                    <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary" /> {property.chambres}</span>
-                    <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info" /> {property.douches}</span>
-                    <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning" /> {property.salon}</span>
-                    <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success" /> {property.cuisine}</span>
-                    <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger" /> {property.sdb}</span>
-                  </div>
-                )}
+              {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
+                <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
+                  <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary" /> {property.chambres}</span>
+                  <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info" /> {property.douches}</span>
+                  <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning" /> {property.salon}</span>
+                  <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success" /> {property.cuisine}</span>
+                  <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger" /> {property.sdb}</span>
+                </div>
+              )}
 
-                <div className="d-flex justify-content-end gap-2 mb-3">
-                  <Button variant="contained"
+              <div className="d-flex justify-content-end gap-2 mb-3">
+                <Button variant="contained"
                   color="primary"
-                   onClick={() => navigate(-1)}>Retour</Button>
-                  <Button variant="contained"
-                    color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
-                </div>
-
-                {/* Neighborhood indices */}
-                <div className="card p-3 shadow-sm border-0 mb-3">
-                  <h6 className="fw-bold">Indice du quartier</h6>
-                  <p className="small text-muted">Évaluation des services et de la sécurité aux alentours (échelle 0-100).</p>
-                  <div className="d-flex flex-column gap-2">
-                    {[{ key: 'eau', label: 'Eau' }, { key: 'electricite', label: 'Électricité' }, { key: 'securite', label: 'Sécurité' }, { key: 'route', label: 'Routes' }].map(item => (
-                      <div key={item.key}>
-                        <div className="d-flex justify-content-between small mb-1"><div>{item.label}</div><div className="text-muted">{neighborhood[item.key]}%</div></div>
-                        <div className="progress" style={{ height: 8 }}>
-                          <div className="progress-bar" role="progressbar" style={{ width: `${neighborhood[item.key]}%`, background: 'var(--ndaku-primary)' }} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {showEvaluation && (
-                  <div className="mt-3">
-                    {evaluationError && <div className="alert alert-danger small">{evaluationError}</div>}
-                    <div className="d-flex gap-2">
-                      <button className="btn btn-primary btn-sm" onClick={submitEvaluation}>Soumettre l'évaluation</button>
-                      <button className="btn btn-outline-secondary btn-sm" onClick={() => setShowEvaluation(false)}>Annuler</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Agent block (responsive, reuse property styles) */}
-                {resolvedAgent && (
-                  <AgentBlockWithReservation agent={resolvedAgent} property={property} />
-                )}
+                  onClick={() => navigate(-1)}>Retour</Button>
+                <Button variant="contained"
+                  color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
               </div>
-            </div>
-          </div>
 
-          <div className="col-12 col-lg-5 mt-4 mt-lg-0">
-            <div className="mb-4">
-              <h5 className="fw-bold text-primary mb-2">Suggestions</h5>
-              <div className="row g-3">
-                {suggestions.map(sug => {
-                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
-                  return (
-                    <div className="col-12" key={sug.id}>
-                      <div className="card border-0 shadow-sm h-100" style={{ cursor: 'pointer' }} onClick={() => navigate(`/properties/${sug.id}`)}>
-                        <div className="d-flex align-items-center gap-2 p-2">
-                          <img src={process.env.REACT_APP_BACKEND_APP_URL + sug.images[0]} alt={sug.name} className="rounded" style={{ width: 110, height: 80, objectFit: 'cover' }} />
-                          <div className="flex-grow-1">
-                            <div className="fw-semibold small text-success">{sug.name}</div>
-                            <div className="small text-muted">{sug.type} • {sug.price.toLocaleString()} $</div>
-                            {sugAgent && <div className="small text-secondary">{sugAgent.name}</div>}
-                          </div>
-                        </div>
+              {/* Neighborhood indices */}
+              <div className="card p-3 shadow-sm border-0 mb-3">
+                <h6 className="fw-bold">Indice du quartier</h6>
+                <p className="small text-muted">Évaluation des services et de la sécurité aux alentours (échelle 0-100).</p>
+                <div className="d-flex flex-column gap-2">
+                  {[{ key: 'eau', label: 'Eau' }, { key: 'electricite', label: 'Électricité' }, { key: 'securite', label: 'Sécurité' }, { key: 'route', label: 'Routes' }].map(item => (
+                    <div key={item.key}>
+                      <div className="d-flex justify-content-between small mb-1"><div>{item.label}</div><div className="text-muted">{neighborhood[item.key]}%</div></div>
+                      <div className="progress" style={{ height: 8 }}>
+                        <div className="progress-bar" role="progressbar" style={{ width: `${neighborhood[item.key]}%`, background: 'var(--ndaku-primary)' }} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <div className="rounded-4 overflow-hidden border" style={{ height: 260, position: 'relative' }}>
-              <MapContainer center={[mainPos.lat, mainPos.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                {/* Main property marker */}
-                <Marker position={[property.geoloc?.lat || mainPos.lat, property.geoloc?.lng || mainPos.lng]} icon={new L.Icon({ iconUrl: require('../img/leaflet/marker-icon-2x-red.png'), iconSize: [25, 41], iconAnchor: [12, 41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize: [41, 41] })} eventHandlers={{ click: () => setSelectedMapProperty(property) }}>
-                  <Popup>
-                    <div style={{ width: 220 }}>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 700 }}>{property.titre || property.name}</div>
-                          <div style={{ fontSize: 12, color: '#666' }}>{property.adresse || property.address}</div>
-                          <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(property.prix || property.price || 0).toLocaleString()} $</div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${property._id || property.id}`)}>Voir</button>
-                        <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: property.agentId || property.agent } }))}>Contacter</button>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-
-                {suggestions.map(sug => {
-                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId) || String(a._id) === String(sug.agentId));
-                  const posSrc = sug.geoloc || sug.lat && sug.lng ? { lat: sug.geoloc?.lat || sug.lat, lng: sug.geoloc?.lng || sug.lng } : sugAgent?.geoloc;
-                  const pos = posSrc || { lat: -4.325, lng: 15.322 };
-                  return (
-                    <Marker key={sug._id || sug.id} position={[pos.lat, pos.lng]} icon={new L.Icon({ iconUrl: require('../img/leaflet/marker-icon-2x-blue.png'), iconSize: [25, 41], iconAnchor: [12, 41], shadowUrl: require('../img/leaflet/marker-shadow.png'), shadowSize: [41, 41] })} eventHandlers={{ click: () => setSelectedMapProperty(sug) }}>
-                      <Popup>
-                        <div style={{ width: 200 }}>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 700 }}>{sug.titre || sug.name}</div>
-                              <div style={{ fontSize: 12, color: '#666' }}>{sug.adresse || sug.address}</div>
-                              <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(sug.prix || sug.price || 0).toLocaleString()} $</div>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${sug._id || sug.id}`)}>Voir</button>
-                            <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: sug.agentId || sug.agent } }))}>Contacter</button>
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  );
-                })}
-              </MapContainer>
-
-              {/* Floating detail panel when a marker is selected */}
-              {selectedMapProperty && (
-                <div style={{ position: 'absolute', right: 12, top: 12, width: 320, zIndex: 9999 }}>
-                  <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ display: 'flex' }}>
-                      <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 120, height: 90, objectFit: 'cover' }} />
-                      <div style={{ padding: 12, flex: 1 }}>
-                        <div style={{ fontWeight: 700 }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
-                        <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
-                        <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
-                        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                          <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
-                          <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
-                          <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
-                        </div>
-                      </div>
-                    </div>
+              {showEvaluation && (
+                <div className="mt-3">
+                  {evaluationError && <div className="alert alert-danger small">{evaluationError}</div>}
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-primary btn-sm" onClick={submitEvaluation}>Soumettre l'évaluation</button>
+                    <button className="btn btn-outline-secondary btn-sm" onClick={() => setShowEvaluation(false)}>Annuler</button>
                   </div>
                 </div>
+              )}
+
+              {/* Agent block (responsive, reuse property styles) */}
+              {resolvedAgent && (
+                <AgentBlockWithReservation agent={resolvedAgent} property={property} />
               )}
             </div>
           </div>
         </div>
 
-        {/* Virtual tour video gallery (bottom of page) */}
-        {videos && videos.length > 0 && (
-          <div className="mt-5">
-            <h4 className="mb-3">Visite virtuelle & vidéos</h4>
-            <div className="card p-3 mb-3">
-              <div style={{ height: 420 }} className="d-flex align-items-center justify-content-center bg-dark rounded">
-                {videos[selectedVideo] && (videos[selectedVideo].includes('youtube') || videos[selectedVideo].includes('youtu') || videos[selectedVideo].includes('watch?v=') || videos[selectedVideo].includes('youtu.be')) ? (
-                  <iframe src={toYoutubeEmbed(videos[selectedVideo])} title="Visite virtuelle" style={{ width: '100%', height: 420, border: 0 }} />
-                ) : (
-                  <video ref={(el) => setVirtualPlayerRef(el)} src={videos[selectedVideo]} controls style={{ width: '100%', height: 420, objectFit: 'cover' }} />
-                )}
-              </div>
-
-              <div className="d-flex gap-2 mt-3 overflow-auto py-2">
-                {videos.map((v, i) => (
-                  <div key={i} className={`border rounded ${i === selectedVideo ? 'border-success' : 'border-0'}`} style={{ width: 160, flex: '0 0 auto', cursor: 'pointer' }} onClick={() => setSelectedVideo(i)}>
-                    {(v.includes('youtube') || v.includes('youtu')) ? (
-                      <img src={`https://img.youtube.com/vi/${(v.split('v=')[1] || v.split('/').pop()).split('&')[0]}/hqdefault.jpg`} alt={`thumb-${i}`} style={{ width: '100%', height: 90, objectFit: 'cover' }} />
-                    ) : (
-                      <video src={v} style={{ width: '100%', height: 90, objectFit: 'cover' }} muted />
-                    )}
-                    <div className="p-2 small text-truncate">Vidéo {i + 1}</div>
+        <div className="col-12 col-lg-5 mt-4 mt-lg-0">
+          <div className="mb-4">
+            <h5 className="fw-bold text-primary mb-2">Suggestions</h5>
+            <div className="row g-3">
+              {suggestions.map(sug => {
+                const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
+                return (
+                  <div className="col-12" key={sug.id}>
+                    <div className="card border-0 shadow-sm h-100" style={{ cursor: 'pointer' }} onClick={() => navigate(`/properties/${sug.id}`)}>
+                      <div className="d-flex align-items-center gap-2 p-2">
+                        <img src={process.env.REACT_APP_BACKEND_APP_URL + sug.images[0]} alt={sug.name} className="rounded" style={{ width: 110, height: 80, objectFit: 'cover' }} />
+                        <div className="flex-grow-1">
+                          <div className="fw-semibold small text-success">{sug.name}</div>
+                          <div className="small text-muted">{sug.type} • {sug.price.toLocaleString()} $</div>
+                          {sugAgent && <div className="small text-secondary">{sugAgent.name}</div>}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
-        )}
-        {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
-        <AnimatePresence>
-          {showVirtual && (
-            <VirtualTourModal
-              videos={videos && videos.length ? videos : []}
-              selectedIndex={selectedVideo}
-              onClose={() => setShowVirtual(false)}
-              onSelect={(i) => setSelectedVideo(i)}
-            />
-          )}
-        </AnimatePresence>
 
-        {/* Image Lightbox for large image viewing */}
-        <AnimatePresence>
-          {showImageLightbox && property.images && property.images.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 13000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)' }} onClick={() => setShowImageLightbox(false)} />
-              <motion.div initial={{ y: 30, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', zIndex: 13001 }}>
-                <div style={{ position: 'relative' }}>
-                  <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', right: 12, top: 12, zIndex: 2 }}>×</button>
-                  <img src={process.env.REACT_APP_BACKEND_APP_URL + property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
-                  <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + property.images.length) % property.images.length); }}>&lsaquo;</button>
-                  <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }}>&rsaquo;</button>
+          <div className="rounded-4 overflow-hidden border" style={{ height: 260, position: 'relative' }}>
+
+            <MapContainer center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {/* Main property marker */}
+              <Marker position={[propertyPosition.lat, propertyPosition.lng]} icon={redIcon} eventHandlers={{ click: () => setSelectedMapProperty(property) }}>
+                <Popup>
+                  <div style={{ width: 220 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700 }}>{property.titre || property.name}</div>
+                        <div style={{ fontSize: 12, color: '#666' }}>{property.adresse || property.address}</div>
+                        <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(property.prix || property.price || 0).toLocaleString()} $</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                      <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${property._id || property.id}`)}>Voir</button>
+                      <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: property.agentId || property.agent } }))}>Contacter</button>
+                    </div>
+                  </div>
+                </Popup>
+              </Marker>
+
+              {suggestions.map(sug => {
+                const sugAgent = agents.find(a => String(a.id) === String(sug.agentId) || String(a._id) === String(sug.agentId));
+                let markerPosition;
+
+                // Try to get position from property first
+                if (sug.geoloc?.lat && sug.geoloc?.lng) {
+                  markerPosition = { lat: sug.geoloc.lat, lng: sug.geoloc.lng };
+                }
+                // If property has separate lat/lng fields
+                else if (sug.lat && sug.lng) {
+                  markerPosition = { lat: sug.lat, lng: sug.lng };
+                }
+                // Try agent's position
+                else if (sugAgent?.geoloc?.lat && sugAgent?.geoloc?.lng) {
+                  markerPosition = sugAgent.geoloc;
+                }
+                // Default to central Kinshasa if no valid position found
+                else {
+                  markerPosition = defaultPosition;
+                }
+
+                return (
+                  <Marker key={sug._id || sug.id} position={[markerPosition.lat, markerPosition.lng]} icon={blueIcon} eventHandlers={{ click: () => setSelectedMapProperty(sug) }}>
+                    <Popup>
+                      <div style={{ width: 200 }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700 }}>{sug.titre || sug.name}</div>
+                            <div style={{ fontSize: 12, color: '#666' }}>{sug.adresse || sug.address}</div>
+                            <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(sug.prix || sug.price || 0).toLocaleString()} $</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                          <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${sug._id || sug.id}`)}>Voir</button>
+                          <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: sug.agentId || sug.agent } }))}>Contacter</button>
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+
+            {/* Floating detail panel when a marker is selected */}
+            {selectedMapProperty && (
+              <div style={{ position: 'absolute', right: 12, top: 12, width: 320, zIndex: 9999 }}>
+                <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex' }}>
+                    <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 120, height: 90, objectFit: 'cover' }} />
+                    <div style={{ padding: 12, flex: 1 }}>
+                      <div style={{ fontWeight: 700 }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
+                      <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
+                      <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
+                      <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
+                        <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
+                        <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
-      {/* Call to action */}
-      <div className="bg-success text-white text-center py-5">
-        <div className="container">
-          <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
-          <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-          <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill" style={{ fontSize: '1.2rem', minWidth: 180 }}>Devenir agent</a>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Virtual tour video gallery (bottom of page) */}
+      {/* {videos && videos.length > 0 && (
+        <div className="mt-5">
+          <h4 className="mb-3">Visite virtuelle & vidéos</h4>
+          <div className="card p-3 mb-3">
+            <div style={{ height: 420 }} className="d-flex align-items-center justify-content-center bg-dark rounded">
+              {videos[selectedVideo] && (videos[selectedVideo].includes('youtube') || videos[selectedVideo].includes('youtu') || videos[selectedVideo].includes('watch?v=') || videos[selectedVideo].includes('youtu.be')) ? (
+                <iframe src={toYoutubeEmbed(videos[selectedVideo])} title="Visite virtuelle" style={{ width: '100%', height: 420, border: 0 }} />
+              ) : (
+                <video ref={(el) => setVirtualPlayerRef(el)} src={videos[selectedVideo]} controls style={{ width: '100%', height: 420, objectFit: 'cover' }} />
+              )}
+            </div>
 
-      {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
+            <div className="d-flex gap-2 mt-3 overflow-auto py-2">
+              {videos.map((v, i) => (
+                <div key={i} className={`border rounded ${i === selectedVideo ? 'border-success' : 'border-0'}`} style={{ width: 160, flex: '0 0 auto', cursor: 'pointer' }} onClick={() => setSelectedVideo(i)}>
+                  {(v.includes('youtube') || v.includes('youtu')) ? (
+                    <img src={`https://img.youtube.com/vi/${(v.split('v=')[1] || v.split('/').pop()).split('&')[0]}/hqdefault.jpg`} alt={`thumb-${i}`} style={{ width: '100%', height: 90, objectFit: 'cover' }} />
+                  ) : (
+                    <video src={v} style={{ width: '100%', height: 90, objectFit: 'cover' }} muted />
+                  )}
+                  <div className="p-2 small text-truncate">Vidéo {i + 1}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )} */}
+      {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
+      <AnimatePresence>
+        {showVirtual && (
+          <VirtualTourModal
+            videos={videos && videos.length ? videos : []}
+            selectedIndex={selectedVideo}
+            onClose={() => setShowVirtual(false)}
+            onSelect={(i) => setSelectedVideo(i)}
+          />
+        )}
+      </AnimatePresence>
 
-
-      <FooterPro />
+      {/* Image Lightbox for large image viewing */}
+      <AnimatePresence>
+        {showImageLightbox && property.images && property.images.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 13000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)' }} onClick={() => setShowImageLightbox(false)} />
+            <motion.div initial={{ y: 30, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', zIndex: 13001 }}>
+              <div style={{ position: 'relative' }}>
+                <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', right: 12, top: 12, zIndex: 2 }}>×</button>
+                <img src={process.env.REACT_APP_BACKEND_APP_URL + property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
+                <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + property.images.length) % property.images.length); }}>&lsaquo;</button>
+                <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }}>&rsaquo;</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+    <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
+    {/* Call to action */}
+    <div className="bg-success text-white text-center py-5">
+      <div className="container">
+        <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
+        <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+        <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill" style={{ fontSize: '1.2rem', minWidth: 180 }}>Devenir agent</a>
+      </div>
     </div>
 
-  );
+
+    {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
+
+
+    <FooterPro />
+  </div>
+
+);
 };
 export default PropertyDetails;

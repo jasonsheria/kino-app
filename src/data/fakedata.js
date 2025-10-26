@@ -125,6 +125,7 @@ export const subscriptions = [
           price: p.prix || p.amount || 0,
           address: p.adresse || p.location || (p.addressLine ? `${p.addressLine}` : ''),
           images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : (i.url || i.path || ''))) : (p.image ? [p.image] : []),
+          videos: Array.isArray(p.videos) ? p.videos.map(v => (typeof v === 'string' ? v : (v.url || v.path || ''))) : (p.video ? [p.video] : []),
           agentId:  p.agent  || p.agentId || null,
           agent : p.agent || null,
           geoloc: p.geoloc || p.location || p.coords || null,

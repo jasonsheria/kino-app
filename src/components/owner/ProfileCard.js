@@ -171,27 +171,7 @@ export default function ProfileCard({ onClose }) {
         </>
       )}
 
-      {/* Informations professionnelles */}
-      {(user.professional.domaine || user.professional.expertise) && (
-        <>
-          <Divider />
-          <Box sx={{ p: 2 }}>
-            <Typography variant="subtitle2" gutterBottom fontWeight={600}>
-              Professionnel
-            </Typography>
-            {user.professional.domaine && (
-              <Typography variant="body2" gutterBottom>
-                Domaine: {user.professional.domaine}
-              </Typography>
-            )}
-            {user.professional.expertise && (
-              <Typography variant="body2">
-                Expertise: {user.professional.expertise}
-              </Typography>
-            )}
-          </Box>
-        </>
-      )}
+     
 
       {/* Informations de l'entreprise */}
       {user.company.name && (
@@ -204,11 +184,7 @@ export default function ProfileCard({ onClose }) {
             <Typography variant="body2" gutterBottom>
               {user.company.name}
             </Typography>
-            {user.company.description && (
-              <Typography variant="body2" color="text.secondary">
-                {user.company.description}
-              </Typography>
-            )}
+           
           </Box>
         </>
       )}

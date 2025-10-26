@@ -25,6 +25,7 @@ export const useOwnerProfile = () => {
 
                 const profileData = await response.json();
                 setOwnerProfile(profileData);
+                console.log("Fetched owner profile:", profileData);
             } catch (err) {
                 setError(err.message);
             } finally {

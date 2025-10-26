@@ -2,8 +2,9 @@ import React from 'react';
 import OwnerSidebar from './OwnerSidebar';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaBell, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
-import ProfileCard from './ProfileCard';
+import { useOwnerProfile } from '../../hooks/useOwnerProfile';
 import { getDashboardMetrics } from '../../data/fakeMetrics';
+import ProfileCard from './ProfileCard';
 import '../../styles/owner.css';
 import {
   AppBar,
@@ -23,7 +24,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
-import OwnerProfile from '../../pages/OwnerProfile';
 
 export default function OwnerLayout({ children }) {
   const theme = useTheme();
@@ -34,7 +34,7 @@ export default function OwnerLayout({ children }) {
   const [anchorMessages, setAnchorMessages] = React.useState(null);
   const [ownerUnread, setOwnerUnread] = React.useState(0);
   const [metrics, setMetrics] = React.useState({ visits: 0, bookings: 0, revenue: 0 });
-
+  const { ownerProfile, loading, error } = useOwnerProfile();
   React.useEffect(() => {
     const m = getDashboardMetrics('owner-123');
     setMetrics(m);
@@ -201,7 +201,7 @@ export default function OwnerLayout({ children }) {
               }}
             >
               <Avatar
-                src={OwnerProfile.profileUrl || ""}
+                src={ownerProfile?.user?.profileUrl || ""}
                 sx={{
                   width: 32,
                   height: 32,
