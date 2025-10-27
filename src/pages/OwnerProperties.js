@@ -815,8 +815,10 @@ export default function OwnerProperties() {
               variant="contained"
               form="property-form"
               type="submit"
+              disabled={loading}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
             >
-              Enregistrer
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </DialogActions>
         </Dialog>

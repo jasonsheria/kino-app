@@ -63,6 +63,9 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const videoRef = useRef(null);
   const [videoError, setVideoError] = useState(false);
   const [videoKey, setVideoKey] = useState(0);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
+  const [progress, setProgress] = useState(0);
+  const [youtubeKey, setYoutubeKey] = useState(0);
 
   useEffect(() => { setIndex(selectedIndex || 0); }, [selectedIndex]);
 
@@ -73,6 +76,13 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
       if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'www.youtube.com/embed/');
     } catch (e) { }
     return url;
+  };
+
+  const getYoutubeEmbedWithAutoplay = (url, autoplay = false) => {
+    if (!url) return url;
+    let src = toYoutubeEmbedLocal(url);
+    const sep = src.includes('?') ? '&' : '?';
+    return src + (autoplay ? `${sep}autoplay=1&rel=0&controls=1` : `${sep}rel=0&controls=1`);
   };
 
   const current = videos[index];
@@ -97,6 +107,59 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const prev = () => { const prevIdx = (index - 1 + videos.length) % videos.length; setIndex(prevIdx); onSelect(prevIdx); };
   const goFull = () => { if (!videoRef.current) return; if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen(); else if (videoRef.current.webkitRequestFullscreen) videoRef.current.webkitRequestFullscreen(); };
   
+  // update progress for HTML5 video
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) { setProgress(0); return; }
+    const onTime = () => { try { setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0); } catch (e) {} };
+    el.addEventListener('timeupdate', onTime);
+    el.addEventListener('ended', () => { setPlaying(false); setProgress(100); });
+    return () => {
+      el.removeEventListener('timeupdate', onTime);
+    };
+  }, [videoRef, index]);
+
+  // keyboard shortcuts: space play/pause, arrows for prev/next
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.code === 'Space') { e.preventDefault(); if (isYoutube(current)) { /* cannot control iframe */ } else togglePlay(); }
+      if (e.code === 'ArrowRight') { next(); }
+      if (e.code === 'ArrowLeft') { prev(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [index, current]);
+
+  // responsive: detect mobile breakpoint and update
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const onChange = (ev) => setIsMobile(ev.matches ?? mq.matches);
+    // set initial
+    setIsMobile(mq.matches);
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else mq.addListener(onChange);
+    return () => { if (mq.removeEventListener) mq.removeEventListener('change', onChange); else mq.removeListener(onChange); };
+  }, []);
+
+  const handleSelect = (i) => {
+    const v = videos[i];
+    setVideoError(false);
+    setIndex(i);
+    onSelect(i);
+    if (isYoutube(v)) {
+      // reload iframe with autoplay
+      setYoutubeKey(k => k + 1);
+      setPlaying(true);
+    } else {
+      // reset and play HTML5 video
+      setVideoKey(k => k + 1);
+      setTimeout(() => {
+        if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} }
+      }, 150);
+    }
+  };
+  
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 12000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} onClick={onClose} />
@@ -104,19 +167,25 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
             <div style={{ fontWeight: 700 }}>Visite virtuelle</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-sm btn-outline-secondary" onClick={prev}>Préc.</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={next}>Suiv.</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
-              <button className="btn btn-sm btn-outline-secondary" onClick={goFull}>Plein écran</button>
-              <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
-            </div>
+            {!isMobile ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-sm btn-outline-secondary" onClick={prev}>Préc.</button>
+                <button className="btn btn-sm btn-outline-secondary" onClick={next}>Suiv.</button>
+                <button className="btn btn-sm btn-outline-secondary" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
+                <button className="btn btn-sm btn-outline-secondary" onClick={goFull}>Plein écran</button>
+                <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
+              </div>
+            )}
           </div>
 
           <div style={{ padding: 12, display: 'flex', gap: 12, flex: 1, overflow: 'hidden' }}>
-            <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+          <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', height: isMobile ? '50vh' : '100%', position: 'relative' }}>
               {current && isYoutube(current) ? (
-                <iframe src={toYoutubeEmbedLocal(current)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} />
+                <iframe key={youtubeKey} src={getYoutubeEmbedWithAutoplay(current, playing)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} allow="autoplay; encrypted-media" />
               ) : (
                 // If there is no current video or the browser cannot play it, show a friendly message
                 current ? (
@@ -130,20 +199,32 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                         </div>
                       </div>
                     ) : (
-                      <video
-                        key={videoKey}
-                        ref={videoRef}
-                        controls
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                        muted={muted}
-                        onPlay={() => setPlaying(true)}
-                        onPause={() => setPlaying(false)}
-                        onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
-                      >
-                        <source src={process.env.REACT_APP_BACKEND_APP_URL+current} type={getVideoType(current)} />
-                        {/* Fallback text for very old browsers */}
-                        Votre navigateur ne prend pas en charge la lecture de vidéos.
-                      </video>
+                      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                        <video
+                          key={videoKey}
+                          ref={videoRef}
+                          controls
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          muted={muted}
+                          onPlay={() => setPlaying(true)}
+                          onPause={() => setPlaying(false)}
+                          onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
+                        >
+                          <source src={process.env.REACT_APP_BACKEND_APP_URL+current} type={getVideoType(current)} />
+                          {/* Fallback text for very old browsers */}
+                          Votre navigateur ne prend pas en charge la lecture de vidéos.
+                        </video>
+                        {/* simple progress bar */}
+                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 6, background: 'rgba(255,255,255,0.12)' }}>
+                          <div style={{ width: `${progress}%`, height: '100%', background: 'var(--ndaku-primary)' }} />
+                        </div>
+                        {/* Mobile central play overlay */}
+                        {isMobile && current && !isYoutube(current) && !videoError && !playing && (
+                          <button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 16 }}>
+                            Lire
+                          </button>
+                        )}
+                      </div>
                     )
                 ) : (
                   <div style={{ color: '#fff', textAlign: 'center' }}>
@@ -152,13 +233,27 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                   </div>
                 )
               )}
+              {isMobile && (
+                <div style={{ position: 'absolute', left: 12, right: 12, bottom: 12, display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn btn-sm btn-outline-light" onClick={prev}>Préc.</button>
+                    <button className="btn btn-sm btn-outline-light" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
+                    <button className="btn btn-sm btn-outline-light" onClick={goFull}>Plein écran</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button className="btn btn-sm btn-outline-light" onClick={() => handleSelect(Math.max(0, index - 1))}>‹</button>
+                    <div style={{ color: '#fff', fontWeight: 600 }}>Vidéo {index + 1}/{videos.length}</div>
+                    <button className="btn btn-sm btn-outline-light" onClick={() => handleSelect(Math.min(videos.length - 1, index + 1))}>›</button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div style={{ width: 260, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Liste des vidéos</div>
-              <div style={{ overflowY: 'auto', flex: 1, paddingRight: 6 }}>
+            <div style={isMobile ? { width: '100%', display: 'flex', flexDirection: 'row', gap: 8, overflowX: 'auto', padding: '8px 6px' } : { width: 260, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, display: isMobile ? 'none' : 'block' }}>Liste des vidéos</div>
+              <div style={isMobile ? { display: 'flex', gap: 8 } : { overflowY: 'auto', flex: 1, paddingRight: 6 }}>
                 {videos.map((v, i) => (
-                  <div key={i} className={`d-flex gap-2 align-items-center p-2 rounded ${i === index ? 'border border-success' : 'border-0'}`} style={{ cursor: 'pointer' }} onClick={() => { setIndex(i); onSelect(i); }}>
+                  <div key={i} className={`d-flex gap-2 align-items-center p-2 rounded ${i === index ? 'border border-success' : 'border-0'}`} style={{ cursor: 'pointer', minWidth: isMobile ? 220 : undefined, padding: isMobile ? 8 : undefined }} onClick={() => handleSelect(i)}>
                     <div style={{ width: 88, height: 56, flex: '0 0 auto', overflow: 'hidden', borderRadius: 6, background: '#ddd' }}>
                       {isYoutube(v) ? (
                         <img src={`https://img.youtube.com/vi/${(v.split('v=')[1] || v.split('/').pop()).split('&')[0]}/mqdefault.jpg`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`thumb-${i}`} />
@@ -169,9 +264,6 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600 }}>Vidéo {i + 1}</div>
                       <div className="small text-muted text-truncate" style={{ maxWidth: 140 }}>{String(v).split('/').pop()}</div>
-                    </div>
-                    <div style={{ flex: '0 0 auto' }}>
-                      <button className="btn btn-sm btn-outline-primary" onClick={(e) => { e.stopPropagation(); setIndex(i); onSelect(i); if (videoRef.current && !isYoutube(v)) { videoRef.current.play(); } }}>Lire</button>
                     </div>
                   </div>
                 ))}

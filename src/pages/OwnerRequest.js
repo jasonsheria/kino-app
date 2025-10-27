@@ -22,7 +22,8 @@ import {
   Link,
   Paper,
   TextField,
-  Chip
+  Chip,
+  CircularProgress,
 } from '@mui/material';
 
 const VisuallyHiddenInput = styled('input')({
@@ -77,6 +78,7 @@ export default function OwnerRequest() {
   const [form, setForm] = useState({ nom: '', postnom: '', prenom: '', email: '', phone: '', address: '' });
   const [idFile, setIdFile] = useState(null);
   const [propTitleFiles, setPropTitleFiles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [completion, setCompletion] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -98,7 +100,7 @@ export default function OwnerRequest() {
   useEffect(() => {
     // Réinitialiser le formulaire au chargement
     setTypes([]);
-    setForm({ nom: '', postnom: '', prenom: '', email: '', phone: '', address: '' });
+    setForm({ nom: '', postnom: '', prenom: '', phone: '', address: '' });
     setIdFile(null);
     setPropTitleFiles([]);
     setValidationError('');
@@ -110,18 +112,9 @@ export default function OwnerRequest() {
     if (e && e.preventDefault) e.preventDefault();
     
     // Validation de base
-    if (!form.nom || !form.prenom || !form.email) { 
-      setValidationError('Veuillez remplir les champs obligatoires'); 
-      return; 
-    }
+   
 
-    // Validation email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      setValidationError('Veuillez entrer un email valide');
-      return;
-    }
-
+   
     // Validation téléphone
     if (!form.phone || form.phone.length < 8) {
       setValidationError('Veuillez entrer un numéro de téléphone valide');
@@ -139,10 +132,8 @@ export default function OwnerRequest() {
       setValidationError('Veuillez fournir une pièce d\'identité');
       return;
     }
-    if (propTitleFiles.length === 0) {
-      setValidationError('Veuillez fournir au moins un titre de propriété');
-      return;
-    }
+
+    
 
     setValidationError('');
     setConfirmOpen(true);
@@ -155,6 +146,7 @@ export default function OwnerRequest() {
     }
     sessionStorage.setItem('owner_submission_lock', '1');
     setConfirmOpen(false);
+  setIsSubmitting(true);
 
     try {
      
@@ -165,7 +157,7 @@ export default function OwnerRequest() {
       const metaData = {
         types,
         form,
-        propTitleFiles: propTitleFiles.map(file => file.name),
+        propTitleFiles: propTitleFiles?.map(file => file.name),
         subscriptionEndDate : new Date(Date.now() + 7*24*60*60*1000) //7 jours d'essai gratuit
       };
       formData.append('meta', JSON.stringify(metaData));
@@ -215,6 +207,7 @@ export default function OwnerRequest() {
       setValidationError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.');
     } finally {
       sessionStorage.removeItem('owner_submission_lock');
+      setIsSubmitting(false);
     }
   };
 
@@ -469,16 +462,7 @@ export default function OwnerRequest() {
                       onChange={e => setForm({ ...form, prenom: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      type="email"
-                      required
-                      value={form.email}
-                      onChange={e => setForm({ ...form, email: e.target.value })}
-                    />
-                  </Grid>
+                 
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -615,6 +599,7 @@ export default function OwnerRequest() {
                   <Button
                     variant="contained"
                     onClick={submitApplication}
+                    disabled={isSubmitting}
                     sx={{
                       bgcolor: 'var(--ndaku-primary)',
                       color: 'white',
@@ -626,7 +611,13 @@ export default function OwnerRequest() {
                       }
                     }}
                   >
-                    Soumettre la demande
+                    {isSubmitting ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <CircularProgress size={18} color="inherit" /> Envoi...
+                      </span>
+                    ) : (
+                      'Soumettre la demande'
+                    )}
                   </Button>
                 </Stack>
               </Box>
