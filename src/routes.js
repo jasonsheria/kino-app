@@ -28,6 +28,7 @@ import OwnerMessages from './pages/OwnerMessages';
 import OwnerWallet from './pages/OwnerWallet';
 import OwnerSubscribe from './pages/OwnerSubscribe';
 import Payment from './pages/Payment';
+import Profile from './pages/Profile';
 import PaymentConfirm from './pages/PaymentConfirm';
 import PaymentCancel from './pages/PaymentCancel';
 import PaymentSimulation from './pages/PaymentSimulation';
@@ -54,6 +55,8 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/about" element={<About />} />
+    <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
     <Route path="/contact" element={<Contact />} />
     <Route path="/voitures" element={<Voitures />} />
     <Route path="/terrain" element={<Terrain />} />

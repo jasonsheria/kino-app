@@ -392,7 +392,7 @@
 
 /* User dropdown menu */
 .kn-user-wrap { position: relative; display: flex; }
-.kn-user-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--bg); border-radius: var(--radius-md); box-shadow: var(--shadow-dropdown); padding: 8px; min-width: 160px; opacity: 0; visibility: hidden; transform-origin: top right; transform: translateY(-6px) scale(0.98); transition: all 0.15s ease; z-index: 130; }
+.kn-user-menu { position: absolute; top: calc(100% + 8px); right: 0; background: var(--bg); border-radius: var(--radius-md); box-shadow: var(--shadow-dropdown); padding: 8px; min-width: 160px; opacity: 0; visibility: hidden; transform-origin: top right; transform: translateY(-6px) scale(0.98); transition: all 0.15s ease; z-index: 14000; }
 .kn-user-menu.show { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 .kn-user-menu-item { display: block; padding: 8px 12px; color: var(--text); text-decoration: none; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; border-radius: 6px; }
 .kn-user-menu-item:hover { background: var(--primary-light); color: var(--primary); }
@@ -402,12 +402,38 @@
 .kn-user-compact { padding: 8px; border-radius: 999px; background: transparent; border: none; font-size: 18px; position: relative; }
 .kn-compact-login { padding: 8px 12px; background: var(--primary); color: #fff; border-radius: var(--radius-full); text-decoration: none; }
 .kn-compact-actions{
-  display :none;
+  display: none;
 }
 @media (max-width: 900px) {
   .kn-cta-group.ct-1 { display: none; }
   .kn-compact-actions { display: flex; }
   .kn-menu-toggle { display: block; }
+}
+
+/* Compact action tweaks for better mobile UX */
+.kn-compact-actions {
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.kn-compact-btn {
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+}
+.kn-user-compact-wrap { position: relative; }
+.kn-compact-login { padding: 8px 12px; background: var(--primary); color: #fff; border-radius: var(--radius-full); text-decoration: none; }
+
+/* Ensure user menu aligns to the right when in compact wrapper */
+.kn-user-compact-wrap .kn-user-menu { right: 0; left: auto; }
+
+/* Slightly increase z-index for notif menu on mobile to avoid clipping */
+@media (max-width: 900px) {
+  .kn-notif-menu { z-index: 1400; }
 }
 
 /* Mobile adjustments to mimic owner navbar: smaller, translucent white, tighter spacing */
@@ -647,6 +673,7 @@
   }
   .kn-notif-menu {
     width : 294px;
+    right: -50px;
   }
 }
 

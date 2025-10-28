@@ -41,6 +41,7 @@ const Navbar = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
+  const userMenuRefMobile = useRef(null); // separate ref for compact/mobile wrapper
 
   const lastScrollY = useRef(0);
   const headerRef = useRef(null);
@@ -111,7 +112,9 @@ const Navbar = () => {
         setIsDrawerOpen(false);
       }
       // close dropdown menus when clicking outside
-      if (!userMenuRef.current?.contains(e.target)) {
+      const inDesktop = userMenuRef.current?.contains(e.target);
+      const inMobile = userMenuRefMobile.current?.contains(e.target);
+      if (!inDesktop && !inMobile) {
         setUserMenuOpen(false);
       }
     };
@@ -172,224 +175,110 @@ const Navbar = () => {
   return (
     <header className={`kn-header ${isSticky ? 'sticky' : ''} ${isHidden ? 'hidden' : ''}`} ref={headerRef}>
       <nav className="kn-nav">
-        {/* Logo et marque */}
+        {/* Brand */}
         <Link to="/" className="kn-brand" aria-label="Aller à l'accueil">
-          <img
-            src="/img/logo.svg"
-            alt="Kino-App logo"
-            className="kn-brand-logo"
-          />
+          <img src="/img/logo.svg" alt="Kino-App logo" className="kn-brand-logo" />
           <span className="kn-brand-text">K-App</span>
         </Link>
 
-        {/* Navigation desktop */}
+        {/* Desktop menu */}
         <div className="kn-menu">
-          <Link
-            to="/"
-            className={`kn-menu-link ${location.pathname === '/' ? 'active' : ''}`}
-          >
-            Accueil
-          </Link>
-
-          <Link to="/about" className="kn-menu-link">
-            À propos
-          </Link>
-
+          <Link to="/" className={`kn-menu-link ${location.pathname === '/' ? 'active' : ''}`}>Accueil</Link>
+          <Link to="/about" className="kn-menu-link">À propos</Link>
           <div className="kn-dropdown">
-            <button
-              className="kn-dropdown-toggle"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              aria-expanded={dropdownOpen}
-              aria-haspopup="true"
-            >
-              Immobilier
-              <FaChevronDown
-                style={{
-                  transform: `rotate(${dropdownOpen ? '180deg' : '0'})`,
-                  transition: 'transform 0.2s ease'
-                }}
-              />
+            <button className="kn-dropdown-toggle" onClick={() => setDropdownOpen(!dropdownOpen)} aria-expanded={dropdownOpen} aria-haspopup="true">
+              Immobilier <FaChevronDown style={{ transform: `rotate(${dropdownOpen ? '180deg' : '0'})`, transition: 'transform 0.2s' }} />
             </button>
-
             <div className={`kn-dropdown-menu ${dropdownOpen ? 'show' : ''}`}>
-              <Link to="/voitures" className="kn-dropdown-item">
-                <FaCar /> Voitures
-              </Link>
-              <Link to="/terrain" className="kn-dropdown-item">
-                <FaTree /> Terrain
-              </Link>
-              <Link to="/appartement" className="kn-dropdown-item">
-                <FaBuilding /> Appartement
-              </Link>
-              <Link to="/salle" className="kn-dropdown-item">
-                <FaGlassCheers /> Salle de fête
-              </Link>
+              <Link to="/voitures" className="kn-dropdown-item"><FaCar /> Voitures</Link>
+              <Link to="/terrain" className="kn-dropdown-item"><FaTree /> Terrain</Link>
+              <Link to="/appartement" className="kn-dropdown-item"><FaBuilding /> Appartement</Link>
+              <Link to="/salle" className="kn-dropdown-item"><FaGlassCheers /> Salle de fête</Link>
             </div>
           </div>
-
-          <Link to="/contact" className="kn-menu-link">
-            Contact
-          </Link>
+          <Link to="/contact" className="kn-menu-link">Contact</Link>
         </div>
 
-        {/* Boutons d'action */}
+        {/* Desktop CTA group */}
         <div className="kn-cta-group ct-1">
-          {/* Notifications & user status */}
           <div className="kn-notif-wrap">
-            <Button
-              onClick={() => setNotifOpen(!notifOpen)}
-              className="kn-icon-btn"
-              aria-label="Afficher les notifications"
-              title="Notifications"
-            >
+            <Button onClick={() => setNotifOpen(!notifOpen)} className="kn-icon-btn" aria-label="Afficher les notifications" title="Notifications">
               <FaBell aria-hidden="true" className="kn-icon" />
-              {unreadCount > 0 && (
-                <span className="kn-notif-badge">{unreadCount}</span>
-              )}
+              {unreadCount > 0 && <span className="kn-notif-badge">{unreadCount}</span>}
             </Button>
-
-            <div
-              className={`kn-notif-menu ${notifOpen ? 'show' : ''}`}
-              role="menu"
-              aria-hidden={!notifOpen}
-              style={notifOpen ? { zIndex: 140 } : undefined}
-            >
-              {unreadList.length > 0 ? (
-                unreadList.map((n) => (
-                  <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
-                    <div className="kn-notif-item-body">
-                      <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
-                      <div className="kn-notif-text">{n.message || n.details || n.text}</div>
-                    </div>
-                    <div className="kn-notif-actions">
-                      <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
-                    </div>
+            <div className={`kn-notif-menu ${notifOpen ? 'show' : ''}`} role="menu" aria-hidden={!notifOpen} style={notifOpen ? { zIndex: 140 } : undefined}>
+              {unreadList.length > 0 ? unreadList.map((n) => (
+                <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
+                  <div className="kn-notif-item-body">
+                    <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
+                    <div className="kn-notif-text">{n.message || n.details || n.text}</div>
                   </div>
-                ))
-              ) : (
-                <div className="kn-notif-empty">Aucune notification</div>
-              )}
+                  <div className="kn-notif-actions">
+                    <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
+                  </div>
+                </div>
+              )) : <div className="kn-notif-empty">Aucune notification</div>}
             </div>
           </div>
-          <Button
-            variant="contained"
-            color="primary"
-            aria-label="Devenir propriétaire"
-            title="Devenir propriétaire"
-          >
-            <Link to="/owner/onboard"
-              style={{
-                listStyleType: 'none',
-                textDecoration: 'none',
-                color: 'white',
-              }}
-            >
-              Propriétaire
-            </Link>
 
+          <Button variant="contained" color="primary" aria-label="Devenir propriétaire" title="Devenir propriétaire">
+            <Link to="/owner/onboard" style={{ textDecoration: 'none', color: 'white' }}>Propriétaire</Link>
           </Button>
+
           {user ? (
             <div className="kn-user-wrap" ref={userMenuRef}>
               <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
                 <FaUserCircle className="kn-user-icon kn-icon" />
                 <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
               </button>
-
               <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
                 <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
-                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); /* call logout from context */ window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
+                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
               </div>
             </div>
           ) : (
-            < Button
-              variant="contained"
-              color="primary"
-              aria-label="propriétaire"
-
-            >
-              <Link to="/login" style={{
-                listStyleType: 'none',
-                textDecoration: 'none',
-                color: 'white',
-              }}>Connexion</Link>
-            </Button>
+            <Button variant="contained" color="primary" aria-label="Connexion"><Link to="/login" style={{ textDecoration: 'none', color: 'white' }}>Connexion</Link></Button>
           )}
         </div>
 
-        {/* Compact actions shown on mobile (notification + user) */}
-
-
-
-
-        {/* Bouton menu mobile */}
+        {/* Compact actions (mobile) */}
         <div className="kn-compact-actions">
-         
+          <div className="kn-notif-wrap">
+            <Button onClick={() => setNotifOpen(!notifOpen)} className="kn-icon-btn kn-compact-btn" aria-label="Afficher les notifications" title="Notifications">
+              <FaBell aria-hidden="true" className="kn-icon" />
+              {unreadCount > 0 && <span className="kn-notif-badge">{unreadCount}</span>}
+            </Button>
+            <div className={`kn-notif-menu ${notifOpen ? 'show' : ''}`} role="menu" aria-hidden={!notifOpen} style={notifOpen ? { zIndex: 1400 } : undefined}>
+              {unreadList.length > 0 ? unreadList.map((n) => (
+                <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
+                  <div className="kn-notif-item-body">
+                    <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
+                    <div className="kn-notif-text">{n.message || n.details || n.text}</div>
+                  </div>
+                  <div className="kn-notif-actions">
+                    <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
+                  </div>
+                </div>
+              )) : <div className="kn-notif-empty">Aucune notification</div>}
+            </div>
+          </div>
+
           {user ? (
-            <div className="kn-user-wrap" ref={userMenuRef}>
-              <button className="kn-cta kn-user-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
+            <div className="kn-user-wrap kn-user-compact-wrap" ref={userMenuRefMobile}>
+              <button className="kn-cta kn-user-btn kn-compact-btn" onClick={() => setUserMenuOpen(!userMenuOpen)} aria-haspopup="true" aria-expanded={userMenuOpen} title={user?.name || user?.email}>
                 <FaUserCircle className="kn-user-icon kn-icon" />
                 <span className={`kn-online-status ${socketConnected ? 'online' : 'offline'}`} />
               </button>
-
-              <div className="kn-notif-wrap">
-              <Button
-                onClick={() => setNotifOpen(!notifOpen)}
-                className="kn-icon-btn"
-                aria-label="Afficher les notifications"
-                title="Notifications"
-              >
-                <FaBell aria-hidden="true" />
-                {unreadCount > 0 && (
-                  <span className="kn-notif-badge">{unreadCount}</span>
-                )}
-              </Button>                
-              <div
-                  className={`kn-notif-menu ${notifOpen ? 'show' : ''}`}
-                  role="menu"
-                  aria-hidden={!notifOpen}
-                  style={notifOpen ? { zIndex: 1400 } : undefined}
-                >
-                  {unreadList.length > 0 ? (
-                    unreadList.map((n) => (
-                      <div key={n.id || n._id} className="kn-notif-item" onClick={() => { markRead(n.id || n._id); }} role="button" tabIndex={0}>
-                        <div className="kn-notif-item-body">
-                          <div className="kn-notif-title">{n.title || n.name || 'Notification'}</div>
-                          <div className="kn-notif-text">{n.message || n.details || n.text}</div>
-                        </div>
-                        <div className="kn-notif-actions">
-                          <button onClick={(e) => { e.stopPropagation(); removeNotification(n.id || n._id); }} aria-label="Supprimer">✕</button>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="kn-notif-empty">Aucune notification</div>
-                  )}
-                </div>
-              </div>
-
               <div className={`kn-user-menu ${userMenuOpen ? 'show' : ''}`} role="menu">
                 <Link to="/profile" className="kn-user-menu-item" onClick={() => setUserMenuOpen(false)}>Profile</Link>
-                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); /* call logout from context */ window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
+                <button className="kn-user-menu-item" onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new CustomEvent('appLogout')); }}>Logout</button>
               </div>
             </div>
           ) : (
-            <></>
+            <Button component={Link} to="/login" className="kn-compact-login">Connexion</Button>
           )}
 
-          <Button
-            variant="text"
-            onClick={() => setIsDrawerOpen(true)}
-            aria-label="Ouvrir le menu"
-            className="kn-icon-btn kn-menu-toggle"
-            title="Ouvrir le menu"
-            sx={{
-              color: 'var(--icon-color)',
-              '&:hover': {
-                background: 'var(--icon-hover-bg)',
-                transform: 'scale(1.05)'
-              }
-            }}
-          >
+          <Button variant="text" onClick={() => setIsDrawerOpen(true)} aria-label="Ouvrir le menu" className="kn-icon-btn kn-menu-toggle kn-compact-btn" title="Ouvrir le menu">
             <FaBars aria-hidden="true" className="kn-icon" />
           </Button>
         </div>

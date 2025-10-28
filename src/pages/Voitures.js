@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pagination, Stack } from '@mui/material';
 import Navbar from '../components/common/Navbar';
 import VehicleList from '../components/vehicle/VehicleList';
 import PropertyFilterBar from '../components/property/PropertyFilterBar';
@@ -74,15 +75,26 @@ const Voitures = () => {
           </div>
         </div>
 
-  <VehicleList vehicles={filtered.slice((page-1)*6, page*6)} />
+  <VehicleList vehicles={paged} />
 
-        <div className="d-flex justify-content-between align-items-center mt-4">
-          <div>
-            <button className="btn btn-outline-secondary me-2" disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}>Précédent</button>
-            <button className="btn btn-outline-secondary" disabled={page>=total} onClick={()=>setPage(p=>Math.min(total,p+1))}>Suivant</button>
+        {/* Pagination controls */}
+        {filtered.length > perPage && (
+          <div className="d-flex justify-content-center mt-4">
+            <Stack spacing={2}>
+              <Pagination
+                count={total}
+                page={page}
+                onChange={(e, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                siblingCount={1}
+                boundaryCount={1}
+                aria-label="Pagination des voitures"
+              />
+            </Stack>
           </div>
-          <div className="text-muted">Page {page} / {total}</div>
-        </div>
+        )}
 
         {/* Carte interactive */}
         <div className="mt-5">

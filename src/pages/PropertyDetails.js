@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { properties, agents } from '../data/fakedata';
-import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt } from 'react-icons/fa';
+import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaStepBackward, FaStepForward, FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaExpand, FaTimes } from 'react-icons/fa';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -13,7 +13,7 @@ import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
-import { Button } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   const [current, setCurrent] = useState(0);
@@ -66,6 +66,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 768 : false));
   const [progress, setProgress] = useState(0);
   const [youtubeKey, setYoutubeKey] = useState(0);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => { setIndex(selectedIndex || 0); }, [selectedIndex]);
 
@@ -142,6 +143,13 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
     return () => { if (mq.removeEventListener) mq.removeEventListener('change', onChange); else mq.removeListener(onChange); };
   }, []);
 
+  // Auto-hide mobile controls after 3s of inactivity
+  useEffect(() => {
+    if (!isMobile || !showControls) return;
+    const timer = setTimeout(() => setShowControls(false), 3000);
+    return () => clearTimeout(timer);
+  }, [showControls, isMobile]);
+
   const handleSelect = (i) => {
     const v = videos[i];
     setVideoError(false);
@@ -163,29 +171,100 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 12000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} onClick={onClose} />
-      <motion.div initial={{ y: 40, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.99 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', background: '#fff', borderRadius: 12, overflow: 'hidden', zIndex: 12001 }}>
+      <motion.div 
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        style={{ 
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: isMobile ? '100%' : 'min(92vh,800px)',
+          width: isMobile ? '100%' : 'min(1100px,96%)',
+          margin: isMobile ? 0 : 'auto',
+          background: '#000',
+          borderRadius: isMobile ? 0 : '12px 12px 0 0',
+          overflow: 'hidden',
+          zIndex: 12001,
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 -4px 60px rgba(0,0,0,0.2)'
+        }}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-            <div style={{ fontWeight: 700 }}>Visite virtuelle</div>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            gap: 16, 
+            padding: '16px',
+            background: 'linear-gradient(rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            zIndex: 2,
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            opacity: isMobile ? (showControls ? 1 : 0) : 1,
+            transform: isMobile ? (showControls ? 'translateY(0)' : 'translateY(-20px)') : 'none',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)'
+          }}>
+            <IconButton onClick={onClose} aria-label="Fermer la visite" size="small" style={{ color: '#fff', background: 'rgba(0,0,0,0.5)', width: 36, height: 36 }}>
+              <FaTimes />
+            </IconButton>
+            <div style={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              color: '#fff'
+            }}>
+              <div style={{ 
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                opacity: 0.7
+              }}>
+                Visite virtuelle
+              </div>
+              <div style={{ 
+                fontWeight: 700,
+                fontSize: '1.1rem'
+              }}>
+                Vidéo {index + 1} sur {videos.length}
+              </div>
+            </div>
             {!isMobile ? (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-sm btn-outline-secondary" onClick={prev}>Préc.</button>
-                <button className="btn btn-sm btn-outline-secondary" onClick={next}>Suiv.</button>
-                <button className="btn btn-sm btn-outline-secondary" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
-                <button className="btn btn-sm btn-outline-secondary" onClick={goFull}>Plein écran</button>
-                <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Button variant="outlined" color="inherit" size="small" onClick={prev} startIcon={<FaStepBackward />}>Préc.</Button>
+                <Button variant="outlined" color="inherit" size="small" onClick={next} startIcon={<FaStepForward />}>Suiv.</Button>
+                <Button variant="outlined" color="inherit" size="small" onClick={toggleMute} startIcon={muted ? <FaVolumeMute /> : <FaVolumeUp />}>{muted ? 'Activer son' : 'Couper'}</Button>
+                <Button variant="outlined" color="inherit" size="small" onClick={goFull} startIcon={<FaExpand />}>Plein écran</Button>
+                <Button variant="contained" color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-sm btn-danger" onClick={onClose}>Fermer</button>
+                <Button variant="contained" color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             )}
           </div>
 
-          <div style={{ padding: 12, display: 'flex', gap: 12, flex: 1, overflow: 'hidden' }}>
-          <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', height: isMobile ? '50vh' : '100%', position: 'relative' }}>
+          <div style={{ padding: 12, display: 'flex', gap: 12, flex: 1, overflow: 'hidden', flexDirection: isMobile ? 'column' : 'row', alignItems: 'stretch' }}>
+          <div 
+            style={{ 
+              flex: 1,
+              minHeight: isMobile ? '60vh' : 420,
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#000',
+              position: 'relative',
+              cursor: 'pointer',
+              overflow: 'hidden'
+            }}
+            onClick={() => isMobile && setShowControls(prev => !prev)}>
               {current && isYoutube(current) ? (
-                <iframe key={youtubeKey} src={getYoutubeEmbedWithAutoplay(current, playing)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} allow="autoplay; encrypted-media" />
+                <iframe key={youtubeKey} src={getYoutubeEmbedWithAutoplay(current, playing)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
               ) : (
                 // If there is no current video or the browser cannot play it, show a friendly message
                 current ? (
@@ -204,6 +283,9 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                           key={videoKey}
                           ref={videoRef}
                           controls
+                          playsInline
+                          webkitPlaysInline
+                          preload="metadata"
                           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                           muted={muted}
                           onPlay={() => setPlaying(true)}
@@ -220,9 +302,9 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                         </div>
                         {/* Mobile central play overlay */}
                         {isMobile && current && !isYoutube(current) && !videoError && !playing && (
-                          <button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', padding: '10px 14px', borderRadius: 8, fontSize: 16 }}>
+                          <Button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} variant="contained" color="primary" startIcon={<FaPlay />} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.7)', borderRadius: 10, padding: '8px 12px', color: '#fff' }}>
                             Lire
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )
@@ -234,22 +316,106 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                 )
               )}
               {isMobile && (
-                <div style={{ position: 'absolute', left: 12, right: 12, bottom: 12, display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn btn-sm btn-outline-light" onClick={prev}>Préc.</button>
-                    <button className="btn btn-sm btn-outline-light" onClick={toggleMute}>{muted ? 'Activer son' : 'Couper'}</button>
-                    <button className="btn btn-sm btn-outline-light" onClick={goFull}>Plein écran</button>
+                <div style={{ 
+                  position: 'absolute', 
+                  left: 0, 
+                  right: 0, 
+                  bottom: 0,
+                  background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.9) 100%)',
+                  padding: '60px 20px 24px',
+                  opacity: showControls ? 1 : 0,
+                  transform: showControls ? 'translateY(0)' : 'translateY(20px)',
+                  transition: 'opacity 0.3s ease, transform 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 20,
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)'
+                }}>
+                  {/* Progress bar */}
+                  <div style={{ 
+                    position: 'relative',
+                    width: '100%',
+                    height: 4,
+                    background: 'rgba(255,255,255,0.2)',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    cursor: 'pointer'
+                  }}>
+                    <div style={{ 
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      height: '100%',
+                      width: `${progress}%`,
+                      background: '#fff',
+                      transition: 'width 0.1s linear',
+                      borderRadius: 2
+                    }} />
+                    <div style={{
+                      position: 'absolute',
+                      top: -8,
+                      left: `${progress}%`,
+                      width: 20,
+                      height: 20,
+                      transform: 'translateX(-50%)',
+                      opacity: showControls ? 1 : 0,
+                      transition: 'opacity 0.2s ease'
+                    }}>
+                      <div style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        background: '#fff',
+                        boxShadow: '0 0 10px rgba(0,0,0,0.3)',
+                        margin: '4px'
+                      }} />
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <button className="btn btn-sm btn-outline-light" onClick={() => handleSelect(Math.max(0, index - 1))}>‹</button>
-                    <div style={{ color: '#fff', fontWeight: 600 }}>Vidéo {index + 1}/{videos.length}</div>
-                    <button className="btn btn-sm btn-outline-light" onClick={() => handleSelect(Math.min(videos.length - 1, index + 1))}>›</button>
+
+                  {/* Controls */}
+                  <div style={{ 
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 20
+                  }}>
+                    {/* Main controls */}
+                    <div style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 24
+                    }}>
+                      <IconButton onClick={prev} aria-label="Précédent" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
+                        <FaStepBackward />
+                      </IconButton>
+                      <Button onClick={togglePlay} variant="contained" color="secondary" aria-label={playing ? 'Pause' : 'Lire'} sx={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.25)' }} startIcon={playing ? <FaPause /> : <FaPlay />}>
+                        {/* icon only, label provided via aria */}
+                      </Button>
+                      <IconButton onClick={next} aria-label="Suivant" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
+                        <FaStepForward />
+                      </IconButton>
+                    </div>
+
+                    {/* Secondary controls */}
+                    <div style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 16
+                    }}>
+                      <IconButton onClick={toggleMute} aria-label={muted ? 'Activer son' : 'Couper le son'} size="medium" sx={{ width: 44, height: 44, color: '#fff' }}>
+                        {muted ? <FaVolumeMute /> : <FaVolumeUp />}
+                      </IconButton>
+                      <IconButton onClick={goFull} aria-label="Plein écran" size="medium" sx={{ width: 44, height: 44, color: '#fff' }}>
+                        <FaExpand />
+                      </IconButton>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div style={isMobile ? { width: '100%', display: 'flex', flexDirection: 'row', gap: 8, overflowX: 'auto', padding: '8px 6px' } : { width: 260, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={isMobile ? { width: '100%', display: 'flex', flexDirection: 'row', gap: 8, overflowX: 'auto', padding: '8px 6px', alignItems: 'center' } : { width: 260, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 700, display: isMobile ? 'none' : 'block' }}>Liste des vidéos</div>
               <div style={isMobile ? { display: 'flex', gap: 8 } : { overflowY: 'auto', flex: 1, paddingRight: 6 }}>
                 {videos.map((v, i) => (

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Pagination, Stack } from '@mui/material';
 import Navbar from '../components/common/Navbar';
 import PropertyCard from '../components/property/PropertyCard';
 import PropertyFilterBar from '../components/property/PropertyFilterBar';
@@ -14,6 +15,8 @@ const Terrain = () => {
   const terrains = properties.filter(p => p.type && p.type.toLowerCase().includes('terrain'));
   const communes = Array.from(new Set(properties.map(p => p.address.split(',').map(s=>s.trim()).slice(-2)[0]).filter(Boolean)));
   const [filtered, setFiltered] = React.useState(terrains);
+  const [page, setPage] = React.useState(1);
+  const perPage = 6;
 
   const applyFilters = (f) => {
     let out = terrains.slice();
@@ -23,6 +26,7 @@ const Terrain = () => {
     if(f.sort === 'price_asc') out.sort((a,b)=>a.price-b.price);
     if(f.sort === 'price_desc') out.sort((a,b)=>b.price-a.price);
     setFiltered(out);
+    setPage(1);
   };
   return (
     <>
@@ -42,12 +46,30 @@ const Terrain = () => {
         </div>
   <PropertyFilterBar items={terrains} onChange={applyFilters} />
         <div className="row g-3">
-          {filtered.slice(0,6).map(p => (
+          {filtered.slice((page-1)*perPage, page*perPage).map(p => (
             <ScrollReveal key={p.id} className="col-12 col-md-6 col-lg-4">
               <PropertyCard property={p} />
             </ScrollReveal>
           ))}
-        </div>  
+        </div>
+
+        {filtered.length > perPage && (
+          <div className="d-flex justify-content-center mt-4">
+            <Stack spacing={2}>
+              <Pagination
+                count={Math.ceil(filtered.length / perPage)}
+                page={page}
+                onChange={(e, value) => setPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+                siblingCount={1}
+                boundaryCount={1}
+                aria-label="Pagination des terrains"
+              />
+            </Stack>
+          </div>
+        )}
 
         {/* Promo article - enlarged */}
         <div className="card mt-4 shadow-lg" style={{borderRadius:12, overflow:'hidden'}}>

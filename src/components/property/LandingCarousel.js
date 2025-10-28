@@ -151,7 +151,7 @@ const LandingCarousel = () => {
             className={`carousel-item h-100 w-100${i === index ? ' active' : ''}`}
             key={slide.id}
             style={{
-              position: 'absolute',
+              // position: 'absolute',
               top: 0,
               left: 0,
               width: '100%',
