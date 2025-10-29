@@ -27,6 +27,7 @@ import { showToast } from '../components/common/ToastManager';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 import authService from '../services/authService';
+import  HomeLayout from '../components/homeComponent/HomeLayout'
 
 const Home = () => {
     const [contactOpen, setContactOpen] = React.useState(false);
@@ -382,9 +383,9 @@ const Home = () => {
 
     if (loading) return <Preloader />;
     return (
-        <>
+        <HomeLayout>
             {/* Navbar Bootstrap custom réutilisée */}
-            <Navbar />
+            
 
             {/* Hero Section moderne Kinshasa */}
             <section
@@ -1164,7 +1165,7 @@ const Home = () => {
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
             {/* ChatWidget MongoDB-style, always present */}
             <MessengerWidget />
-        </>
+        </HomeLayout>
     );
 };
 

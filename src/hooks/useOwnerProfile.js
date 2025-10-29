@@ -13,7 +13,7 @@ export const useOwnerProfile = () => {
                     throw new Error('Token non trouvé');
                 }
 
-                const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/profile`, {
+                const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/auth/profile`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
