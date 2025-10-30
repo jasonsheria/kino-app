@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './VisitBookingModal.css';
 import { showToast } from './ToastManager';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent }) => {
   const [step, setStep] = useState(1);
@@ -35,12 +36,11 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
     setTouchEnd(null);
   };
 
-  // lock body scroll while modal is open
+  // lock body scroll while modal is open (class-based, shared helper)
   useEffect(() => {
     if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = prev; };
+      lockScroll();
+      return () => { unlockScroll(); };
     }
     return undefined;
   }, [open]);

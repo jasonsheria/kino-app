@@ -40,8 +40,8 @@
 }
 .owner-card:hover{ transform: translateY(-6px); box-shadow: 0 22px 54px rgba(2,6,23,0.12); }
 
-.owner-sidebar .nav-link{ color: #374151; padding: 10px 8px; border-radius: 8px; }
-.owner-sidebar .nav-link.active, .owner-sidebar .nav-link:hover{ background: rgba(14,165,164,0.06); color: var(--owner-accent); font-weight:600; }
+.owner-sidebar .nav-link{ color: #374151; padding: 10px 8px; border-radius: 8px; font-weight: 400; }
+.owner-sidebar .nav-link.active, .owner-sidebar .nav-link:hover{ background: rgba(14,165,164,0.06); color: var(--owner-accent); font-weight:400; }
 
 .owner-stats .card{ border-radius:10px; padding:18px; background:white; }
 
@@ -328,8 +328,8 @@
 .logo-wrap img{ width:44px; height:44px; border-radius:8px; }
 .left-nav{ margin-top:24px; }
 .left-nav .owner-card{ background:transparent; box-shadow:none; border:none; color:white; }
-.left-nav .nav-link{ color:rgba(255,255,255,0.9); padding:12px 14px; border-top-left-radius:999px;border-bottom-left-radius:999px;; display:block; font-weight:600; }
-.left-nav .nav-link.active{ background: white; color:rgb(0, 0, 0); }
+.left-nav .nav-link{ color:rgba(255,255,255,0.9); padding:12px 14px; border-top-left-radius:999px;border-bottom-left-radius:999px;; display:block; font-weight:400; }
+.left-nav .nav-link.active{ background: white; color:rgb(0, 0, 0); font-weight:400; }
 
 .center-panel{ align-items:center; justify-content:center; height : 92vh; overflow : hidden; overflow-x: hidden; scrollbar-width : none; width : 100%}
 @media (max-width: 992px){
@@ -441,6 +441,71 @@
 /* full viewport */
 html, body, #root { height:100%; }
 .dashboard-shell{ min-height:100vh; align-items:stretch; }
+
+/* Lock scroll without adding inline styles on <body> */
+.ndaku-lock-scroll { overflow: hidden !important; }
+
+/* ---------------- Unified menu typography & colors ---------------- */
+:root{
+  --menu-font: Inter, 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+  --menu-color: #334155; /* slate tone for readable contrast */
+  --menu-bg-hover: rgba(14,165,164,0.06); /* subtle teal-ish hover */
+  --menu-font-size: 14px;
+  --menu-radius: 8px;
+}
+
+/* Apply a soft, readable font and remove bold weight for menu titles/links */
+.kn-menu-text,
+.owner-topbar .MuiButton-root,
+.owner-topbar .MuiMenuItem-root,
+.dropdown-card .dropdown-item,
+.left-nav .nav-link,
+.owner-sidebar .nav-link,
+.MuiMenuItem-root.kn-menu-text,
+.MuiButton-root.kn-menu-text {
+  font-family: var(--menu-font) !important;
+  font-weight: 400 !important; /* no bold */
+  font-size: var(--menu-font-size) !important;
+  color: var(--menu-color) !important;
+  text-transform: none !important;
+  letter-spacing: 0.18px;
+  background: transparent !important;
+}
+
+/* Menu items spacing and subtle rounded background on hover */
+.MuiMenuItem-root,
+.dropdown-card .dropdown-item,
+.owner-sidebar .nav-link {
+  border-radius: var(--menu-radius);
+  padding: 10px 12px;
+}
+
+.MuiMenuItem-root:hover,
+.dropdown-card .dropdown-item:hover,
+.owner-sidebar .nav-link:hover,
+.left-nav .nav-link:hover {
+  background: var(--menu-bg-hover) !important;
+  color: var(--pro-accent) !important; /* accent for hover state */
+}
+
+/* Ensure topbar buttons use the same neutral background and subtle hover */
+.owner-topbar .MuiButton-root {
+  background: transparent !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+}
+.owner-topbar .MuiButton-root:hover{
+  background: var(--menu-bg-hover) !important;
+}
+
+/* Make sure badges and icons don't force bold visual weight */
+.kn-menu-text .MuiBadge-root, .kn-menu-text .MuiSvgIcon-root { font-weight: 400 !important; }
+
+/* slightly reduce the prominence of menu titles inside dropdowns */
+.dropdown-card .dropdown-item .title{ font-weight:400; font-size:0.98rem; color:var(--menu-color); }
+
+/* end unified menu styles */
+
 
 /* Owner profile styles */
 .profile-card { display:flex; gap:18px; }

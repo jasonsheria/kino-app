@@ -22,7 +22,7 @@ export const MessageProvider = ({ children }) => {
     // Charger les suggestions du serveur si userId connu
     React.useEffect(() => {
         if (!user || !user._id) return;
-        fetch(`http://localhost:5000/suggest?userId=${user._id}`)
+        fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/suggest?userId=${user._id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.suggestions && Array.isArray(data.suggestions)) {
@@ -60,26 +60,26 @@ export const MessageProvider = ({ children }) => {
     }, []);
     // --- Fonctions pour suggestions (utilisent les routes backend /suggest) ---
     const markSuggestionAsRead = async (suggestionId) => {
-        await axios.post(`http://localhost:5000/suggest/mark-as-read/${suggestionId}`);
+        await axios.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/suggest/mark-as-read/${suggestionId}`);
         setMessages(prevMessages => prevMessages.map(msg =>
             (msg.id === suggestionId || msg._id === suggestionId) ? { ...msg, isRead: true } : msg
         ));
     };
 
     const markSuggestionAsUnread = async (suggestionId) => {
-        await axios.post(`http://localhost:5000/suggest/mark-as-unread/${suggestionId}`);
+        await axios.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/suggest/mark-as-unread/${suggestionId}`);
         setMessages(prevMessages => prevMessages.map(msg =>
             (msg.id === suggestionId || msg._id === suggestionId) ? { ...msg, isRead: false } : msg
         ));
     };
 
     const deleteSuggestion = async (suggestionId) => {
-        await axios.delete(`http://localhost:5000/suggest/${suggestionId}`);
+        await axios.delete(`${process.env.REACT_APP_BACKEND_APP_URL}/api/suggest/${suggestionId}`);
         setMessages(prevMessages => prevMessages.filter(msg => msg.id !== suggestionId && msg._id !== suggestionId));
     };
 
     const replyToSuggestion = async (suggestionId, replyBody) => {
-        await axios.post(`http://localhost:5000/suggest/reply/${suggestionId}`, { reply: replyBody });
+        await axios.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/suggest/reply/${suggestionId}`, { reply: replyBody });
     };
         // --- Calculer la liste des messages non lus (le TABLEAU) ---
         // Ce useMemo retournera le TABLEAU des messages non lus

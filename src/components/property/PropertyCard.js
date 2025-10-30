@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
@@ -184,9 +185,8 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   useEffect(() => {
     if (!showLightbox) return;
 
-    // lock body scroll
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+  // lock body scroll using shared helper (adds a class on <body>, no inline style)
+  lockScroll();
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -235,7 +235,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       node.removeEventListener && node.removeEventListener('touchstart', onTouchStart);
       node.removeEventListener && node.removeEventListener('touchmove', onTouchMove);
       node.removeEventListener && node.removeEventListener('touchend', onTouchEnd);
-      document.body.style.overflow = prevOverflow;
+      unlockScroll();
     };
   }, [showLightbox, lightboxRef, lightboxIndex, imgs.length]);
 
@@ -277,12 +277,12 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
             </>
           )}
         </div>
-        <div className="d-flex justify-content-end mt-3">
+        <div className="d-flex justify-content-end">
           <button className="btns btn-primary btn-sm fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>Voir le bien</button>
         </div>
         {/* Agent lié : toujours affiché, mais flouté/muted tant que non-réservé; le bouton de réservation reste actif */}
         {agentResolved && (
-          <div className={`property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
+          <div className={`property-agent d-flex align-items-center p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
             <div className="property-agent-inner">
               <div className="agent-left">
                 <div className="agent-avatar-wrapper">

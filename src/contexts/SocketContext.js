@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 import { useAuth } from './AuthContext';
-
+import { config } from '../config/api.config';
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
   const [adminTypingUser, setAdminTypingUser] = useState(null); // Utilisateur admin qui tape
   const socketRef = useRef(null); // Pour stocker l'instance du socket
 
-  const { user, isAuthenticated, userId } = useAuth(); // Récupérer l'état d'authentification
+  const { user, isAuthenticated, userId, token } = useAuth(); // Récupérer l'état d'authentification
 
   useEffect(() => {
     // Connectez-vous uniquement si l'utilisateur est authentifié
@@ -35,8 +35,8 @@ export const SocketProvider = ({ children }) => {
 
     // URL de votre backend NestJS WebSocket Gateway
     // Assurez-vous que cette URL est correcte et accessible
-    const SOCKET_URL = process.env.REACT_APP_BACKEND_APP_URL // Exemple
-    const token = localStorage.getItem('authToken');
+    const SOCKET_URL = config.API_ENDPOINTS.WS_URL // Exemple
+    // const token = localStorage.getItem('authToken');
     // console.log('[DEBUG] Token sent to socket:', token); // DEBUG
 
     // Initialiser la connexion Socket.IO
@@ -46,7 +46,8 @@ export const SocketProvider = ({ children }) => {
       auth: {
         token: token // Récupérer le token stocké
       },
-      transports: ['websocket'] // Forcer l'utilisation de WebSocket
+       transports: ['websocket'],
+      autoConnect: true
     });
 
     // --- Écouteurs d'événements standard du socket ---
@@ -55,7 +56,7 @@ export const SocketProvider = ({ children }) => {
       // Émettre l'identité de l'utilisateur dès la connexion
       if (userId) {
         socketRef.current.emit('identify', { userId });
-        // console.log('[SocketContext] Emission de identify avec userId:', userId);
+        console.log('[SocketContext] Emission de identify avec userId:', userId);
         // capturer les message de la fonction  getForumMessages du backend dans le websocket 
         // qui a cette foncion dans l'en tete
         // socketRef.current.emit('getForumMessages', { userId });

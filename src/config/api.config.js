@@ -44,6 +44,6 @@ export const config = {
       PROPERTIES: `${API_URL}/api/owners/properties`,
     },
     // WebSocket
-    WS_URL: process.env.REACT_APP_WS_URL || `${API_URL.replace('http', 'ws')}/socket.io`,
+    WS_URL: process.env.REACT_APP_BACKEND_APP_URL || `${API_URL.replace('http', 'ws')}/socket.io`,
   }
 };

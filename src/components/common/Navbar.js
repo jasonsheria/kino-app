@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { Button } from '@mui/material';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 // Données de test pour les notifications
 const TEST_NOTIFICATIONS = [
@@ -88,8 +89,8 @@ const Navbar = () => {
       }
     };
 
-    // Lock body scroll
-    document.body.style.overflow = 'hidden';
+  // Lock body scroll (use shared helper to avoid inline style)
+  lockScroll();
     window.addEventListener('keydown', handleKeyDown);
 
     // Auto focus first focusable element
@@ -100,7 +101,7 @@ const Navbar = () => {
     }, 100);
 
     return () => {
-      document.body.style.overflow = '';
+      unlockScroll();
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isDrawerOpen]);
