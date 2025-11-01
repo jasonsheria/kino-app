@@ -323,9 +323,7 @@
 
 /* Faithful dashboard layout styles */
 .dashboard-shell{ display:flex; min-height:100vh; background: linear-gradient(90deg, #f2f4f7, #eef2f6); align-items:stretch; padding:28px; }
-.left-col{
-  4
-  width:260px; display:flex; align-items:stretch; max-height: 92vh; }
+.left-col{width:260px; display:flex; align-items:stretch; max-height: 92vh; }
 .left-gradient{ background: linear-gradient(180deg, #3b2b6e, #6b4fbf); color:white; border-radius:16px; padding:28px 18px; display:flex; flex-direction:column; padding-right : 0}
 .logo-wrap img{ width:44px; height:44px; border-radius:8px; }
 .left-nav{ margin-top:24px; }
