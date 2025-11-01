@@ -34,27 +34,27 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useMessageContext } from '../../contexts/MessageContext';
 // Données de test pour les notifications
 const TEST_NOTIFICATIONS = [
-  {
-    id: 'notif1',
-    title: 'Nouvelle réservation',
-    message: 'Une nouvelle réservation a été effectuée pour votre appartement',
-    unread: true,
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'notif2',
-    title: 'Message reçu',
-    message: 'Vous avez reçu un nouveau message concernant votre annonce',
-    unread: true,
-    timestamp: new Date().toISOString()
-  },
-  {
-    id: 'notif3',
-    title: 'Paiement reçu',
-    message: 'Le paiement de la réservation #1234 a été confirmé',
-    unread: true,
-    timestamp: new Date().toISOString()
-  }
+  // {
+  //   id: 'notif1',
+  //   title: 'Nouvelle réservation',
+  //   message: 'Une nouvelle réservation a été effectuée pour votre appartement',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // },
+  // {
+  //   id: 'notif2',
+  //   title: 'Message reçu',
+  //   message: 'Vous avez reçu un nouveau message concernant votre annonce',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // },
+  // {
+  //   id: 'notif3',
+  //   title: 'Paiement reçu',
+  //   message: 'Le paiement de la réservation #1234 a été confirmé',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // }
 ];
 export default function HomeLayout({ children }) {
   const theme = useTheme();
@@ -189,14 +189,16 @@ export default function HomeLayout({ children }) {
   }, [location]);
 
   const { user } = useAuth();
-  const { notifications: realNotifications, removeNotification, markAllRead, markRead } = useNotifications();
-  // Notifications provenant du contexte de messages (MessageContext)
-  const { notification: messageNotifications, UnreadNotificationsCount, markNotificationAsRead } = useMessageContext();
-  // Fusionner les notifications réelles avec les données de test comme fallback
-  const notifications = [...(messageNotifications || []), ...(realNotifications || []), ...TEST_NOTIFICATIONS];
+  // NotificationContext (socket-based notifications)
+  const { notifications: realNotifications = [], removeNotification, markAllRead, markRead } = useNotifications();
+  // MessageContext (messages / suggestions loaded via HTTP requests)
+  const { messages: messageMessages = [], unreadCount: messagesUnreadCount = 0, markAsRead } = useMessageContext();
+  // Use notifications from NotificationContext as primary source, fallback to TEST_NOTIFICATIONS
+  const notifications = [...(realNotifications || []), ...TEST_NOTIFICATIONS];
+  const notificationUnreadCount = (realNotifications || []).filter(n => n.unread).length;
 
   // Style commun pour les icônes (géré via CSS .kn-icon)
-  const { isConnected } = useWebSocket();
+  const { isConnected, send } = useWebSocket();
   const socketConnected = isConnected();
 
   React.useEffect(() => {
@@ -208,21 +210,17 @@ export default function HomeLayout({ children }) {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const ownerId = (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch (e) { return 'owner-123'; } })();
-    const load = () => {
+    const computeOwnerUnread = () => {
       try {
-        const msgs = JSON.parse(localStorage.getItem('owner_notifications_' + ownerId) || '[]');
-        const unread = msgs.filter(m => m.unread !== false).length;
+        const ownerId = ownerProfile?.user?._id || (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : null; } catch (e) { return null; } })();
+        if (!ownerId) { setOwnerUnread(0); return; }
+        const unread = (realNotifications || []).filter(m => String(m.userId) === String(ownerId) && (m.unread !== false)).length;
         setOwnerUnread(unread);
       } catch (e) { setOwnerUnread(0); }
     };
-    load();
-    const handler = () => { load(); };
-    window.addEventListener('owner_notifications_updated', handler);
-    window.addEventListener('ndaku-owner-message', handler);
-    return () => { window.removeEventListener('owner_notifications_updated', handler); window.removeEventListener('ndaku-owner-message', handler); };
-  }, []);
-
+    computeOwnerUnread();
+    // Recompute when notifications or owner profile change
+  }, [realNotifications, ownerProfile]);
   const drawerWidth = 260;
 
   React.useEffect(() => {
@@ -234,7 +232,7 @@ export default function HomeLayout({ children }) {
       <AppBar
         position="fixed"
         sx={{
-          width: { xs: '100%', md: `calc(100% - ${!menuOpen ? drawerWidth : 0}px)` },
+          width: { xs: '100%' },
           ml: { xs: 0, md: menuOpen ? `${drawerWidth}px` : 0 },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
@@ -291,14 +289,14 @@ export default function HomeLayout({ children }) {
                 Immobilier
               </Button>
 
-              <Button className="kn-menu-text" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none' }}>Contact</Button>
+              <Button className="kn-menu-text" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none', color: "#0f888880", marginLeft: "6px" }}>Contact</Button>
 
               {/* Owner / Login CTAs on desktop */}
-              <Button className="kn-menu-text" component={Link} to="/owner/onboard" variant="contained" color="primary" sx={{ ml: 2, fontWeight: 400 }}>
+              <Button className="kn-menu-text" component={Link} to="/owner/onboard" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
                 Propriétaire
               </Button>
               {!user && (
-                <Button className="kn-menu-text" component={Link} to="/login" variant="outlined" sx={{ ml: 1, fontWeight: 400 }}>
+                <Button className="kn-menu-text" component={Link} to="/login" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
                   Connexion
                 </Button>
               )}
@@ -349,6 +347,30 @@ export default function HomeLayout({ children }) {
               borderRadius: theme.shape.borderRadius,
             }
           }}>
+            {/* Dev-only: quick notification emitter for testing. Enable by adding ?devNotify=1 to URL */}
+            {typeof window !== 'undefined' && window.location.search.includes('devNotify=1') && user && (
+              <IconButton
+                size="small"
+                onClick={() => {
+                  try {
+                    const payload = {
+                      type: 'emitNotification',
+                      user: user.id || user._id,
+                      senderId: user.id || user._id,
+                      title: 'Test notification',
+                      message: `Test from ${user.email || user.name || 'you'} at ${new Date().toLocaleTimeString()}`,
+                      source: 'dev'
+                    };
+                    if (send) send(payload);
+                    else console.warn('Socket send not available');
+                  } catch (e) { console.error(e); }
+                }}
+                sx={{ mr: 1 }}
+                title="Emit test notification"
+              >
+                <FaBell />
+              </IconButton>
+            )}
             <IconButton
               size="small"
               onClick={(e) => setAnchorNotif(e.currentTarget)}
@@ -358,7 +380,7 @@ export default function HomeLayout({ children }) {
               }}
             >
               <Badge
-                  badgeContent={UnreadNotificationsCount || 0}
+                    badgeContent={notificationUnreadCount || 0}
                 color="error"
                 sx={{
                   '& .MuiBadge-badge': {
@@ -381,7 +403,7 @@ export default function HomeLayout({ children }) {
               }}
             >
               <Badge
-                badgeContent={ownerUnread}
+                badgeContent={messagesUnreadCount || 0}
                 color="error"
                 sx={{
                   '& .MuiBadge-badge': {
@@ -596,7 +618,7 @@ export default function HomeLayout({ children }) {
         </Box>
         <Divider />
         <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
-          {/* Render notifications from MessageContext (with sensible fallbacks for shape) */}
+          {/* Render notifications from NotificationContext (socket-driven) */}
           {
             notifications.map((notif) => {
               const id = notif.id || notif._id || notif.name || JSON.stringify(notif);
@@ -607,13 +629,12 @@ export default function HomeLayout({ children }) {
               return (
                 <MenuItem
                   key={id}
+                  className="kn-menu-text"
                   sx={{ py: 1.5 }}
-                  onClick={async () => {
+                  onClick={() => {
                     try {
-                      // mark as read in MessageContext if available
-                      if (markNotificationAsRead) {
-                        markNotificationAsRead(id);
-                      }
+                      // mark as read in NotificationContext if available
+                      if (markRead) markRead(id);
                     } catch (e) { /* ignore */ }
                     setAnchorNotif(null);
                   }}
@@ -661,26 +682,42 @@ export default function HomeLayout({ children }) {
         </Box>
         <Divider />
         <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
-          <MenuItem sx={{ py: 1.5 }}>
-            <Box>
-              <Typography variant="body2">
-                Jean: Intéressé par la visite
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Il y a 15 minutes
-              </Typography>
-            </Box>
-          </MenuItem>
-          <MenuItem sx={{ py: 1.5 }}>
-            <Box>
-              <Typography variant="body2">
-                Marie: Besoin d'infos
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Il y a 2 heures
-              </Typography>
-            </Box>
-          </MenuItem>
+          {/* Render messages from MessageContext (HTTP-loaded / suggestions) */}
+          {messageMessages.length === 0 && (
+            <MenuItem sx={{ py: 1.5 }}>
+              <Box>
+                <Typography variant="body2">Aucun message récent</Typography>
+              </Box>
+            </MenuItem>
+          )}
+          {messageMessages.map((m) => {
+            const id = m.id || m._id || JSON.stringify(m);
+            const sender = m.sender || m.name || m.email || 'Contact';
+            const excerpt = m.subject || m.body || m.excerpt || '';
+            const date = m.date || m.createdAt || new Date().toISOString();
+            const isUnread = m.isRead === undefined ? !!m.unread : !m.isRead ? true : false;
+            return (
+              <MenuItem
+                key={id}
+                className="kn-menu-text"
+                sx={{ py: 1.5 }}
+                onClick={async () => {
+                  try {
+                    if (markAsRead) await markAsRead(id);
+                  } catch (e) { /* ignore */ }
+                  setAnchorMessages(null);
+                }}
+              >
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 400 }}>{sender}{isUnread ? '' : ''}</Typography>
+                  {excerpt && (
+                    <Typography variant="caption" color="text.secondary" display="block">{excerpt}</Typography>
+                  )}
+                  <Typography variant="caption" color="text.secondary">{new Date(date).toLocaleString()}</Typography>
+                </Box>
+              </MenuItem>
+            );
+          })}
         </Box>
       </Menu>
     </Box>

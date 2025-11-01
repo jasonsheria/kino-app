@@ -90,15 +90,45 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
       }
       // send reservation to server endpoint (best-effort)
       try {
-        const resp = await fetch('/api/reservations', {
+        // Prefer explicit backend URL from environment, fallback to relative path
+        const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/$/, '');
+        const url = base ? `${base}/api/reservations` : '/api/reservations';
+        // Include Authorization header if a token is available in localStorage
+        const token = localStorage.getItem('ndaku_auth_token') || localStorage.getItem('token') || null;
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const resp = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ propertyId: property?.id, date: bookingData.date, time: bookingData.time, phone: bookingData.phoneNumber, amount: VISIT_FEE })
         });
         if (resp.ok) {
-          showToast('Réservation enregistrée (serveur)', 'success');
+          const created = await resp.json();
+          showToast('Réservation enregistrée', 'success');
+          // Fetch latest reservations for this user to update local UI/state
+          try {
+            const listUrl = base ? `${base}/api/reservations` : '/api/reservations';
+            const listResp = await fetch(listUrl, { headers });
+            if (listResp.ok) {
+              const reservations = await listResp.json();
+              // Notify parent with server-created reservation and refreshed list
+              onSuccess?.({ bookingData, createdReservation: created, reservations });
+            } else {
+              // Could not fetch list; still notify parent with created reservation
+              onSuccess?.({ bookingData, createdReservation: created, reservations: null });
+            }
+          } catch (e) {
+            console.warn('Failed to fetch reservations after create', e);
+            onSuccess?.({ bookingData, createdReservation: created, reservations: null });
+          }
+        } else if (resp.status === 401 || resp.status === 403) {
+          // Not authenticated — fall back to local persistence but inform the user
+          showToast('Réservation enregistrée localement (connexion requise pour sauvegarde serveur)', 'warn');
+          onSuccess?.({ bookingData, createdReservation: null, reservations: null });
         } else {
           showToast('Réservation enregistrée localement (serveur non disponible)', 'warn');
+          onSuccess?.({ bookingData, createdReservation: null, reservations: null });
         }
       } catch (e) {
         console.warn('Reservation server post failed', e);

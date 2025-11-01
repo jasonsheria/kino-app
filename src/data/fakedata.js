@@ -3,6 +3,7 @@ export const properties = [];
 
 export const agents = [
 ];
+export const reservation = [];
 
 export const owners = [
   {
@@ -89,6 +90,8 @@ export const subscriptions = [
   // Fetch properties and agents in background and mutate exported arrays
   (async () => {
     try {
+  // Try multiple storage keys for the auth token to be tolerant across app versions
+  const token = localStorage.getItem('ndaku_auth_token') || localStorage.getItem('ndaku-token') || localStorage.getItem('token') || localStorage.getItem('auth_token') || null;
       // try Mobilier endpoints first (backend exposes mobilier controller), then properties paths
       const tryUrls = [`${API_BASE}/api/mobilier`];
       let propsResp = null;
@@ -100,12 +103,12 @@ export const subscriptions = [
           if (!r.ok) {
             // capture body text to help debugging 404/500
             let bodyText = null;
-            try { bodyText = await r.text(); } catch(e) { bodyText = null; }
+            try { bodyText = await r.text(); } catch (e) { bodyText = null; }
             console.warn(`ndaku:fakedata - non-ok response from ${u}: ${r.status} ${r.statusText}`, bodyText ? { bodyText } : null);
             continue;
           }
           // try parse json
-          try { propsResp = await r.json(); } catch(e) { propsResp = null; }
+          try { propsResp = await r.json(); } catch (e) { propsResp = null; }
           if (propsResp) break;
         } catch (e) {
           console.warn(`ndaku:fakedata - fetch failed for ${u}:`, e?.message || e);
@@ -126,8 +129,8 @@ export const subscriptions = [
           address: p.adresse || p.location || (p.addressLine ? `${p.addressLine}` : ''),
           images: Array.isArray(p.images) ? p.images.map(i => (typeof i === 'string' ? i : (i.url || i.path || ''))) : (p.image ? [p.image] : []),
           videos: Array.isArray(p.videos) ? p.videos.map(v => (typeof v === 'string' ? v : (v.url || v.path || ''))) : (p.video ? [p.video] : []),
-          agentId:  p.agent  || p.agentId || null,
-          agent : p.agent || null,
+          agentId: p.agent || p.agentId || null,
+          agent: p.agent || null,
           geoloc: p.geoloc || p.location || p.coords || null,
           status: p.status || p.availability || '',
           visitFee: p.visitFee || p.fee || 0,
@@ -137,9 +140,9 @@ export const subscriptions = [
           cuisine: p.cuisine || p.kitchens || 0,
           sdb: p.salles_de_bain || p.baths || 0,
           superficie: p.superficie || p.area || p.size || null,
-          commune : p.commune || '',
-          ville : p.ville || '',
-          pays : p.pays || 'RDC',
+          commune: p.commune || '',
+          ville: p.ville || '',
+          pays: p.pays || 'RDC',
         }));
         // inplace replace
         properties.splice(0, properties.length, ...mapped);
@@ -152,9 +155,45 @@ export const subscriptions = [
         try { window.dispatchEvent(new CustomEvent('ndaku:properties-error', { detail: { message: errMsg, triedUrl, triedUrls: tryUrls, response: propsResp } })); } catch (e) { }
         // don't block UI with alert by default; keep console and event for app to show toast
       }
+      // reservation endpoint api/reservation
+      const reservationsUrl = `${API_BASE}/api/reservations?site=${process.env.REACT_APP_SITE_ID}`;
+      try {
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const reservationsResp = await fetch(reservationsUrl, { headers });
+        if (!reservationsResp.ok) {
+          const r = reservationsResp;
+          // Log 401/403 explicitly to help debug missing/expired tokens
+          if (r.status === 401 || r.status === 403) {
+            console.warn(`ndaku:fakedata - reservations fetch unauthorized (${r.status}) for ${reservationsUrl}. Token present? ${!!token}`);
+            // do not throw to allow app to continue with fake data
+            throw new Error(`Unauthorized ${r.status}`);
+          }
+          throw new Error(`HTTP ${r.status} ${r.statusText}`);
+        }
+        const rawReservations = reservationsResp && (Array.isArray(reservationsResp) ? reservationsResp : reservationsResp.data || reservationsResp.items) || null;
+        if (rawReservations && Array.isArray(rawReservations) && rawReservations.length > 0) {
+          const mappedReservations = rawReservations.map(r => ({
+            id: r._id || r.id,
+            propertyId: r.propertyId || r.property || null,
+            userId: r.userId || r.user || null,
+            startDate: r.date || r.start_date || null,
+            // endDate may be startDate plus 1 week for single-day bookings
+            // endDate: startDate + (r.endDate || r.end_date || null ? (new Date(r.endDate || r.end_date)).getTime() : (r.date || r.start_date ? (new Date(r.date || r.start_date)).getTime() + 7 * 24 * 60 * 60 * 1000 : null)),
+            time: r.time || null,
+            status: r.status || 'pending',
+            amount: r.amount || r.prix || 0,
+            createdAt: r.createdAt || r.created_at || null,
+            updatedAt: r.updatedAt || r.updated_at || null,
+          }));
+          reservation.splice(0, reservation.length, ...mappedReservations);
+          try { window.dispatchEvent(new CustomEvent('ndaku:reservations-updated', { detail: { reservations: mappedReservations } })); } catch (e) { }
+        }
+      } catch (err) {
+        // silent
+        console.warn('ndaku:fakedata - could not fetch live reservations data', err?.message || err);
+      }
 
       // agents endpoint may also be under /api/agents; prefer user-scoped /api/agents/me using auth token
-      const token = localStorage.getItem('ndaku_auth_token');
       const tryAgentUrls = [`${API_BASE}/api/agents/me?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/api/agents?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/agents?site=${process.env.REACT_APP_SITE_ID}`];
       let agentsResp = null;
       let triedAgentUrl = null;
@@ -175,14 +214,14 @@ export const subscriptions = [
         const mappedAgents = rawAgents.map(a => ({
           id: a._id || a.id,
           name: a.name || a.fullName || a.username || '',
-          prenom : a.prenom || '',
+          prenom: a.prenom || '',
           address: a.address || a.location || '',
           email: a.email || '',
           phone: a.phone || a.telephone || '',
           whatsapp: a.whatsapp || '',
           facebook: a.facebook || '',
           photo: a.image || a.avatar || '',
-          image : a.image || '',
+          image: a.image || '',
           status: a.status || 'Actif',
           subscription: a.subscription || 'Basic',
           geoloc: a.geoloc || a.location || null,
@@ -201,7 +240,7 @@ export const subscriptions = [
       // silent
       console.warn('ndaku:fakedata - could not fetch live data', err?.message || err);
     }
-    console.log('ndaku:fakedata - live data fetch attempt completed agents',agents);
+    console.log('ndaku:fakedata - live data fetch attempt completed agents', agents);
   })();
 
   // Set current user from localStorage if available

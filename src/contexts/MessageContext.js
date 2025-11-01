@@ -17,8 +17,7 @@ export const useMessageContext = () => {
 export const MessageProvider = ({ children }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
-    const [notification, setNotification] = useState([]); // État pour les notifications
-
+    const [notification, setNotification] = useState([]); // État pour les notifications    
     // Charger les suggestions du serveur si userId connu
     React.useEffect(() => {
         if (!user || !user._id) return;

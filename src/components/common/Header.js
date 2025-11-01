@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { AppBar, Toolbar, Typography, IconButton, Box, Menu, MenuItem, ListItemText, ListItemAvatar, Avatar, Badge, Divider } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
@@ -10,15 +11,10 @@ import { saveAppointment } from '../../api/appointments';
 function ownerIdFromDraft(){ try{ const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; }catch(e){ return 'owner-123'; } }
 
 const Header = ({ mode, toggleMode }) => {
-  const ownerId = ownerIdFromDraft();
-  const [anchor, setAnchor] = useState(null);
-  const [notifications, setNotifications] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`owner_notifications_${ownerId}`)) || []; }catch(e){ return []; } });
-
-  useEffect(()=>{
-    const handler = () => { try{ const n = JSON.parse(localStorage.getItem(`owner_notifications_${ownerId}`)) || []; setNotifications(n); }catch(e){} };
-    window.addEventListener('owner_notifications_updated', handler);
-    return ()=> window.removeEventListener('owner_notifications_updated', handler);
-  },[ownerId]);
+    const ownerId = ownerIdFromDraft();
+    const [anchor, setAnchor] = useState(null);
+    const { notifications: allNotifications = [] } = useNotifications();
+    const notifications = allNotifications.filter(n => String(n.userId) === String(ownerId));
 
   const open = Boolean(anchor);
   const handleOpen = (e)=> setAnchor(e.currentTarget);

@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIcon, Delete as DeleteIcon, Add as AddIcon, ChevronLeft, ChevronRight, Today as TodayIcon, ViewModule as ViewMonthIcon, ViewWeek as ViewWeekIcon, ViewDay as ViewDayIcon, Add as AddFabIcon } from '@mui/icons-material';
 import { Fab, Skeleton } from '@mui/material';
+import { useNotifications } from '../contexts/NotificationContext';
 import { alpha } from '@mui/material/styles';
 
 function ownerIdFromDraft(){ try{ const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; }catch(e){ return 'owner-123'; } }
@@ -27,7 +28,8 @@ export default function OwnerAppointments(){
   const [loading, setLoading] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
   const [blockedDates, setBlockedDates] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`owner_blocked_${ownerId}`)) || []; }catch(e){ return []; } });
-  const [notifications, setNotifications] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`owner_notifications_${ownerId}`)) || []; }catch(e){ return []; } });
+  const { notifications: allNotifications = [] } = useNotifications();
+  const [notifications, setNotifications] = useState(() => { try { return allNotifications.filter(n => String(n.userId) === String(ownerId)); } catch (e) { return []; } });
 
   const [filterProperty, setFilterProperty] = useState('all');
   const [range, setRange] = useState({ from: '', to: '' });
@@ -55,13 +57,12 @@ export default function OwnerAppointments(){
   },[ownerId]);
 
   useEffect(()=>{ try{ localStorage.setItem(`owner_blocked_${ownerId}`, JSON.stringify(blockedDates)); }catch(e){} },[blockedDates, ownerId]);
-  useEffect(()=>{ try{ localStorage.setItem(`owner_notifications_${ownerId}`, JSON.stringify(notifications)); }catch(e){} },[notifications, ownerId]);
-
-  useEffect(()=>{
-    const handler = ()=> { try{ const n = JSON.parse(localStorage.getItem(`owner_notifications_${ownerId}`)) || []; setNotifications(n);}catch(e){} };
-    window.addEventListener('owner_notifications_updated', handler);
-    return ()=> window.removeEventListener('owner_notifications_updated', handler);
-  },[ownerId]);
+  // Keep notifications in sync with NotificationContext
+  useEffect(() => {
+    try {
+      setNotifications(allNotifications.filter(n => String(n.userId) === String(ownerId)));
+    } catch (e) { setNotifications([]); }
+  }, [allNotifications, ownerId]);
 
   useEffect(()=>{
     const el = document.querySelectorAll('.appt-card');

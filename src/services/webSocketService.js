@@ -96,6 +96,30 @@ class WebSocketService {
       const handlers = this.handlers.get('adminTyping') || [];
       handlers.forEach(handler => handler(data));
     });
+
+    // Notifications
+    this.socket.on('notification', (message) => {
+      const handlers = this.handlers.get('notification') || [];
+      handlers.forEach(handler => handler(message));
+    });
+
+    // Initial notification history (unread) delivered on connect/reconnect
+    this.socket.on('notificationHistory', (messages) => {
+      const handlers = this.handlers.get('notificationHistory') || [];
+      handlers.forEach(handler => handler(messages));
+    });
+
+    // Notification removal broadcasted by the server to keep multiple clients in sync
+    this.socket.on('notificationRemoved', (payload) => {
+      const handlers = this.handlers.get('notificationRemoved') || [];
+      handlers.forEach(handler => handler(payload));
+    });
+
+    // Direct receiveMessage events (bot responses / messages)
+    this.socket.on('receiveMessage', (message) => {
+      const handlers = this.handlers.get('receiveMessage') || [];
+      handlers.forEach(handler => handler(message));
+    });
   }
 
   disconnect() {

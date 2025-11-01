@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { showToast } from '../common/ToastManager';
-import { agents, properties } from '../../data/fakedata';
+import { agents, properties, reservation } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
 import './PropertyCard.css';

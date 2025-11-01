@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export default function OwnerLayout({ children }) {
   const theme = useTheme();
@@ -35,6 +36,14 @@ export default function OwnerLayout({ children }) {
   const [ownerUnread, setOwnerUnread] = React.useState(0);
   const [metrics, setMetrics] = React.useState({ visits: 0, bookings: 0, revenue: 0 });
   const { ownerProfile, loading, error } = useOwnerProfile();
+  const { notifications: allNotifications = [] } = useNotifications();
+  // Prefer ownerProfile from API, fallback to owner_request_draft
+  const ownerId = ownerProfile?.user?._id || (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : null; } catch (e) { return null; } })();
+  React.useEffect(() => {
+    if (!ownerId) return;
+    const unread = (allNotifications || []).filter(m => String(m.userId) === String(ownerId) && (m.unread !== false)).length;
+    setOwnerUnread(unread);
+  }, [allNotifications, ownerId]);
   React.useEffect(() => {
     const m = getDashboardMetrics('owner-123');
     setMetrics(m);
