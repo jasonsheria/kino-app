@@ -520,7 +520,7 @@ export default function HomeLayout({ children }) {
           // pt: { xs: 2, sm: 3 },
           // px: { xs: 2, sm: 3 },
           mt: '64px', // height of AppBar
-          minHeight: 'calc(100vh - 64px)',
+          
           display: 'flex',
           flexDirection: 'column',
           width: '100%',

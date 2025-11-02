@@ -37,7 +37,7 @@ const Appartement = () => {
   return (
     <>
        <HomeLayout/>
-      <div className="container" style={{marginTop:"13vh"}}>
+      <div className="container" style={{marginTop:"7vh"}}>
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>

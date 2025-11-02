@@ -41,7 +41,7 @@ const About = () => {
             <HomeLayout/>
             
             {/* Hero Section */}
-            <section className="position-relative bg-light py-5">
+            <section className="position-relative bg-light">
                 <div className="container py-5">
                     <div className="row align-items-center">
                         <div className="col-lg-6">

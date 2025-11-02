@@ -21,7 +21,7 @@ const Voitures = () => {
   return (
     <>
        <HomeLayout/>
-      <div className="container py-5"  style={{marginTop:"5vh"}}>
+      <div className="container" >
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="subpage-header scroll-reveal">

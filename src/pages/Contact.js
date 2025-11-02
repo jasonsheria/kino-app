@@ -79,7 +79,7 @@ const Contact = () => {
              <HomeLayout/>
 
             {/* Hero Section */}
-            <section className="position-relative py-5" style={{
+            <section className="position-relative" style={{
                 background: `linear-gradient(135deg, var(--ndaku-primary) 0%, #0ea67e 100%)`,
                 color: 'white'
             }}>

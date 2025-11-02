@@ -32,7 +32,7 @@ const Terrain = () => {
   return (
     <>
        <HomeLayout/>
-      <div className="container py-5" style={{marginTop:"5vh"}}>
+      <div className="container" >
         {useRevealOnScroll()}
         <div className="subpage-header d-flex justify-content-between align-items-center">
           <div>

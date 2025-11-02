@@ -448,8 +448,6 @@ const Home = () => {
             {/* attach auto reveal to many page blocks for scroll animations */}
             <AutoReveal />
             {/* Navbar Bootstrap custom réutilisée */}
-            
-
             {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
             <section className="landing-hero">
                 <div className="container hero-inner">
