@@ -10,10 +10,10 @@ import {
     FaInstagram,
     FaLinkedin
 } from 'react-icons/fa';
-import Navbar from '../components/common/Navbar';
 import FooterPro from '../components/common/Footer';
 import ScrollReveal from '../components/common/ScrollReveal';
 import { Button, TextField, Alert, CircularProgress } from '@mui/material';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const Contact = () => {
     const theme = useTheme();
@@ -76,7 +76,7 @@ const Contact = () => {
 
     return (
         <>
-            <Navbar />
+             <HomeLayout/>
 
             {/* Hero Section */}
             <section className="position-relative py-5" style={{

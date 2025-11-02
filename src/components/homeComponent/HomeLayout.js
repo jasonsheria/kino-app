@@ -244,7 +244,7 @@ export default function HomeLayout({ children }) {
   }, [isMobile]);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.grey[100] }}>
+    <Box sx={{ minHeight: '4vh',display: 'flex', bgcolor: theme.palette.grey[100] }}>
       <AppBar
         position="fixed"
         sx={{

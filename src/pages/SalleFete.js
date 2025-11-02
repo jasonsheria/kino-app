@@ -7,6 +7,7 @@ import ScrollReveal from '../components/common/ScrollReveal';
 import MapView from '../components/property/MapView';
 import { properties } from '../data/fakedata';
 import FooterPro from '../components/common/Footer';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const SalleFete = () => {
   const salles = properties.filter(p => p.type && p.type.toLowerCase().includes('salle'));
@@ -59,7 +60,7 @@ const SalleFete = () => {
 
   return (
     <>
-      <Navbar />
+       <HomeLayout/>
       <div className="container" style={{marginTop : '13vh'}}>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div>

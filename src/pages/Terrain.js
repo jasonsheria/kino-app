@@ -9,6 +9,7 @@ import { properties } from '../data/fakedata';
 import '../pages/HomeSection.css';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import FooterPro from '../components/common/Footer';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const Terrain = () => {
   const [commune, setCommune] = React.useState('Toutes');
@@ -30,7 +31,7 @@ const Terrain = () => {
   };
   return (
     <>
-      <Navbar />
+       <HomeLayout/>
       <div className="container py-5" style={{marginTop:"5vh"}}>
         {useRevealOnScroll()}
         <div className="subpage-header d-flex justify-content-between align-items-center">

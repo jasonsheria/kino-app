@@ -6,6 +6,7 @@ import FooterPro from '../components/common/Footer';
 import ScrollReveal from '../components/common/ScrollReveal';
 import { Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const About = () => {
     const theme = useTheme();
@@ -37,7 +38,7 @@ const About = () => {
 
     return (
         <>
-            <Navbar />
+            <HomeLayout/>
             
             {/* Hero Section */}
             <section className="position-relative bg-light py-5">

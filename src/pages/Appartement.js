@@ -8,6 +8,7 @@ import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import MapView from '../components/property/MapView';
 import { properties } from '../data/fakedata';
 import FooterPro from '../components/common/Footer';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const Appartement = () => {
   const [filter, setFilter] = React.useState({});
@@ -35,7 +36,7 @@ const Appartement = () => {
   };
   return (
     <>
-      <Navbar />
+       <HomeLayout/>
       <div className="container" style={{marginTop:"13vh"}}>
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">

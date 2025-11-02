@@ -1015,7 +1015,7 @@ html, body { background: var(--pro-bg); color: var(--pro-heading); font-family: 
 .landing-hero {
   /* softer, non-dominant background so hero doesn't overpower page */
   background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(246,252,250,0.96) 60%);
-  padding: 56px 0;
+  padding: 95.px 0;
   overflow: hidden;
   position: relative;
 }

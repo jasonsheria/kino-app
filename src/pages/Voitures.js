@@ -8,6 +8,7 @@ import { vehicles } from '../data/fakedataVehicles';
 import '../pages/HomeSection.css';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import FooterPro from '../components/common/Footer';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const Voitures = () => {
   const [filter, setFilter] = React.useState({});
@@ -19,7 +20,7 @@ const Voitures = () => {
 
   return (
     <>
-      <Navbar />
+       <HomeLayout/>
       <div className="container py-5"  style={{marginTop:"5vh"}}>
   {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">

@@ -5,11 +5,12 @@ import AgentList from '../components/agent/AgentList';
 import FooterPro from '../components/common/Footer';
 import { agents } from '../data/fakedata';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 const Agents = () => {
   return (
     <>
-      <Navbar />
+       <HomeLayout/>
       <div className="container py-5">
         {useRevealOnScroll()}
         <div className="d-flex justify-content-between align-items-center mb-3">
