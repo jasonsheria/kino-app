@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { showToast } from '../common/ToastManager';
+// replaced global toast usage with notistack where needed; ToastManager import removed
 import { agents, properties, reservation } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
@@ -16,23 +16,16 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { lockScroll, unlockScroll } from '../../utils/scrollLock';
+import { syncReservationsFromServer } from '../../utils/reservationsSync';
 
 const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   // Resolve agent robustly:
-  // 1) if property.agent is an embedded object, use it
-  // 2) try to find in the local `agents` array by matching multiple id fields
-  // 3) if local `agents` is empty, try fetching user-scoped agents from the API
   const [resolvedAgent, setResolvedAgent] = useState(() => {
     try {
       if (property && property.agent && typeof property.agent === 'object') return property.agent;
-      const found = agents && agents.length ? agents.find(a => {
-        const propAgentIds = [property.agent, property.agentId, property.agent_id, property._id, property.id].map(v => v && String(v));
-        const candidateIds = [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id, a.email, a.phone].map(v => v && String(v));
-        return candidateIds.some(cid => cid && propAgentIds.some(pid => pid && pid === cid));
-      }) : null;
-      return found || null;
+      return null;
     } catch (e) { return null; }
   });
   const [remoteAgentsLoading, setRemoteAgentsLoading] = useState(false);
@@ -42,37 +35,54 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const [showContact, setShowContact] = useState(false);
   const [isReserved, setIsReserved] = useState(() => {
     try {
-  const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-  return reserved.includes(String(property.id)) || Boolean(property.isReserved);
-    } catch (e) {
-      return Boolean(property.isReserved);
-    }
+      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+      return reserved.includes(String(property.id || property._id)) || Boolean(property.isReserved);
+    } catch (e) { return Boolean(property.isReserved); }
   });
 
-  useEffect(() => {
-    // attempt to resolve agent when component mounts or when property/agents change
     const tryResolve = async () => {
       if (resolvedAgent) return;
-      // If property includes embedded agent object, use it
+      const propertyId = property?.id || property?._id;
+      console.log('PropertyCard: tryResolve start', { propertyId, propAgentRaw: property?.agent, agentsCount: agents?.length });
+
+      // If property already embeds the agent object, use it
       if (property && property.agent && typeof property.agent === 'object') {
+        console.log('PropertyCard: property already has embedded agent object');
         setResolvedAgent(property.agent);
         return;
       }
 
-      // Try local agents first
+      // normalize helper (very small)
+      const normalize = v => {
+        if (v === null || v === undefined) return null;
+        try {
+          let s = String(v);
+          // unwrap typical wrappers like ObjectId("...")
+          const m = s.match(/([a-f0-9]{24})/i);
+          if (m && m[1]) return m[1].toLowerCase();
+          return s.replace(/"|'|\s/g, '').toLowerCase();
+        } catch (e) { return String(v); }
+      };
+
+      const propAgentKey = property?.agent || property?.agentId || property?.agent_id || property?._id || property?.id;
+      const propNorm = normalize(propAgentKey);
+
+      // Simple explicit loop: compare normalized ids and attach on exact equality
       if (agents && agents.length) {
-        const found = agents.find(a => {
-          const propAgentIds = [property.agent, property.agentId, property.agent_id, property._id, property.id].map(v => v && String(v));
-          const candidateIds = [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id].map(v => v && String(v));
-          return candidateIds.some(cid => cid && propAgentIds.some(pid => pid && pid === cid));
-        });
-        if (found) {
-          setResolvedAgent(found);
-          return;
+        for (const a of agents) {
+          const agentIdCandidate = normalize(a.id || a._id || a.agentId || (a.raw && a.raw._id) || (a.raw && a.raw.id));
+          console.log('PropertyCard: comparing property -> agent', { propertyId, propNorm, agentIdCandidate, agentRawId: a.id || a._id });
+          if (propNorm && agentIdCandidate && propNorm === agentIdCandidate) {
+            console.log('PropertyCard: matched agent, attaching', { propertyId, agentId: a.id || a._id });
+            setResolvedAgent(a);
+            return;
+          }
         }
+
+        console.log('PropertyCard: no local agent match for property', { propertyId, propNorm, agentsCount: agents.length });
       }
 
-      // If no local agents, try fetching user-scoped agents from backend
+      // If no local agents, try fetching user-scoped agents from backend (unchanged fallback)
       if ((!agents || agents.length === 0) && !remoteAgentsLoading) {
         setRemoteAgentsLoading(true);
         try {
@@ -107,8 +117,16 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         }
       }
     };
-    tryResolve();
-  }, [property, resolvedAgent]);
+
+    useEffect(() => {
+      console.log("toute les agents", agents);
+      console.log("la property :", property);
+      console.log('PropertyCard: mounted, will tryResolve', { propertyId: property?.id || property?._id });
+      tryResolve();
+      const onAgentsUpdated = () => { tryResolve(); };
+      window.addEventListener('ndaku:agents-updated', onAgentsUpdated);
+      return () => window.removeEventListener('ndaku:agents-updated', onAgentsUpdated);
+    }, [property, resolvedAgent]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -128,9 +146,32 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     };
     window.addEventListener('property-reserved', handler);
     window.addEventListener('storage', storageHandler);
+    // listen to full-sync events emitted by syncReservationsFromServer
+    const syncHandler = (e) => {
+      try {
+        const reserved = (e?.detail?.reserved || []).map(String);
+        if (reserved.includes(String(property.id))) {
+          setIsReserved(true);
+        }
+      } catch (err) { /* ignore */ }
+    };
+    window.addEventListener('reserved_properties_synced', syncHandler);
+
+    // Call sync on mount to reconcile local state with server
+    (async () => {
+      try {
+        const synced = await syncReservationsFromServer();
+        if (Array.isArray(synced) && synced.map(String).includes(String(property.id || property._id))) {
+          setIsReserved(true);
+        }
+      } catch (err) {
+        // ignore - localStorage fallback already handled elsewhere
+      }
+    })();
     return () => {
       window.removeEventListener('property-reserved', handler);
       window.removeEventListener('storage', storageHandler);
+      window.removeEventListener('reserved_properties_synced', syncHandler);
     };
   }, [property.id]);
   const navigate = useNavigate();

@@ -17,7 +17,7 @@ export default function HomeSidebar({ collapsed, user, setMenuOpen }) {
     , [ownerProfile]);
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box>
       <div className="kn-drawer-header">
         <Link to="/" className="kn-brand" onClick={() => setMenuOpen(false)}>
           

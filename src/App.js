@@ -13,8 +13,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import NotificationProvider from './contexts/NotificationContext';
 import { GoogleOAuthProvider } from '@react-oauth/google'; // Nouvel import
 import GoogleAuthPromptInternal from '../src/auth/GoogleAuthPrompt'; // Renommé pour éviter conflit de nom
-import { SnackbarProvider } from 'notistack';
-import { showToast } from './components/common/ToastManager';
+import { SnackbarProvider, useSnackbar } from 'notistack';
 import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
 function App() {
@@ -53,16 +52,7 @@ function App() {
   }, []);
 
   // Listen for property load errors dispatched by fakedata module
-  React.useEffect(() => {
-    const onErr = (e) => {
-      try {
-        const msg = (e && e.detail && e.detail.message) ? e.detail.message : 'Impossible de charger les biens depuis le serveur.';
-        showToast(msg, 'error', 7000);
-      } catch (err) { console.error('ndaku:properties-error handler', err); }
-    };
-    window.addEventListener('ndaku:properties-error', onErr);
-    return () => window.removeEventListener('ndaku:properties-error', onErr);
-  }, []);
+  // We register the event handler inside a child component that has access to notistack's hook
 
   // Global call modal integration
   const { CallModal } = useGlobalCallModal();
@@ -75,6 +65,8 @@ function App() {
           <NotificationProvider>
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
               <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+                {/* local component that can use useSnackbar (must be rendered under SnackbarProvider) */}
+                <InnerNotifier />
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <Tooltip title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}>
@@ -82,11 +74,11 @@ function App() {
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 13,
-                        right: 64,
+                        bottom: 17,
+                        right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
-                        color: theme.palette.text.primary,
+                        color: "#0ea078",
                         border: '2px solid var(--ndaku-primary)',
                         borderRadius: '50%',
                         width: 48,
@@ -115,3 +107,25 @@ function App() {
 }
 
 export default App;
+
+// InnerNotifier: a tiny component rendered under SnackbarProvider so we can display
+// global notifications from window events (e.g. ndaku:properties-error).
+function InnerNotifier() {
+  const { enqueueSnackbar } = useSnackbar();
+
+  try {
+    React.useEffect(() => {
+      const onErr = (e) => {
+        try {
+          const msg = (e && e.detail && e.detail.message) ? e.detail.message : 'Impossible de charger les biens depuis le serveur.';
+          enqueueSnackbar(msg, { variant: 'error', autoHideDuration: 7000 });
+        } catch (err) { console.error('ndaku:properties-error handler', err); }
+      };
+      window.addEventListener('ndaku:properties-error', onErr);
+      return () => window.removeEventListener('ndaku:properties-error', onErr);
+    }, [enqueueSnackbar]);
+  } catch (err) {
+    // If hook cannot be used for any reason, no-op
+  }
+  return null;
+}

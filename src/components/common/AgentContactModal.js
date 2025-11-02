@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import Messenger from './Messenger';
+import { createPortal } from 'react-dom';
 import './AgentContactModal.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Basic in-app WebRTC UI (loopback for demo) — no signaling server included.
 const AgentContactModal = ({ agent, open, onClose }) => {
-  const [showMessenger, setShowMessenger] = useState(false);
+  // removed inline messenger: we will open the global messenger instead for a better view
   const [isCalling, setIsCalling] = useState(false);
   const [micEnabled, setMicEnabled] = useState(true);
   const [callTime, setCallTime] = useState(0);
@@ -12,7 +13,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   const [callStatus, setCallStatus] = useState('idle'); // idle, requesting, connecting, active, ended
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  
+  const { user } = useAuth();
   const timerRef = useRef(null);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -50,8 +51,12 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   // Safe accessor for agent fields to avoid calling .replace on undefined
   const agentName = agent?.prenom || agent?.name || 'Agent';
   const agentImageUrl = (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.image || '');
-  const rawWhatsapp = agent?.whatsapp || agent?.phone || '';
+  const rawWhatsapp = agent?.whatsapp || agent?.telephone || '';
   const whatsappNumber = rawWhatsapp ? String(rawWhatsapp).replace(/[^\d]/g, '') : '';
+
+  // get current user id from auth context (if available)
+
+  const currentUserId = user?.id || user?._id || null;
 
   const startTimer = () => {
     setCallTime(0);
@@ -151,7 +156,8 @@ const AgentContactModal = ({ agent, open, onClose }) => {
     setMicEnabled(track.enabled);
   };
 
-  return (
+  const modal = (
+    
     <div className="agent-contact-modal-bg" 
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -174,7 +180,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
         <div className="agent-contact-actions">
           {whatsappNumber ? (
             <a
-              href={`https://wa.me/${whatsappNumber}?text=Bonjour,%20je%20suis%20intéressé(e)%20par%20vos%20services`}
+              href={`https://wa.me/${rawWhatsapp}?text=Bonjour,%20je%20suis%20intéressé(e)%20par%20vos%20services`}
               target="_blank" rel="noopener noreferrer"
               className="btn btn-success w-100 mb-2"
             >
@@ -276,7 +282,13 @@ const AgentContactModal = ({ agent, open, onClose }) => {
             )}
           </div>
 
-          <button className="btn btn-outline-primary w-100" onClick={()=>setShowMessenger(true)}>
+          <button className="btn btn-outline-primary w-100" onClick={() => {
+            // close this modal to give full viewport to the messenger
+            try { stopCall(); } catch(e){}
+            if (onClose) onClose();
+            // open global messenger and request a conversation with this agent
+            window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId: agent?.id || agent?._id || agent?.agentId } }));
+          }}>
             Message instantané intégré
           </button>
         </div>
@@ -286,12 +298,18 @@ const AgentContactModal = ({ agent, open, onClose }) => {
           <audio ref={remoteVideoRef} autoPlay playsInline />
         </div>
 
-        {showMessenger && (
-          <Messenger agent={agent} onClose={()=>setShowMessenger(false)} />
-        )}
+        {/* Messenger is opened globally via event 'ndaku-open-messenger' to avoid nesting modals */}
       </div>
     </div>
   );
+
+  // render modal to document.body to avoid parent transforms/positioning affecting it
+  try {
+    return createPortal(modal, document.body);
+  } catch (e) {
+    // fallback if document not available (SSR) or portal fails
+    return modal;
+  }
 };
 
 export default AgentContactModal;

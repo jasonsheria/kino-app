@@ -90,8 +90,8 @@ export const subscriptions = [
   // Fetch properties and agents in background and mutate exported arrays
   (async () => {
     try {
-  // Try multiple storage keys for the auth token to be tolerant across app versions
-  const token = localStorage.getItem('ndaku_auth_token') || localStorage.getItem('ndaku-token') || localStorage.getItem('token') || localStorage.getItem('auth_token') || null;
+      // Try multiple storage keys for the auth token to be tolerant across app versions
+      const token = localStorage.getItem('ndaku_auth_token') || localStorage.getItem('ndaku-token') || localStorage.getItem('token') || localStorage.getItem('auth_token') || null;
       // try Mobilier endpoints first (backend exposes mobilier controller), then properties paths
       const tryUrls = [`${API_BASE}/api/mobilier`];
       let propsResp = null;
@@ -170,7 +170,8 @@ export const subscriptions = [
           }
           throw new Error(`HTTP ${r.status} ${r.statusText}`);
         }
-        const rawReservations = reservationsResp && (Array.isArray(reservationsResp) ? reservationsResp : reservationsResp.data || reservationsResp.items) || null;
+        const reservationsRespData = await reservationsResp.json();
+        const rawReservations = reservationsRespData && (Array.isArray(reservationsRespData) ? reservationsRespData : reservationsRespData.data || reservationsRespData.items) || reservationsRespData || null;
         if (rawReservations && Array.isArray(rawReservations) && rawReservations.length > 0) {
           const mappedReservations = rawReservations.map(r => ({
             id: r._id || r.id,
@@ -194,7 +195,7 @@ export const subscriptions = [
       }
 
       // agents endpoint may also be under /api/agents; prefer user-scoped /api/agents/me using auth token
-      const tryAgentUrls = [`${API_BASE}/api/agents/me?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/api/agents?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/agents?site=${process.env.REACT_APP_SITE_ID}`];
+      const tryAgentUrls = [`${API_BASE}/api/agents?site=${process.env.REACT_APP_SITE_ID}`, `${API_BASE}/agents?site=${process.env.REACT_APP_SITE_ID}`];
       let agentsResp = null;
       let triedAgentUrl = null;
       for (const u of tryAgentUrls) {
@@ -210,6 +211,7 @@ export const subscriptions = [
         if (agentsResp) break;
       }
       const rawAgents = agentsResp && (Array.isArray(agentsResp) ? agentsResp : agentsResp.data || agentsResp.items) || null;
+      console.log("agents recuperer au serveur ,", rawAgents)
       if (rawAgents && Array.isArray(rawAgents) && rawAgents.length > 0) {
         const mappedAgents = rawAgents.map(a => ({
           id: a._id || a.id,
@@ -218,7 +220,7 @@ export const subscriptions = [
           address: a.address || a.location || '',
           email: a.email || '',
           phone: a.phone || a.telephone || '',
-          whatsapp: a.whatsapp || '',
+          whatsapp: a.telephone || a.phone || a.whatsapp || '',
           facebook: a.facebook || '',
           photo: a.image || a.avatar || '',
           image: a.image || '',

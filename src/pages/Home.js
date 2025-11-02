@@ -1,7 +1,7 @@
 import React from 'react';
 import MessengerWidget from '../components/common/Messenger';
 import { useTheme } from '@mui/material/styles';
-import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey } from 'react-icons/fa';
+import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,14 +22,16 @@ import PropertyCard from '../components/property/PropertyCard';
 import VisitBookingModal from '../components/common/VisitBookingModal';
 import AgentCard from '../components/agent/AgentCard';
 import ScrollReveal from '../components/common/ScrollReveal';
+import AutoReveal from '../components/common/AutoReveal';
 import AgentContactModal from '../components/common/Messenger';
-import { showToast } from '../components/common/ToastManager';
+import { useSnackbar } from 'notistack';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 import authService from '../services/authService';
 import  HomeLayout from '../components/homeComponent/HomeLayout'
 
 const Home = () => {
+    const { enqueueSnackbar } = useSnackbar();
     const [contactOpen, setContactOpen] = React.useState(false);
     const [selectedAgent, setSelectedAgent] = React.useState(null);
     const openContact = (agent) => {
@@ -271,8 +273,8 @@ const Home = () => {
     };
     const handleBookingSuccess = (data) => {
         // The modal already writes to localStorage and dispatches event 'property-reserved'.
-        // Here we can show a toast and close the modal.
-        try { showToast('Visite réservée — vous recevrez les coordonnées de l’agent', 'success'); } catch (e) { /* ignore */ }
+        // Show a snackbar and close the modal.
+        try { enqueueSnackbar('Visite réservée — vous recevrez les coordonnées de l’agent', { variant: 'success' }); } catch (e) { /* ignore */ }
         setBookingOpen(false);
     };
 
@@ -370,124 +372,174 @@ const Home = () => {
     };
 
     // Show notification if a navigation state message was passed (e.g. after successful payment)
-    React.useEffect(() => {
+            React.useEffect(() => {
         try {
             const msg = location?.state?.message;
             if (msg) {
-                showToast(msg, 'success', 7000);
+                enqueueSnackbar(msg, { variant: 'success', autoHideDuration: 7000 });
                 // Clear the navigation state so the toast doesn't reappear on back/refresh
                 navigate(location.pathname, { replace: true, state: {} });
             }
         } catch (e) { /* ignore */ }
-    }, [location, navigate]);
+    }, [location, navigate, enqueueSnackbar]);
+
+    // Hero slider component: multiple SVG-clipped images with captions and zoom animation
+    const HeroSlider = () => {
+        const slides = [
+            { img: require('../img/about.jpg'), title: 'Annonces vérifiées', subtitle: 'Agents certifiés' },
+            { img: require('../img/property-4.jpg'), title: 'Appartements récents', subtitle: 'Qualité & emplacement' },
+            { img: require('../img/salles/promo1.jpg'), title: 'Offres spéciales', subtitle: 'Réductions limitées' }
+        ];
+        const [index, setIndex] = React.useState(0);
+        const [paused, setPaused] = React.useState(false);
+        const intervalRef = React.useRef(null);
+
+        const next = React.useCallback(() => setIndex(i => (i + 1) % slides.length), [slides.length]);
+        const prev = React.useCallback(() => setIndex(i => (i - 1 + slides.length) % slides.length), [slides.length]);
+
+        React.useEffect(() => {
+            if (paused) return;
+            intervalRef.current = setInterval(() => next(), 4800);
+            return () => clearInterval(intervalRef.current);
+        }, [next, paused]);
+
+        const handleMouseEnter = () => { setPaused(true); };
+        const handleMouseLeave = () => { setPaused(false); };
+
+        return (
+            <div className="hero-illustration hero-slider" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} aria-hidden>
+                <svg viewBox="0 0 900 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <clipPath id="heroClipMain">
+                            <path d="M40,20 L820,40 L880,300 L760,560 L120,520 L40,300 Z" />
+                        </clipPath>
+                    </defs>
+                    {/* Render only the active slide image (key forces remount to restart CSS animation) */}
+                    <image key={index} className={`hero-img hero-slide`} clipPath="url(#heroClipMain)" href={slides[index].img} x="0" y="0" width="900" height="600" preserveAspectRatio="xMidYMid slice" />
+                    <rect x="0" y="0" width="900" height="600" fill="rgba(2,6,23,0.02)" />
+                    <g className="hero-deco" transform="translate(540,-20)">
+                        <circle cx="40" cy="40" r="120" fill="var(--pro-accent)" opacity="0.06" />
+                        <circle cx="220" cy="120" r="80" fill="var(--pro-accent-2)" opacity="0.06" />
+                    </g>
+                </svg>
+
+                {/* caption overlay */}
+                <div className="hero-caption">
+                    <div className="caption-title">{slides[index].title}</div>
+                    <div className="caption-sub">{slides[index].subtitle}</div>
+                </div>
+
+                {/* controls */}
+                <button aria-label="Précédent" className="hero-arrow hero-arrow-left" onClick={prev}>&lsaquo;</button>
+                <button aria-label="Suivant" className="hero-arrow hero-arrow-right" onClick={next}>&rsaquo;</button>
+                {/* small indicators */}
+                <div className="hero-indicators">
+                    {slides.map((s, i) => (
+                        <button key={i} className={`indicator ${i === index ? 'active' : ''}`} onClick={() => setIndex(i)} aria-label={`Slide ${i+1}`}></button>
+                    ))}
+                </div>
+            </div>
+        );
+    };
 
     if (loading) return <Preloader />;
     return (
         <HomeLayout>
+            {/* attach auto reveal to many page blocks for scroll animations */}
+            <AutoReveal />
             {/* Navbar Bootstrap custom réutilisée */}
             
 
-            {/* Hero Section moderne Kinshasa */}
-            <section
-                className="container-fluid hero-section d-flex align-items-center justify-content-center px-0"
-                style={{ background: '#fff', color: theme.palette.text.primary, maxWidth: '100vw', overflowX: 'hidden' }}
-            >
-                <div className="row w-100 g-0 align-items-stretch" style={{ maxWidth: '100%', margin: 0 }}>
-                    <div className="titr col-12 col-md-6 d-flex align-items-center justify-content-center text-section px-4 px-md-5">
-                        <div className="w-100" style={{ maxWidth: 700 }}>
-                            <h1
-                                className="hero-title mb-4 display-2"
+            {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
+            <section className="landing-hero">
+                <div className="container hero-inner">
+                    <div className="hero-left hero-fade-up">
+                        <h1 className="hero-title">Ndaku — La plateforme immobilière de Kinshasa</h1>
+                        <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
-                            >
-                                Trouvez le bien idéal à Kinshasa
-                            </h1>
-                            <p className="hero-desc mb-3">
-                                Bienvenue sur <span>Ndaku</span>, la plateforme immobilière moderne pour <span>Kinshasa</span> et ses environs. Découvrez, louez ou vendez maisons, appartements, terrains et plus encore, avec l’aide de nos agents de confiance.
-                            </p>
-                            <p className="hero-desc mb-4">
-                                <span>Tika kobanga !</span> Ndaku ezali mpo na yo, pona kozwa ndako, lopango, to koteka biloko na confiance na Kinshasa.
-                            </p>
-                            <div className='align-items-center justify-content-center' style={{ display: "flex" }}>
-                                <MuiButton
-                                    onClick={() => scrollToId('biens')}
-                                    variant="contained"
-                                    startIcon={<FaHome />}
-                                    sx={{
-                                        bgcolor: 'var(--ndaku-primary)',
-                                        color: 'white',
-                                        alignSelf: 'flex-start',
-                                        textTransform: 'none',
-                                        px: 3,
-                                        '&:hover': {
-                                            bgcolor: '#10a37f',
-                                            transform: 'translateY(-2px)',
-                                            transition: 'all 0.2s'
-                                        }
-                                    }}
-                                >
-                                    Voir les biens
-                                </MuiButton>
-                            </div>
+                        <div className="hero-ctas">
+                            <MuiButton onClick={() => scrollToId('biens')} variant="contained" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 2 }}>Voir les biens</MuiButton>
+                            <Button variant="outlined" onClick={() => scrollToId('agence')} sx={{ textTransform: 'none', borderRadius: 2 }}>Devenir propriétaire / agent</Button>
+                        </div>
 
+                        <div className="hero-stats" aria-hidden>
+                            <StatCard label="Biens listés" value={properties.length} />
+                            <StatCard label="Agents certifiés" value={agents.length} />
+                            <StatCard label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} />
                         </div>
                     </div>
-                    <div className="col-12 col-md-6 d-flex align-items-stretch carousel-section p-0">
-                        <div className="w-100 h-100 carousel-box d-flex align-items-center justify-content-center">
-                            <LandingCarousel controlsOnSeparator color="var(--ndaku-primary)" />
-                        </div>
+
+                    <div className="hero-right hero-fade-up">
+                        <HeroSlider />
                     </div>
                 </div>
             </section>
 
-            {/* Bannière choix agent/propriétaire */}
-            <div
-                className="container-fluid py-4 animate__animated animate__fadeInDown"
-                style={{ background: isDark ? theme.palette.background.paper : '#e9f7f3', color: theme.palette.text.primary }}
-            >
-                <div className="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            {/* Bannière choix agent/propriétaire - improved with background image and glass CTA */}
+            <section className="container-fluid agent-banner py-5 animate__animated animate__fadeInDown" aria-label="Bannière agent ou propriétaire" style={{ color: isDark ? theme.palette.text.primary : '#fff' }}>
+                <div className="agent-banner-inner container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
                     <div className="d-flex align-items-center gap-3">
-                        <FaUserTie className="text-success" size={38} />
-                        <span className="fw-bold fs-4" style={{ color: theme.palette.text.primary }}>Vous êtes agent ou propriétaire ?</span>
-                    </div>
-                    <div className="d-flex gap-2 mt-3 mt-md-0">
-                        <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                           <MuiButton variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaBuilding />} className='btn-home'> Agence</MuiButton>
-                        </Link>
-                        <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                           <Button variant="outlined" color="success" sx={{ px: 3 }} startIcon={<FaHandshake />} className='btn-home'>Propriétaire</Button>
-                        </Link>
-                    </div>
-                    <div className="d-none d-md-block">
-                        <FaArrowRight className="text-secondary" size={32} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Section Agence Immobilière Présentation améliorée */}
-            <section className="container py-5 animate__animated animate__fadeInUp" id="agence">
-                <div className="row align-items-center">
-                    <div className="col-12 col-md-5 mb-4 mb-md-0 d-flex justify-content-center">
-                        <div className="position-relative" style={{ maxWidth: 320, width: '100%' }}>
-                            <img src={require('../img/about.jpg')} alt="Ndaku Agence Immobilière" className="img-fluid rounded-4 shadow-lg border border-3 border-success" style={{ width: '100%', objectFit: 'cover', minHeight: 160, maxHeight: 420, background: theme.palette.background.paper }} />
-                            <div className="position-absolute top-0 start-0 translate-middle bg-success rounded-circle d-flex align-items-center justify-content-center" style={{ width: 64, height: 64, boxShadow: '0 2px 8px #0002' }}>
-                                <FaBuilding className="text-white" size={32} />
-                            </div>
+                        <FaUserTie className="agent-banner-icon text-white" size={44} />
+                        <div>
+                            <div className="fw-bold fs-4 agent-title">Vous êtes agent ou propriétaire ?</div>
+                            <div className="agent-subtext text-white-80">Publiez vos annonces ou rejoignez notre réseau d'agents certifiés — simple et sécurisé.</div>
                         </div>
                     </div>
-                    <div className="col-12 col-md-7">
-                        <h3 className="fw-bold text-success mb-3 d-flex align-items-center gap-2 animate__animated animate__pulse animate__delay-1s">
-                            <FaBuilding className="me-2" /> Ndaku Agence Immobilière
-                        </h3>
-                        <p className="mb-2" >Votre <span >partenaire de confiance</span> pour l’achat, la vente et la location de biens immobiliers à Kinshasa et ses environs. Notre équipe expérimentée vous accompagne à chaque étape de votre projet, avec <span >professionnalisme</span>, <span >écoute</span> et <span >transparence</span>.</p>
-                        <p className="mb-2" >Tosali mpo na yo : kobongisa, koteka, to kozwa ndako na confiance. Biso tozali awa pona kosalisa yo na biloko nyonso ya ndaku.</p>
-                        <ul className="list-unstyled mb-3">
-                            <li className="mb-2 d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> <strong>Adresse :</strong> 10 Avenue du Commerce, Gombe, Kinshasa</li>
-                            <li className="mb-2 d-flex align-items-center gap-2"><FaPhoneAlt className="text-success" /> <strong>Téléphone :</strong> +243 900 000 000</li>
-                            <li className="mb-2 d-flex align-items-center gap-2"><FaEnvelope className="text-success" /> <strong>Email :</strong> contact@ndaku.cd</li>
-                        </ul>
-                        <div className="d-flex gap-2 mt-4">
-                           <Button onClick={() => scrollToId('biens')} variant="outlined" color="success" className="animate__animated animate__pulse animate__infinite">Découvrir nos biens</Button>
-                           <Button onClick={() => scrollToId('agents')} variant="outlined" color="success">Rencontrer nos agents</Button>
+
+                    <div className="d-flex gap-2 mt-3 mt-md-0">
+                        <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
+                           <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence</MuiButton>
+                        </Link>
+                        <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
+                           <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'>Propriétaire</Button>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Cleaned Agency section: concise, airy, professional */}
+            <section className="container agency-clean py-5" id="agence" aria-labelledby="agence-heading">
+                <div className="agency-clean-inner p-3">
+                    <div className="row align-items-center">
+                        <div className="col-12 col-md-5 text-center mb-3 mb-md-0">
+                            <div className="agency-hero-circle mb-3">
+                                <FaBuilding size={48} className="agency-hero-icon" />
+                            </div>
+                            <div className="agency-short">Ndaku — visibilité, qualification et sécurité pour vos transactions immobilières.</div>
+                        </div>
+
+                        <div className="col-12 col-md-7">
+                            <h3 id="agence-heading" className="fw-bold text-success mb-3">Nos services clés</h3>
+                            <p className="agency-lead mb-4">Des services clairs et efficaces pour vendre ou louer: mise en valeur du bien, diffusion ciblée et accompagnement jusqu’à la signature.</p>
+
+                            <div className="features-row mb-3">
+                                <div className="feature-card">
+                                    <div className="feature-icon"><FaCertificate /></div>
+                                    <div className="feature-body">
+                                        <div className="feature-title">Agents certifiés</div>
+                                        <div className="feature-desc">Sélection et accompagnement pro.</div>
+                                    </div>
+                                </div>
+                                <div className="feature-card">
+                                    <div className="feature-icon"><FaBullhorn /></div>
+                                    <div className="feature-body">
+                                        <div className="feature-title">Marketing pro</div>
+                                        <div className="feature-desc">Photos, rédaction & diffusion multicanal.</div>
+                                    </div>
+                                </div>
+                                <div className="feature-card">
+                                    <div className="feature-icon"><FaTools /></div>
+                                    <div className="feature-body">
+                                        <div className="feature-title">Support légal</div>
+                                        <div className="feature-desc">Vérification documentaire et assistance.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="d-flex gap-3">
+                                <Button variant="contained" color="success" onClick={() => scrollToId('biens')} className="owner-btn-primary">Voir les biens</Button>
+                                <Button variant="outlined" onClick={() => scrollToId('agents')} className="owner-btn-outline">Contacter un agent</Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -862,20 +914,41 @@ const Home = () => {
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
                     <div className="row justify-content-center">
-                        {agents.slice(0, 6).map(agent => (
-               <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
-                                {/* wrapper cliquable pour ouvrir la messagerie */}
-                                <div
-                                    role="Buttons"
-                                    tabIndex={0}
-                                    onClick={() => openContact(agent)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
-                                    style={{ cursor: 'pointer', outline: 'none' }}
-                                >
-                                    <AgentCard agent={agent} />
-                                </div>
-                            </ScrollReveal>
-                        ))}
+                        {(() => {
+                            // make agent list deterministic and surface best matches first
+                            const sorted = [...agents].sort((a, b) => {
+                                // certified first
+                                const certA = a.isCertified ? 0 : 1;
+                                const certB = b.isCertified ? 0 : 1;
+                                if (certA !== certB) return certA - certB;
+                                // active status next
+                                const statusOrder = s => (s === 'Actif' || s === 'active' ? 0 : 1);
+                                const sA = statusOrder(a.status);
+                                const sB = statusOrder(b.status);
+                                if (sA !== sB) return sA - sB;
+                                // then by dealsCount (desc)
+                                const da = Number(a.dealsCount || a.deals || 0);
+                                const db = Number(b.dealsCount || b.deals || 0);
+                                if (db !== da) return db - da;
+                                // finally by name
+                                return String(a.name || '').localeCompare(String(b.name || ''));
+                            });
+
+                            return sorted.slice(0, 6).map(agent => (
+                                <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
+                                    {/* wrapper cliquable pour ouvrir la messagerie */}
+                                    <div
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => openContact(agent)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
+                                        style={{ cursor: 'pointer', outline: 'none' }}
+                                    >
+                                        <AgentCard agent={agent} />
+                                    </div>
+                                </ScrollReveal>
+                            ));
+                        })()}
                     </div>
                     <div className="d-flex justify-content-center mt-3">
                         <Link to="/agents" style={{ textDecoration: 'none' }}>
@@ -1178,6 +1251,45 @@ function getCurrentUser() {
         if (user && user.id && user.name) return user;
     } catch (e) { }
     return null;
+}
+
+// ----------------- Small utilities for the hero stats -----------------
+function useCountUp(end, { duration = 900 } = {}) {
+    const [value, setValue] = React.useState(0);
+    const rafRef = React.useRef(null);
+    const startRef = React.useRef(null);
+
+    React.useEffect(() => {
+        let mounted = true;
+        const start = () => {
+            startRef.current = performance.now();
+            const loop = (now) => {
+                if (!mounted) return;
+                const elapsed = now - startRef.current;
+                const t = Math.min(1, elapsed / duration);
+                const current = Math.round(t * end);
+                setValue(current);
+                if (t < 1) rafRef.current = requestAnimationFrame(loop);
+            };
+            rafRef.current = requestAnimationFrame(loop);
+        };
+        // if end is zero, show 0 immediately
+        if (!end) { setValue(0); return () => { mounted = false; if (rafRef.current) cancelAnimationFrame(rafRef.current); }; }
+        start();
+        return () => { mounted = false; if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    }, [end, duration]);
+
+    return value;
+}
+
+function StatCard({ label, value }) {
+    const animated = useCountUp(value, { duration: 1100 });
+    return (
+        <div className="stat-card" role="status" aria-live="polite">
+            <div className="stat-value">{animated}</div>
+            <div className="stat-label">{label}</div>
+        </div>
+    );
 }
 
 function CommentInput({ onAdd, replyingTo, onCancelReply }) {

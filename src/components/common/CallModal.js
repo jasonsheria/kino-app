@@ -61,10 +61,10 @@ export default function CallModal({ open, onClose, agent, status = 'connecting',
       <audio ref={audioRef} src={RINGTONE_URL} preload="auto" style={{ display: 'none' }} />
       <div className={`call-modal ${status}`}>
         <div className="call-modal-avatar">
-          <img src={agent?.photo || require('../../img/header.jpg')} alt={agent?.name || 'Agent'} />
+          <img src={process.env.REACT_APP_BACKEND_APP_URL+agent?.photo || require('../../img/header.jpg')} alt={agent?.name || 'Agent'} />
         </div>
         <div className="call-modal-info">
-          <div className="call-modal-name">{agent?.name || 'Agent inconnu'}</div>
+          <div className="call-modal-name">{agent?.prenom || agent?.name || 'Agent inconnu'}</div>
           <div className="call-modal-company">{agent?.company || ''}</div>
           <div className="call-modal-status">
             {status === 'connecting' && <span className="call-anim">Connexion... <span style={{fontSize:'1.1em',color:'var(--ndaku-primary)',marginLeft:8}}>&#128222;</span></span>}

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './VisitBookingModal.css';
-import { showToast } from './ToastManager';
-import { lockScroll, unlockScroll } from '../../utils/scrollLock';
+import { useSnackbar } from 'notistack';
 
+
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
+import { syncReservationsFromServer } from '../../utils/reservationsSync';
 const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent }) => {
   const [step, setStep] = useState(1);
+const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
   const [bookingData, setBookingData] = useState({
     date: '',
     time: '09:00',
@@ -67,23 +71,54 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
   // notify parent with the raw booking data (legacy prop)
   onSubmit?.(bookingData);
   // new standardized success callback to update reservation state
-      console.log('VisitBookingModal: payment success, calling onSuccess with', bookingData);
       onSuccess?.(bookingData);
+      //  verifier d'abord si l'utilisateur est connecter avant de faire une reservation
+      const user = localStorage.getItem('ndaku_auth_token') && localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null;
+      if(!user) {
+        enqueueSnackbar('Veuillez vous connecter pour effectuer une réservation.', { variant: 'error' });
+        setLoading(false);
+        onClose();
+        return;
+      }
       // dispatch a global event so other components (other cards) can react
       try {
         const propId = property?.id ?? bookingData.propertyId ?? null;
         if (propId != null) {
-          // persist to localStorage (stringified ids)
+          // Try to sync reservations from server (best-effort). If sync succeeds use it, otherwise fall back to local persistence.
           try {
-            const list = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-            if (!list.includes(String(propId))) {
-              list.push(String(propId));
-              localStorage.setItem('reserved_properties', JSON.stringify(list));
+            const synced = await syncReservationsFromServer();
+            let included = false;
+            if (Array.isArray(synced)) {
+              included = synced.map(String).includes(String(propId));
+            } else {
+              // fallback: write localStorage and assume reserved
+              try {
+                const list = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+                if (!list.includes(String(propId))) {
+                  list.push(String(propId));
+                  localStorage.setItem('reserved_properties', JSON.stringify(list));
+                }
+                included = true;
+              } catch (err) {
+                console.warn('Could not persist reservation in localStorage', err);
+              }
             }
-          } catch (err) { console.warn('Could not persist reservation in localStorage', err); }
-          // dispatch event
-          window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(propId) } }));
-          console.log('VisitBookingModal: dispatched property-reserved for', propId);
+
+            if (included) {
+              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(propId) } }));
+            }
+          } catch (err) {
+            console.warn('VisitBookingModal: failed to sync reservations', err);
+            // fallback to legacy localStorage write + event
+            try {
+              const list = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+              if (!list.includes(String(propId))) {
+                list.push(String(propId));
+                localStorage.setItem('reserved_properties', JSON.stringify(list));
+              }
+              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(propId) } }));
+            } catch (e) { console.warn('VisitBookingModal: failed to dispatch property-reserved event', e); }
+          }
         }
       } catch (e) {
         console.warn('VisitBookingModal: failed to dispatch property-reserved event', e);
@@ -105,13 +140,15 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
         });
         if (resp.ok) {
           const created = await resp.json();
-          showToast('Réservation enregistrée', 'success');
+          enqueueSnackbar('Réservation enregistrée', 'success');
           // Fetch latest reservations for this user to update local UI/state
           try {
             const listUrl = base ? `${base}/api/reservations` : '/api/reservations';
             const listResp = await fetch(listUrl, { headers });
             if (listResp.ok) {
               const reservations = await listResp.json();
+              // Sync reservations (use the response to avoid double-fetch)
+              try { await syncReservationsFromServer(listResp); } catch (e) { console.warn('Failed to sync reservations after create', e); }
               // Notify parent with server-created reservation and refreshed list
               onSuccess?.({ bookingData, createdReservation: created, reservations });
             } else {
@@ -124,15 +161,15 @@ const VisitBookingModal = ({ open, onClose, onSubmit, onSuccess, property, agent
           }
         } else if (resp.status === 401 || resp.status === 403) {
           // Not authenticated — fall back to local persistence but inform the user
-          showToast('Réservation enregistrée localement (connexion requise pour sauvegarde serveur)', 'warn');
+          enqueueSnackbar('Réservation enregistrée localement (connexion requise pour sauvegarde serveur)', 'warn');
           onSuccess?.({ bookingData, createdReservation: null, reservations: null });
         } else {
-          showToast('Réservation enregistrée localement (serveur non disponible)', 'warn');
+          enqueueSnackbar('Réservation enregistrée localement (serveur non disponible)', 'warn');
           onSuccess?.({ bookingData, createdReservation: null, reservations: null });
         }
       } catch (e) {
         console.warn('Reservation server post failed', e);
-        showToast('Réservation enregistrée localement (erreur réseau)', 'warn');
+        enqueueSnackbar('Réservation enregistrée localement (erreur réseau)', 'warn');
       }
       // close modal after notifying parent
       onClose();

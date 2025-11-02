@@ -12,11 +12,10 @@ export async function syncReservationsFromServer(providedReservations = null) {
       if (!resp.ok) return null;
       reservations = await resp.json();
     }
-
-    if (!Array.isArray(reservations)) return null;
+    if (!Array.isArray(reservations.data)) return null;
 
     // Extract property ids (reservation.property may be populated object or an id)
-    const ids = reservations
+    const ids = (reservations.data)
       .map(r => {
         if (!r) return null;
         if (r.property) {
@@ -33,6 +32,7 @@ export async function syncReservationsFromServer(providedReservations = null) {
       .map(String);
 
     // Save unique ids to localStorage
+    console.log("syncReservationsFromServer ids", ids);
     const unique = Array.from(new Set(ids));
     try {
       localStorage.setItem('reserved_properties', JSON.stringify(unique));

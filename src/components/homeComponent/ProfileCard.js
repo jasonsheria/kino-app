@@ -39,7 +39,7 @@ export default function ProfileCard({ onClose }) {
   if (error || !user) {
     return (
       <Box sx={{ p: 2 }}>
-        <Typography color="error">Erreur de chargement du profil</Typography>
+        <Typography color="error"> Veuillez d'abord vous connectez !</Typography>
       </Box>
     );
   }
@@ -195,19 +195,10 @@ export default function ProfileCard({ onClose }) {
           </>
         )}
       </Box>
-      ) : (
-        <Box sx={{ p: 2 }}>
-          <Typography color="error">Profil utilisateur non disponible</Typography>
-          <Link
-            to="/login"
-            className="kn-drawer-link"
-          >
-            Connexion
-          </Link>
-        </Box>
-        // login link
+      
 
-      )
+      
+      ) : null
     )
   );
 }

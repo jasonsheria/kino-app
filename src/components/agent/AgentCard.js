@@ -196,161 +196,100 @@ const ContactOptionsModal = ({ isOpen, onClose, agent, onWhatsApp, onCall, onMes
 };
 
 const AgentCard = ({ agent }) => {
-  const handleCall = (e) => {
-    e.stopPropagation(); // Empêche la propagation de l'événement
-    window.dispatchEvent(
-      new CustomEvent('ndaku-call', {
-        detail: {
-          to: 'support',
-          meta: {
-            agentId: agent.id,
-            agentName: agent.name,
-          },
-        },
-      })
-    );
+  // normalized helpers
+  const phone = agent.telephone || agent.phone || agent.whatsapp || '';
+  const email = agent.email || agent.mail || '';
+
+  const fireCallEvent = (e) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent.id, agentName: agent.name } } }));
   };
 
-  const handleWhatsApp = (e) => {
-    e.stopPropagation(); // Empêche la propagation de l'événement
-    const raw = agent.telephone || agent.phone || agent.whatsapp || agent.telephone;
-    if (!raw) return window.alert('Numéro WhatsApp non disponible');
-    const digits = String(raw).replace(/[^0-9+]/g, '');
+  const openWhatsApp = (e) => {
+    e.stopPropagation();
+    if (!phone) return window.alert('Numéro WhatsApp non disponible');
+    const digits = String(phone).replace(/[^0-9+]/g, '');
     window.open(`https://wa.me/${digits}`, '_blank');
   };
 
-  const handleEmail = (e) => {
-    e.stopPropagation(); // Empêche la propagation de l'événement
-    window.location.href = `mailto:${agent.email}`;
+  const openEmail = (e) => { e.stopPropagation(); if (!email) return window.alert('Email non disponible'); window.location.href = `mailto:${email}`; };
+
+  const openMessenger = (e) => { e.stopPropagation(); if (agent.messenger) return window.open(agent.messenger, '_blank'); if (agent.facebook) return window.open(agent.facebook.startsWith('http') ? agent.facebook : `https://m.me/${agent.facebook}`, '_blank'); window.alert('Messenger/ Facebook non disponible'); };
+
+  const openSocial = (url, fallback) => {
+    return (e) => { e.stopPropagation(); if (!url && !fallback) return window.alert('Lien non disponible'); const final = url || (String(fallback).startsWith('http') ? fallback : `https://${fallback}`); window.open(final, '_blank'); };
   };
 
-  const handleMessenger = (e) => {
-    e.stopPropagation(); // Empêche la propagation de l'événement
-    if (agent.messenger) return window.open(agent.messenger, '_blank');
-    if (agent.facebook) return window.open(agent.facebook.startsWith('http') ? agent.facebook : `https://m.me/${agent.facebook}`, '_blank');
-    window.alert('Messenger/ Facebook non disponible');
-  };
-
-  const safeOpen = (url, fallbackPath) => {
-    if (!url && !fallbackPath) return;
-    const resolved = url || fallbackPath;
-    const final = String(resolved).startsWith('http') ? resolved : `https://${String(resolved).replace(/^\/\//, '')}`;
-    window.open(final, '_blank');
-  };
-
-  const handleFacebook = (e) => { e.stopPropagation(); if(!agent.facebook) return window.alert('Facebook non disponible'); safeOpen(agent.facebook, `facebook.com/${agent.facebook}`); };
-  const handleLinkedin = (e) => { e.stopPropagation(); if(!agent.linkedin) return window.alert('LinkedIn non disponible'); safeOpen(agent.linkedin, `www.linkedin.com/in/${agent.linkedin}`); };
-  const handleTwitter = (e) => { e.stopPropagation(); if(!agent.twitter) return window.alert('Twitter non disponible'); safeOpen(agent.twitter, `twitter.com/${agent.twitter}`); };
+  const rating = Math.min(5, Math.max(0, Number(agent.rating || agent.stars || 4)));
+  const shortBio = agent.bio || agent.description || agent.excerpt || '';
 
   return (
     <motion.div
       className="agent-card"
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.98 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.35 }}
     >
-      <Card sx={{ maxWidth: 400, boxShadow: 3, borderRadius: 2, overflow: 'hidden', margin: 'auto' }}>
-        <CardHeader
-          avatar={
-            <Badge
-              color="primary"
-              badgeContent={agent.isCertified ? 'Certifié' : null}
-              anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-            >
-              <Avatar src={agent.image} alt={agent.name} sx={{ width: 56, height: 56 }} />
-            </Badge>
-          }
-          title={<Typography variant="h6" sx={{ fontWeight: 'bold' }}>{agent.name}</Typography>}
-          subheader={<Typography variant="body2" color="textSecondary">{agent.role}</Typography>}
-        />
-        <CardContent>
-          <Box display="flex" flexDirection="column" gap={1}>
-            <Chip label={`Expérience : ${agent.experience ?? 0} ans`} color="success" variant="outlined" />
-            <Chip label={`Affaires réalisées : ${agent.dealsCount ?? 0}`} color="primary" variant="outlined" />
-            <Chip label={`Statut : ${agent.status ?? 'Inconnu'}`} color={agent.status === 'Actif' ? 'success' : 'default'} variant="outlined" />
-
-            {/* Contact lines */}
+      <Card sx={{ maxWidth: 420, boxShadow: 4, borderRadius: 3, overflow: 'hidden', margin: 'auto' }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', padding: 2, background: 'linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4))' }}>
+          <Box sx={{ position: 'relative' }}>
+            <Avatar src={agent.image || agent.photo} alt={agent.name} sx={{ width: 64, height: 64, boxShadow: 2 }} />
+            {agent.isCertified && (
+              <Box sx={{ position: 'absolute', right: -4, bottom: -4, background: 'linear-gradient(135deg,#10b981,#059669)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', color: 'white' }} title="Agent certifié">
+                <FaCheckCircle size={14} />
+              </Box>
+            )}
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1rem' }}>{agent.name}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>{agent.role || agent.title || 'Agent immobilier'}</Typography>
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-              {(agent.telephone || agent.phone) && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <FaPhoneAlt />
-                  <Typography variant="body2">{agent.telephone || agent.phone}</Typography>
-                </Box>
-              )}
-              {agent.email && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <FaEnvelope />
-                  <Typography variant="body2">{agent.email}</Typography>
-                </Box>
-              )}
-            </Box>
-
-            {/* Social links rendered inline */}
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-              {agent.facebook && (
-                <IconButton size="small" onClick={handleFacebook} aria-label="facebook"><FaFacebook /></IconButton>
-              )}
-              {agent.linkedin && (
-                <IconButton size="small" onClick={handleLinkedin} aria-label="linkedin"><FaLinkedin /></IconButton>
-              )}
-              {agent.twitter && (
-                <IconButton size="small" onClick={handleTwitter} aria-label="twitter"><FaTwitter /></IconButton>
-              )}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <FaMapMarkerAlt style={{ color: '#6b7280' }} />
+                <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{agent.address || agent.commune || agent.ville || 'Kinshasa'}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {/* stars */}
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} style={{ color: i < Math.round(rating) ? '#f59e0b' : '#e5e7eb', fontSize: 12 }}>{i < Math.round(rating) ? <FaStar /> : <FaRegStar />}</span>
+                ))}
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>{rating.toFixed(1)}</Typography>
+              </Box>
             </Box>
           </Box>
+        </Box>
+
+        <CardContent sx={{ pt: 1, pb: 0 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ minHeight: 42, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{shortBio || 'Agent disponible pour visites et conseils. Spécialiste local.'}</Typography>
+
+          <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+            <Chip label={`Expérience ${agent.experience ?? 0} ans`} size="small" color="success" />
+            <Chip label={`Affaires ${agent.dealsCount ?? agent.deals ?? 0}`} size="small" />
+            <Chip label={agent.status ?? 'Inconnu'} size="small" color={agent.status === 'Actif' ? 'success' : 'default'} />
+          </Box>
         </CardContent>
-          <CardActions sx={{ justifyContent: 'space-around', padding: 2, flexWrap: 'wrap', gap: 1 }}>
-          <IconButton
-            color="success"
-            onClick={handleCall}
-            title="Appeler"
-            aria-label={`Appeler ${agent.name}`}
-            sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
-          >
-            <FaPhoneAlt />
-          </IconButton>
-          <IconButton
-            color="primary"
-            onClick={handleWhatsApp}
-            title="Envoyer un message WhatsApp"
-            aria-label={`WhatsApp ${agent.name}`}
-            sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
-          >
-            <FaWhatsapp />
-          </IconButton>
-          <IconButton
-            color="info"
-            onClick={handleMessenger}
-            title="Messenger"
-            aria-label={`Messenger ${agent.name}`}
-            sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
-          >
-            <FaFacebookMessenger />
-          </IconButton>
-          {agent.facebook && (
-            <IconButton color="primary" onClick={handleFacebook} title="Facebook" aria-label={`Facebook ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
-              <FaFacebook />
+
+        <CardActions sx={{ justifyContent: 'space-between', padding: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <IconButton onClick={fireCallEvent} color="success" aria-label={`Appeler ${agent.name}`} sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
+              <FaPhoneAlt />
             </IconButton>
-          )}
-          {agent.linkedin && (
-            <IconButton color="primary" onClick={handleLinkedin} title="LinkedIn" aria-label={`LinkedIn ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
-              <FaLinkedin />
+            <IconButton onClick={openWhatsApp} color="primary" aria-label={`WhatsApp ${agent.name}`} sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
+              <FaWhatsapp />
             </IconButton>
-          )}
-          {agent.twitter && (
-            <IconButton color="primary" onClick={handleTwitter} title="Twitter" aria-label={`Twitter ${agent.name}`} sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}>
-              <FaTwitter />
+            <IconButton onClick={openMessenger} color="info" aria-label={`Messenger ${agent.name}`} sx={{ bgcolor: 'background.paper', boxShadow: 2 }}>
+              <FaFacebookMessenger />
             </IconButton>
-          )}
-          <IconButton
-            color="warning"
-            onClick={handleEmail}
-            title="Envoyer un e-mail"
-            aria-label={`Envoyer un e-mail à ${agent.name}`}
-            sx={{ boxShadow: 2, '&:hover': { boxShadow: 4 } }}
-          >
-            <FaEnvelope />
-          </IconButton>
+          </Box>
+
+          <Box>
+            <motion.div whileHover={{ scale: 1.03 }}>
+              <button className="btn btn-sm btn-outline-primary" onClick={(e) => { e.stopPropagation(); window.location.href = `/agents/${agent.id}`; }} aria-label={`Voir le profil de ${agent.name}`}>
+                Voir profil
+              </button>
+            </motion.div>
+          </Box>
         </CardActions>
       </Card>
     </motion.div>

@@ -64,6 +64,8 @@ export default function HomeLayout({ children }) {
   const [menuOpen, setMenuOpen] = React.useState(!isMobile);
   const [anchorProfile, setAnchorProfile] = React.useState(null);
   const [anchorProp, setAnchorProp] = React.useState(null);
+  const hoverCloseTimer = useRef(null);
+  const menuPaperRef = useRef(null);
   const [anchorNotif, setAnchorNotif] = React.useState(null);
   const [anchorMessages, setAnchorMessages] = React.useState(null);
   const [ownerUnread, setOwnerUnread] = React.useState(0);
@@ -209,6 +211,14 @@ export default function HomeLayout({ children }) {
 
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('ndaku_auth_token');
+      localStorage.removeItem('token');
+    } catch (e) { /* ignore */ }
+    navigate('/');
+  };
+
   React.useEffect(() => {
     const computeOwnerUnread = () => {
       try {
@@ -221,6 +231,12 @@ export default function HomeLayout({ children }) {
     computeOwnerUnread();
     // Recompute when notifications or owner profile change
   }, [realNotifications, ownerProfile]);
+  // Cleanup hover close timer on unmount
+  useEffect(() => {
+    return () => {
+      try { clearTimeout(hoverCloseTimer.current); } catch (e) { /* ignore */ }
+    };
+  }, []);
   const drawerWidth = 260;
 
   React.useEffect(() => {
@@ -250,10 +266,10 @@ export default function HomeLayout({ children }) {
           {/* Brand / logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12 }}>
             <img src="/img/logo.svg" alt="Kino App" style={{ width: 34, height: 34, marginRight: 8 }} />
-            <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 800 }}>K-App</Typography>
+            <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 400, fontSize: "1rem", color: "#00c895" }}>K-App</Typography>
           </Link>
 
-          {/* On mobile show a menu icon that opens the sidebar. On desktop we render the primary navigation in the topbar. */}
+          {/* On mobile show a menu loicon that opens the sidebar. On desktop we render the primary navigation in the topbar. */}
           {isMobile ? (
             <IconButton
               color="inherit"
@@ -272,34 +288,46 @@ export default function HomeLayout({ children }) {
             </IconButton>
           ) : (
             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mr: 2 }}>
-              <Button className="kn-menu-text" component={Link} to="/" color={location.pathname === '/' ? 'primary' : 'inherit'} sx={{ textTransform: 'none' }}>Accueil</Button>
-              <Button className="kn-menu-text" component={Link} to="/about" color={location.pathname === '/about' ? 'primary' : 'inherit'} sx={{ textTransform: 'none' }}>À propos</Button>
+              <Button className="kn-menu-text animated-link" component={Link} to="/" color={location.pathname === '/' ? 'primary' : 'inherit'} sx={{ textTransform: 'none' }}>Accueil</Button>
+              <Button className="kn-menu-text animated-link" component={Link} to="/about" color={location.pathname === '/about' ? 'primary' : 'inherit'} sx={{ textTransform: 'none' }}>À propos</Button>
 
-              {/* Properties dropdown */}
+              {/* Properties dropdown (hover on desktop, click on mobile) */}
               <Button
                 id="properties-button"
                 aria-controls={Boolean(anchorProp) ? 'properties-menu' : undefined}
                 aria-haspopup="true"
-                onClick={(e) => setAnchorProp(e.currentTarget)}
+                onClick={(e) => { if (isMobile) setAnchorProp(e.currentTarget); }}
+                onMouseEnter={(e) => { if (!isMobile) { setAnchorProp(e.currentTarget); } }}
+                onMouseLeave={(e) => {
+                  if (!isMobile) {
+                    // If the pointer is moving into the menu paper, don't start the close timer.
+                    try {
+                      const related = e.relatedTarget || document.activeElement;
+                      if (menuPaperRef.current && related && menuPaperRef.current.contains(related)) {
+                        // pointer moved into menu - do nothing, menu's onMouseEnter will keep it open
+                        return;
+                      }
+                    } catch (err) {
+                      // ignore and proceed to set timer
+                    }
+                    hoverCloseTimer.current = setTimeout(() => setAnchorProp(null), 2200);
+                  }
+                }}
                 color={['/voitures', '/terrain', '/appartement', '/salle'].includes(location.pathname) ? 'primary' : 'inherit'}
-                className="kn-menu-text"
+                className="kn-menu-text animated-link"
                 sx={{ textTransform: 'none' }}
                 endIcon={<FaChevronDown />}
               >
                 Immobilier
               </Button>
 
-              <Button className="kn-menu-text" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none', color: "#0f888880", marginLeft: "6px" }}>Contact</Button>
+              <Button className="kn-menu-text animated-link" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none', color: "#0f888880", marginLeft: "6px" }}>Contact</Button>
 
               {/* Owner / Login CTAs on desktop */}
-              <Button className="kn-menu-text" component={Link} to="/owner/onboard" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
+              <Button className="kn-menu-text animated-link" component={Link} to="/owner/onboard" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
                 Propriétaire
               </Button>
-              {!user && (
-                <Button className="kn-menu-text" component={Link} to="/login" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
-                  Connexion
-                </Button>
-              )}
+
             </Box>
           )}
 
@@ -380,7 +408,7 @@ export default function HomeLayout({ children }) {
               }}
             >
               <Badge
-                    badgeContent={notificationUnreadCount || 0}
+                badgeContent={notificationUnreadCount || 0}
                 color="error"
                 sx={{
                   '& .MuiBadge-badge': {
@@ -534,26 +562,26 @@ export default function HomeLayout({ children }) {
       >
         <ProfileCard onClose={() => setAnchorProfile(null)} />
         <Divider />
-        {user &&
-          <MenuItem
+        {user ?
+          (<MenuItem
             className="kn-menu-text"
             onClick={() => {
               setAnchorProfile(null);
-              navigate('/profile');
             }}
             sx={{ py: 1.5 }}
           >
             <FaUser style={{ marginRight: 12 }} />
             <span style={{ fontWeight: 400 }}>Profil</span>
-          </MenuItem>
+          </MenuItem>) : (null)
         }
         <Divider />
-        {user &&
-          <MenuItem
+        {user ?
+          (<MenuItem
             className="kn-menu-text"
             onClick={() => {
               localStorage.removeItem('ndaku_auth_token');
-              navigate('/');
+              localStorage.removeItem('ndaku_user')
+              window.location.href=('/');
               setAnchorProfile(null);
             }}
             sx={{
@@ -566,7 +594,19 @@ export default function HomeLayout({ children }) {
           >
             <FaSignOutAlt style={{ marginRight: 12 }} />
             <span style={{ fontWeight: 400 }}>Déconnexion</span>
-          </MenuItem>
+          </MenuItem>) : (
+            <MenuItem
+              className="kn-menu-text"
+              onClick={() => {
+                setAnchorProfile(null);
+                navigate('/login');
+              }}
+              sx={{ py: 1.5 }}
+            >
+              <FaUser style={{ marginRight: 12 }} />
+              <span style={{ fontWeight: 400 }}>Connexion</span>
+            </MenuItem>
+          )
         }
 
       </Menu>
@@ -580,19 +620,71 @@ export default function HomeLayout({ children }) {
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         MenuListProps={{ 'aria-labelledby': 'properties-button' }}
+        PaperProps={{
+          elevation: 3,
+          sx: {
+            mt: 1.5,
+            minWidth: 520,
+            maxWidth: 900,
+            p: 2,
+            boxShadow: theme.shadows[10],
+          },
+          // attach ref to the Paper element so we can detect relatedTarget containment
+          ref: menuPaperRef,
+          onMouseEnter: () => { if (!isMobile) { clearTimeout(hoverCloseTimer.current); } },
+          onMouseLeave: () => { if (!isMobile) { hoverCloseTimer.current = setTimeout(() => setAnchorProp(null), 20000); } }
+        }}
       >
-        <MenuItem className="kn-menu-text" component={Link} to="/voitures" onClick={() => setAnchorProp(null)}>
-          <FaCar style={{ marginRight: 8 }} /> <span style={{ fontWeight: 400 }}>Voitures</span>
-        </MenuItem>
-        <MenuItem className="kn-menu-text" component={Link} to="/terrain" onClick={() => setAnchorProp(null)}>
-          <FaTree style={{ marginRight: 8 }} /> <span style={{ fontWeight: 400 }}>Terrain</span>
-        </MenuItem>
-        <MenuItem className="kn-menu-text" component={Link} to="/appartement" onClick={() => setAnchorProp(null)}>
-          <FaBuilding style={{ marginRight: 8 }} /> <span style={{ fontWeight: 400 }}>Appartement</span>
-        </MenuItem>
-        <MenuItem className="kn-menu-text" component={Link} to="/salle" onClick={() => setAnchorProp(null)}>
-          <FaGlassCheers style={{ marginRight: 8 }} /> <span style={{ fontWeight: 400 }}>Salle de fête</span>
-        </MenuItem>
+        {/* Rich mega-menu for Immobilier: two columns with detailed descriptions and example articles */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, width: '100%' }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Immobilier</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Découvrez les différents types de biens disponibles sur la plateforme, avec des articles et des conseils pour chaque catégorie.</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box component={Link} to="/voitures" className="animated-link kn-menu-text" onClick={() => setAnchorProp(null)} sx={{ textDecoration: 'none', color: 'inherit', p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><FaCar /> Voitures</Typography>
+                <Typography variant="caption" color="text.secondary">Voitures d'occasion et neuves listées par nos agents. Ex: "Guide d'achat 2025"</Typography>
+              </Box>
+
+              <Box component={Link} to="/terrain" className="animated-link kn-menu-text" onClick={() => setAnchorProp(null)} sx={{ textDecoration: 'none', color: 'inherit', p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><FaTree /> Terrain</Typography>
+                <Typography variant="caption" color="text.secondary">Parcelles et terrains constructibles — conseils de zonage et exemples d'annonces.</Typography>
+              </Box>
+
+              <Box component={Link} to="/appartement" className="animated-link kn-menu-text" onClick={() => setAnchorProp(null)} sx={{ textDecoration: 'none', color: 'inherit', p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><FaBuilding /> Appartement</Typography>
+                <Typography variant="caption" color="text.secondary">Appartements à louer ou à vendre — voir exemples d'articles: "Trouver un appartement en centre-ville".</Typography>
+              </Box>
+
+              <Box component={Link} to="/salle" className="animated-link kn-menu-text" onClick={() => setAnchorProp(null)} sx={{ textDecoration: 'none', color: 'inherit', p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><FaGlassCheers /> Salle de fête</Typography>
+                <Typography variant="caption" color="text.secondary">Salles pour événements — exemples d'articles sur la réservation et l'organisation.</Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          <Box sx={{ borderLeft: { xs: 'none', sm: `1px solid ${theme.palette.divider}` }, pl: { xs: 0, sm: 2 } }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Ressources & Articles</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2">Guide: Bien choisir son appartement</Typography>
+                <Typography variant="caption" color="text.secondary">Conseils pratiques pour évaluer la qualité, le quartier et le prix.</Typography>
+              </Box>
+              <Box sx={{ p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2">Article: Acheter un terrain en 2025</Typography>
+                <Typography variant="caption" color="text.secondary">Tout savoir sur les démarches et la réglementation locale.</Typography>
+              </Box>
+              <Box sx={{ p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}>
+                <Typography variant="subtitle2">Conseils: Organiser un événement</Typography>
+                <Typography variant="caption" color="text.secondary">Checklist pour la location d'une salle et la logistique.</Typography>
+              </Box>
+            </Box>
+            <Divider sx={{ my: 1 }} />
+            <Box>
+              <Typography variant="caption" color="text.secondary">Aperçu: chaque page contient de nombreuses annonces, photos et descriptions détaillées — survolez pour découvrir.</Typography>
+            </Box>
+          </Box>
+        </Box>
       </Menu>
 
       <Menu

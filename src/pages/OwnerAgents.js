@@ -29,7 +29,7 @@ import { Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { forwardRef } from 'react';
 
 const Transition = forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
+  return <Slide direction="top" ref={ref} {...props} />;
 });
 const SITE_ID = process.env.REACT_APP_SITE_ID || '689255f6c544155ff0443a9b';
 
@@ -116,10 +116,18 @@ export default function OwnerAgents(){
             res = await api.get('/api/agents', { params: { site: siteId } });
           }
         }else{
-          res = await api.get('/api/agents/me', { params: { user: userId } });
+          // unauthenticated: call the public site-scoped agents endpoint
+          res = await api.get('/api/agents', { params: { site: siteId } });
         }
-        if(!mounted) return;
-        setItems(Array.isArray(res.data) ? res.data : []);
+  if(!mounted) return;
+  // tolerate multiple response shapes: [] or { data: [] } or { results: [] }
+  const payload = res && res.data ? res.data : res;
+  let list = [];
+  if (Array.isArray(payload)) list = payload;
+  else if (payload && Array.isArray(payload.data)) list = payload.data;
+  else if (payload && Array.isArray(payload.results)) list = payload.results;
+  else list = [];
+  setItems(list);
       }catch(e){
         console.warn('Failed to load agents from API, falling back to local', e);
         setItems(owner.preferredAgents.map(id=> globalAgents.find(a=>a.id===id)).filter(Boolean));
