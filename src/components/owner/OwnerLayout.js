@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OwnerSidebar from './OwnerSidebar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { FaUser, FaBell, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
 import { useOwnerProfile } from '../../hooks/useOwnerProfile';
 import { getDashboardMetrics } from '../../data/fakeMetrics';
@@ -22,12 +22,18 @@ import {
   Typography,
   Divider
 } from '@mui/material';
+import { Button } from '@mui/material';
+import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { useMessageContext } from '../../contexts/MessageContext';
 export default function OwnerLayout({ children }) {
   const theme = useTheme();
+  const location = useLocation();
+    const [notifOpen, setNotifOpen] = useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [menuOpen, setMenuOpen] = React.useState(!isMobile);
   const [anchorProfile, setAnchorProfile] = React.useState(null);
@@ -37,6 +43,29 @@ export default function OwnerLayout({ children }) {
   const [metrics, setMetrics] = React.useState({ visits: 0, bookings: 0, revenue: 0 });
   const { ownerProfile, loading, error } = useOwnerProfile();
   const { notifications: allNotifications = [] } = useNotifications();
+  const TEST_NOTIFICATIONS = [
+  // {
+  //   id: 'notif1',
+  //   title: 'Nouvelle réservation',
+  //   message: 'Une nouvelle réservation a été effectuée pour votre appartement',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // },
+  // {
+  //   id: 'notif2',
+  //   title: 'Message reçu',
+  //   message: 'Vous avez reçu un nouveau message concernant votre annonce',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // },
+  // {
+  //   id: 'notif3',
+  //   title: 'Paiement reçu',
+  //   message: 'Le paiement de la réservation #1234 a été confirmé',
+  //   unread: true,
+  //   timestamp: new Date().toISOString()
+  // }
+];
   // Prefer ownerProfile from API, fallback to owner_request_draft
   const ownerId = ownerProfile?.user?._id || (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : null; } catch (e) { return null; } })();
   React.useEffect(() => {
@@ -72,7 +101,35 @@ export default function OwnerLayout({ children }) {
   React.useEffect(() => {
     setMenuOpen(!isMobile);
   }, [isMobile]);
+ // close notification dropdown on navigation
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [location]);
+ const { user } = useAuth();
+  // NotificationContext (socket-based notifications)
+  const { notifications: realNotifications = [], removeNotification, markAllRead, markRead } = useNotifications();
+  // MessageContext (messages / suggestions loaded via HTTP requests)
+  const { messages: messageMessages = [], unreadCount: messagesUnreadCount = 0, markAsRead } = useMessageContext();
+  // Use notifications from NotificationContext as primary source, fallback to TEST_NOTIFICATIONS
+  const notifications = [...(realNotifications || []), ...TEST_NOTIFICATIONS];
+  const notificationUnreadCount = (realNotifications || []).filter(n => n.unread).length;
 
+  // Style commun pour les icônes (géré via CSS .kn-icon)
+  const { isConnected, send } = useWebSocket();
+  const socketConnected = isConnected();
+  React.useEffect(() => {
+    const computeOwnerUnread = () => {
+      try {
+        const ownerId = ownerProfile?.user?._id || (() => { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : null; } catch (e) { return null; } })();
+        if (!ownerId) { setOwnerUnread(0); return; }
+        const unread = (realNotifications || []).filter(m => String(m.userId) === String(ownerId) && (m.unread !== false)).length;
+        setOwnerUnread(unread);
+      } catch (e) { setOwnerUnread(0); }
+    };
+    computeOwnerUnread();
+    // Recompute when notifications or owner profile change
+  }, [realNotifications, ownerProfile]);
+  // Cleanup hover close timer on unmount
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: theme.palette.grey[100] }}>
       <AppBar
@@ -154,71 +211,75 @@ export default function OwnerLayout({ children }) {
             }
           }}>
             <IconButton
-              size="small"
-              onClick={(e) => setAnchorNotif(e.currentTarget)}
-              sx={{
-                bgcolor: 'transparent',
-                '&:hover': { bgcolor: theme.palette.grey[100] }
-              }}
-            >
-              <Badge
-                badgeContent={3}
-                color="error"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    fontSize: 10,
-                    height: 16,
-                    minWidth: 16,
-                  }
-                }}
-              >
-                <FaBell size={18} />
-              </Badge>
-            </IconButton>
-
-            <IconButton
-              size="small"
-              onClick={(e) => setAnchorMessages(e.currentTarget)}
-              sx={{
-                bgcolor: 'transparent',
-                '&:hover': { bgcolor: theme.palette.grey[100] }
-              }}
-            >
-              <Badge
-                badgeContent={ownerUnread}
-                color="error"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    fontSize: 10,
-                    height: 16,
-                    minWidth: 16,
-                  }
-                }}
-              >
-                <FaEnvelope size={18} />
-              </Badge>
-            </IconButton>
-
-            <Divider orientation="vertical" flexItem sx={{ height: 24, my: 'auto' }} />
-
-            <IconButton
-              onClick={(e) => setAnchorProfile(e.currentTarget)}
-              sx={{
-                ml: 0.5,
-                p: 0.5,
-                '&:hover': { bgcolor: theme.palette.grey[100] }
-              }}
-            >
-              <Avatar
-                src={ownerProfile?.user?.profileUrl || ""}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  border: `2px solid ${theme.palette.background.paper}`,
-                  boxShadow: theme.shadows[2]
-                }}
-              />
-            </IconButton>
+                          size="small"
+                          onClick={(e) => setAnchorNotif(e.currentTarget)}
+                          sx={{
+                            bgcolor: 'transparent',
+                            '&:hover': { bgcolor: theme.palette.grey[100] }
+                          }}
+                        >
+                          <Badge
+                            badgeContent={notificationUnreadCount || 0}
+                            color="error"
+                            sx={{
+                              '& .MuiBadge-badge': {
+                                fontSize: 10,
+                                height: 16,
+                                minWidth: 16,
+                              }
+                            }}
+                          >
+                            <FaBell size={18} />
+                          </Badge>
+                        </IconButton>
+            
+                        <IconButton
+                          size="small"
+                          onClick={(e) => setAnchorMessages(e.currentTarget)}
+                          sx={{
+                            bgcolor: 'transparent',
+                            '&:hover': { bgcolor: theme.palette.grey[100] }
+                          }}
+                        >
+                          <Badge
+                            badgeContent={messagesUnreadCount || 0}
+                            color="error"
+                            sx={{
+                              '& .MuiBadge-badge': {
+                                fontSize: 10,
+                                height: 16,
+                                minWidth: 16,
+                              }
+                            }}
+                          >
+                            <FaEnvelope size={18} />
+                          </Badge>
+                        </IconButton>
+            
+                        <Divider orientation="vertical" flexItem sx={{ height: 24, my: 'auto' }} />
+            
+                        <IconButton
+                          onClick={(e) => setAnchorProfile(e.currentTarget)}
+                          sx={{
+                            ml: 0.5,
+                            p: 0.5,
+                            '&:hover': { bgcolor: theme.palette.grey[100] }
+                          }}
+                        >
+            
+                          <Avatar
+                            src={ownerProfile?.user?.profileUrl || ""}
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              border: socketConnected ? `2px solid ${theme.palette.background.paper}` : `2px solid #00c59b}`,
+                              backgroundColor: socketConnected ? '##ffffff' : '#888',
+                              color: socketConnected ? '#00c59b' : '#888',
+                              boxShadow: theme.shadows[2]
+                            }}
+            
+                          />
+                        </IconButton>
           </Box>
         </Toolbar>
       </AppBar>

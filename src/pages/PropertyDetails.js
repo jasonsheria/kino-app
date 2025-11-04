@@ -14,6 +14,7 @@ import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
 import { Button, IconButton } from '@mui/material';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   const [current, setCurrent] = useState(0);
@@ -621,7 +622,7 @@ const PropertyDetails = () => {
   if (!property) {
     return (
       <div>
-        <Navbar />
+        <HomeLayout />
         <div className="container" style={{ marginTop: 85 }}>
           <div className="alert alert-warning mt-4">Annonce introuvable. Le bien demandé n'existe pas ou a été supprimé.</div>
           <div className="mb-4">
@@ -737,7 +738,7 @@ const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition
 
 return (
   <div>
-    <Navbar />
+    <HomeLayout/>
     <div className="container" style={{ "marginTop": "85px" }}>
       {/* Page header */}
       <div className="mb-4">

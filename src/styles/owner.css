@@ -929,7 +929,7 @@ html, body { background: var(--pro-bg); color: var(--pro-heading); font-family: 
 }
 
 /* Styles for the new clean agency section */
-.agency-clean { margin-top: 22px; margin-bottom: 22px; }
+.agency-clean { margin-bottom: 22px; }
 .agency-clean-inner { background: linear-gradient(180deg,#ffffff,#fbfffd); border-radius:12px; padding:22px; box-shadow: 0 12px 36px rgba(6,18,40,0.04); border:1px solid #eef6f4; }
 .agency-hero-circle{ width:140px; height:140px; border-radius:999px; display:flex; align-items:center; justify-content:center; background: linear-gradient(90deg,#e6fffa,#f0fdf9); margin: 0 auto; }
 .agency-hero-icon{ color: var(--pro-accent); }
