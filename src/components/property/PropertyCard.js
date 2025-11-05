@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { agents, properties, reservation } from '../../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaEllipsisV, FaEdit, FaTrash } from 'react-icons/fa';
 import AgentContactModal from '../common/AgentContactModal';
+import VisitBookingModal from '../common/VisitBookingModal';
 import './PropertyCard.css';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
@@ -39,6 +40,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       return reserved.includes(String(property.id || property._id)) || Boolean(property.isReserved);
     } catch (e) { return Boolean(property.isReserved); }
   });
+  const [showBooking, setShowBooking] = useState(false);
 
     const tryResolve = async () => {
       if (resolvedAgent) return;
@@ -353,7 +355,34 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
                 {/* Small reserved dot when reserved */}
                 {isReserved && <span className="reserved-dot ms-2" aria-hidden="true" title="Réservé" />}
                 {!isReserved && (
-                  <button className="btns btn-success btn-sm fw-bold" onClick={() => onOpenBooking(property)}><FaRegMoneyBillAlt className="me-1"/>Réserver</button>
+                  <>
+                    <button className="btns btn-success btn-sm fw-bold" onClick={() => {
+                      if (typeof onOpenBooking === 'function') return onOpenBooking(property, agentResolved);
+                      // fallback: open a local booking modal when parent did not provide a handler
+                      setShowBooking(true);
+                    }}><FaRegMoneyBillAlt className="me-1"/>Réserver</button>
+                    {showBooking && (
+                      <VisitBookingModal
+                        open={showBooking}
+                        onClose={() => setShowBooking(false)}
+                        onSuccess={(data) => {
+                          // mark reserved locally and notify others
+                          try {
+                            const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+                            if (!reserved.includes(String(property.id))) {
+                              reserved.push(String(property.id));
+                              localStorage.setItem('reserved_properties', JSON.stringify(reserved));
+                            }
+                          } catch (e) { /* ignore */ }
+                          window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(property.id) } }));
+                          setIsReserved(true);
+                          setShowBooking(false);
+                        }}
+                        property={property}
+                        agent={agentResolved}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </div>

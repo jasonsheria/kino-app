@@ -1108,7 +1108,7 @@ html, body { background: var(--pro-bg); color: var(--pro-heading); font-family: 
 @media (max-width: 900px){
   .settings-left .MuiButton-root, .settings-right .MuiButton-root, .settings-section .MuiButton-root, .owner-btn-primary.MuiButton-root{
     width: 100% !important;
-    display: block !important;
+    /* display: block !important; */
     box-sizing: border-box;
   }
   /* add small vertical spacing between stacked buttons */

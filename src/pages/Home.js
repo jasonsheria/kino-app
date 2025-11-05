@@ -456,8 +456,8 @@ const Home = () => {
                         <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
                         <div className="hero-ctas">
-                            <MuiButton onClick={() => scrollToId('biens')} variant="contained" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 2 }}>Voir les biens</MuiButton>
-                            <Button variant="outlined" onClick={() => scrollToId('agence')} sx={{ textTransform: 'none', borderRadius: 2 }}>Devenir propriétaire / agent</Button>
+                            <MuiButton onClick={() => scrollToId('biens')} variant="contained" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir les biens</MuiButton>
+                            <Button variant="outlined" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir agents</Button>
                         </div>
 
                         <div className="hero-stats" aria-hidden>
@@ -486,10 +486,10 @@ const Home = () => {
 
                     <div className="d-flex gap-2 mt-3 mt-md-0">
                         <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                           <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence</MuiButton>
+                           <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence </MuiButton>
                         </Link>
                         <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                           <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'>Propriétaire</Button>
+                           <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'> Propriétaire </Button>
                         </Link>
                     </div>
                 </div>
@@ -536,7 +536,7 @@ const Home = () => {
 
                             <div className="d-flex gap-3">
                                 <Button variant="contained" color="success" onClick={() => scrollToId('biens')} className="owner-btn-primary">Voir les biens</Button>
-                                <Button variant="outlined" onClick={() => scrollToId('agents')} className="owner-btn-outline">Contacter un agent</Button>
+                                <Button variant="contained" onClick={() => scrollToId('agents')} className="owner-btn-primary">Contact agent</Button>
                             </div>
                         </div>
                     </div>

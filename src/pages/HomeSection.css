@@ -183,6 +183,9 @@
     /* height: 160px; */
     object-fit: cover;
   }
+  .agent-banner-icon{
+    display: none;
+  }
 }
 
 @media (max-width: 767.98px) {

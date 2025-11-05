@@ -1,9 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { agents, messages as allMessages } from '../../data/fakedata';
 import authService from '../../services/authService';
 import './Messenger.css';
-
+import { useMessageContext } from '../../contexts/MessageContext';
 function formatTime(date) {
   if (!date) return '';
   if (typeof date === 'number') date = new Date(date);
@@ -28,6 +29,8 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
   const fileInput = useRef();
   const bodyRef = useRef();
   const inputRef = useRef(null);
+  const socketRef = useRef(null);
+  const pendingQueue = useRef([]);
   const instanceId = useRef(`messenger_${Date.now()}_${Math.floor(Math.random()*10000)}`);
   const sidebarRef = useRef(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -62,6 +65,113 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [selectedAgentId, agentMessages]);
+
+  // initialize socket connection for messaging (mount)
+  useEffect(() => {
+    const token = (() => {
+      try {
+        return localStorage.getItem('ndaku_auth_token') || localStorage.getItem('token') || (authService && authService.getToken ? authService.getToken() : null);
+      } catch (e) { return null; }
+    })();
+
+    try {
+      const base = (process.env.REACT_APP_WS_URL || process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/$/, '');
+      const url = process.env.REACT_APP_WS_URL || (base ? base : undefined);
+      const opts = { path: '/socket.io', transports: ['websocket','polling'], autoConnect: true, auth: {} };
+      if (token) opts.auth = { token };
+      socketRef.current = io(url || undefined, opts);
+
+      const s = socketRef.current;
+      s.on('connect', () => {
+        console.log('[Messenger] socket connected', s.id);
+        try {
+          // prefer authService stored user but fallback to localStorage if needed
+          const user = (authService && authService.getUser ? authService.getUser() : null) || (localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null);
+          const uid = user && (user.id || user._id) ? String(user.id || user._id) : null;
+          if (uid) {
+            s.emit('identify', { userId: uid });
+            console.log('[Messenger] emitted identify for userId=', uid);
+          }
+
+          // flush pending queue (send messages queued while disconnected)
+          if (pendingQueue.current && pendingQueue.current.length > 0) {
+            console.log('[Messenger] flushing pending message queue, count=', pendingQueue.current.length);
+            while (pendingQueue.current.length) {
+              const item = pendingQueue.current.shift();
+              try {
+                s.emit('newMessage', { userId: String(item.toId), text: item.text, tempId: item.id });
+                // optimistic local update: mark sent
+                const local = safeMessages.find(m => m.id === item.id);
+                if (local) local.status = 'sent';
+              } catch (err) { console.warn('[Messenger] flush emit failed', err); }
+            }
+          }
+        } catch (e) {}
+      });
+
+  s.on('connect_error', (err) => console.warn('[Messenger] socket connect_error', err && err.message ? err.message : err));
+  s.on('error', (err) => console.error('[Messenger] socket error', err));
+  s.on('disconnect', (reason) => console.log('[Messenger] socket disconnected', reason));
+
+      s.on('receiveMessage', (payload) => {
+        try {
+          const fromId = (payload && payload.from && (payload.from.id || payload.from._id)) || null;
+          const text = payload && (payload.text || payload.message || payload.content) || '';
+          const timestamp = payload && (payload.date || payload.timestamp) ? new Date(payload.date || payload.timestamp).getTime() : Date.now();
+          const newMsg = {
+            id: Date.now() + Math.floor(Math.random()*1000),
+            fromId: fromId || 'bot',
+            from: payload.from && (payload.from.name || payload.from.email) || 'Bot',
+            toId: userId,
+            to: 'Vous',
+            text,
+            time: timestamp,
+            read: false,
+            channel: 'socket',
+            status: 'delivered'
+          };
+          allMessages.push(newMsg);
+          // reconcile optimistic local message if server returned tempId
+          try {
+            const tempId = payload && (payload.tempId || payload.tempID || payload.clientTempId || payload.temp_id);
+            if (tempId) {
+              const local = safeMessages.find(m => String(m.id) === String(tempId));
+              if (local) local.status = 'delivered';
+            }
+          } catch (e) {}
+          try { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; } catch (e) {}
+        } catch (e) { console.error('[Messenger] receiveMessage handler error', e); }
+      });
+
+      s.on('notification', (n) => { try { setNotif(n && (n.message || n.title) ? (n.message || n.title) : 'Notification'); setTimeout(()=>setNotif(null), 2500); } catch (e) {} });
+
+      s.on('messageHistory', (history) => {
+        try {
+          if (Array.isArray(history)) {
+            history.forEach(m => {
+              allMessages.push({
+                id: m.id || Date.now()+Math.floor(Math.random()*1000),
+                fromId: m.fromId || (m.from && m.from.id) || null,
+                from: m.fromName || (m.from && m.from.name) || '',
+                toId: m.toId || null,
+                to: m.toName || '',
+                text: m.text || m.content || '',
+                time: m.timestamp || (m.time || Date.now()),
+                read: !(m.unread),
+                channel: 'socket',
+                status: 'delivered'
+              });
+            });
+          }
+        } catch (e) { console.error('[Messenger] messageHistory handler error', e); }
+      });
+
+    } catch (err) {
+      console.warn('[Messenger] socket init failed', err);
+    }
+
+    return () => { try { socketRef.current && socketRef.current.disconnect(); } catch (e) {} socketRef.current = null; };
+  }, []);
 
   // when initialAgentId is provided (like from AgentContactModal), select that agent on open
   useEffect(() => {
@@ -164,9 +274,10 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
       setShowAuthPrompt(true);
       return;
     }
-    // Ici, on simule l'envoi (ajout local, status pending)
+    // Ici, on simule l'envoi localement et on envoie via socket si connecté
+    const tmpId = Date.now() + Math.floor(Math.random()*1000);
     safeMessages.push({
-      id: Date.now(),
+      id: tmpId,
       fromId: userId,
       from: 'Vous',
       toId: selectedAgentId,
@@ -177,9 +288,23 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
       channel: 'web',
       status: 'pending',
     });
+    // emit via socket if available; include tempId to help server/client reconciliation
+    try {
+      if (socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit('newMessage', { userId: String(selectedAgentId), text: input, tempId: tmpId });
+        // optimistic mark as sent
+        const local = safeMessages.find(m => m.id === tmpId);
+        if (local) local.status = 'sent';
+        setNotif('Message envoyé');
+        setTimeout(() => setNotif(null), 1200);
+      } else {
+        // queue for later sending when socket reconnects
+        pendingQueue.current.push({ id: tmpId, toId: selectedAgentId, text: input });
+        setNotif("Message mis en file d'attente (connexion indisponible)");
+        setTimeout(() => setNotif(null), 2000);
+      }
+    } catch (e) { console.warn('[Messenger] failed to emit newMessage', e); }
     setInput('');
-    setNotif('Message envoyé');
-    setTimeout(() => setNotif(null), 1200);
   };
 
   const handleAttach = e => {
