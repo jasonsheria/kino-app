@@ -74,7 +74,7 @@ function App() {
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 17,
+                        bottom: 10,
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,

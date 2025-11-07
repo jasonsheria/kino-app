@@ -1,0 +1,35 @@
+.promo-container {
+  padding: 20px;
+  max-width: 1100px;
+  margin: 18px auto;
+  color: #0a223a;
+}
+.promo-grid { display:flex; gap:18px; align-items:flex-start; }
+.promo-gallery { flex: 1 1 480px; }
+.promo-details { flex: 1 1 380px; }
+.promo-main-image img { width:100%; height:360px; object-fit:cover; border-radius:8px; cursor:pointer; }
+.promo-thumbs { display:flex; gap:8px; margin-top:8px; }
+.thumb-btn { border:0; padding:0; background:transparent; cursor:pointer; border-radius:6px; overflow:hidden; }
+.thumb-btn img { width:84px; height:64px; object-fit:cover; display:block; opacity:0.8; }
+.thumb-btn.active img { outline:3px solid #0ea078; opacity:1; }
+.promo-meta { display:flex; gap:12px; margin:12px 0; flex-wrap:wrap; color:#345; }
+.promo-pricing { margin:12px 0; }
+.price-before span { text-decoration: line-through; color:#999; margin-left:6px; }
+.price-now span { color:#d7263d; font-weight:700; margin-left:6px; }
+.promo-desc { margin-top:8px; color:#203040; }
+.promo-actions { margin-top:12px; display:flex; gap:8px; }
+.btn { background:#0ea078; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none; }
+.btn-outline { border:1px solid #0ea078; color:#0ea078; background:transparent; padding:8px 12px; border-radius:6px; }
+.promo-comments { margin-top:18px; }
+.comment-item { padding:8px 0; border-bottom:1px solid #f0f6f4; }
+.comment-author { font-weight:700; }
+.comment-time { font-size:0.85rem; color:#888; }
+
+/* Lightbox */
+.lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:10000; }
+.lightbox-inner { position:relative; max-width:90vw; max-height:90vh; }
+.lb-image { max-width:100%; max-height:80vh; display:block; border-radius:6px; }
+.lb-close, .lb-prev, .lb-next { position:absolute; background:rgba(255,255,255,0.9); border:0; padding:8px 10px; border-radius:6px; cursor:pointer; }
+.lb-close { right:-8px; top:-24px; font-size:22px; }
+.lb-prev { left:-48px; top:50%; transform:translateY(-50%); font-size:24px; }
+.lb-next { right:-48px; top:50%; transform:translateY(-50%); font-size:24px; }

@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import Home from './pages/Home';
 import PropertyDetails from './pages/PropertyDetails';
+import PromotionDetails from './pages/PromotionDetails';
 import Agents from './pages/Agents';
 import AgentDetails from './pages/AgentDetails';
 import Login from './pages/Login';
@@ -63,6 +64,7 @@ const AppRoutes = () => (
     <Route path="/appartement" element={<Appartement />} />
     <Route path="/salle" element={<SalleFete />} />
     <Route path="/properties/:id" element={<PropertyDetails />} />
+  <Route path="/promotion/:id" element={<PromotionDetails />} />
     <Route path="/agents" element={<Agents />} />
     <Route path="/agents/:id" element={<AgentDetails />} />
     <Route path="/login" element={<Login />} />

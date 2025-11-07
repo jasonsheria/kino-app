@@ -1155,7 +1155,9 @@ const Home = () => {
                                                         setInfoOpen(true);
                                                     }
                                                 }}>Partager</Button>
-                                               <Button className="btn btn-sm btn-success" onClick={() => handleVisitOrView(p, i)}>Voir</Button>
+                                                                                             <Link to={`/promotion/${p.id || promoKey}`} style={{ textDecoration: 'none' }}>
+                                                                                                 <Button className="btn btn-sm btn-success">Voir</Button>
+                                                                                             </Link>
                                             </div>
                                             <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
                                                 {comments.map(c => (

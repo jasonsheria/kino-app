@@ -1,4 +1,5 @@
 import { authAPI } from './api.service';
+import * as socketService from './socketService';
 
 // Parse JSON safely: return null if input is null/undefined/"undefined" or invalid JSON
 // Keep this function local to the module to avoid changing external APIs.
@@ -25,6 +26,7 @@ class AuthService {
   setAuthToken(token) {
     this.token = token;
     localStorage.setItem('ndaku_auth_token', token);
+    try { socketService.initSocket(token); } catch (e) {}
   }
 
   setUser(user) {
@@ -218,6 +220,7 @@ class AuthService {
     localStorage.removeItem('ndaku_ws_id');
     this.token = null;
     this.user = null;
+    try { socketService.disconnectSocket(); } catch (e) {}
   }
 }
 

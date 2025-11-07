@@ -25,6 +25,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
   const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id);
   const [input, setInput] = useState('');
   const [notif, setNotif] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [theme, setTheme] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const fileInput = useRef();
   const bodyRef = useRef();
@@ -53,12 +54,23 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
 
   const currentAgent = safeAgents.find(a => String(a.id) === String(selectedAgentId)) || null;
 
+  // helper to recompute unread count from safeMessages
+  const recomputeUnread = () => {
+    try {
+      const count = (safeMessages || []).filter(m => String(m.toId) === String(userId) && !m.read).length;
+      setUnreadCount(count);
+    } catch (e) { setUnreadCount(0); }
+  };
+
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = e => setTheme(e.matches ? 'dark' : 'light');
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  // initial unread compute on mount
+  useEffect(() => { recomputeUnread(); }, []);
 
   useEffect(() => {
     if (bodyRef.current) {
@@ -68,6 +80,10 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
 
   // initialize socket connection for messaging (mount)
   useEffect(() => {
+    // timer handle and last identified uid need to live in the effect scope
+    // so the cleanup can clear the interval even if socket init fails.
+    let identInterval = null;
+    let lastIdentUid = null;
     const token = (() => {
       try {
         return localStorage.getItem('ndaku_auth_token') || localStorage.getItem('token') || (authService && authService.getToken ? authService.getToken() : null);
@@ -99,7 +115,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
             while (pendingQueue.current.length) {
               const item = pendingQueue.current.shift();
               try {
-                s.emit('newMessage', { userId: String(item.toId), text: item.text, tempId: item.id });
+                s.emit('privateMessage', { recipientId: String(item.toId), content: item.text, tempId: item.id });
                 // optimistic local update: mark sent
                 const local = safeMessages.find(m => m.id === item.id);
                 if (local) local.status = 'sent';
@@ -113,7 +129,22 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
   s.on('error', (err) => console.error('[Messenger] socket error', err));
   s.on('disconnect', (reason) => console.log('[Messenger] socket disconnected', reason));
 
-      s.on('receiveMessage', (payload) => {
+  // Periodically re-emit identify when auth/user becomes available (helps when widget loads before auth)
+  try {
+    identInterval = setInterval(() => {
+      try {
+        const user = (authService && authService.getUser ? authService.getUser() : null) || (localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null);
+        const uid = user && (user.id || user._id) ? String(user.id || user._id) : null;
+        if (uid && s && s.connected && uid !== lastIdentUid) {
+          s.emit('identify', { userId: uid });
+          lastIdentUid = uid;
+          console.log('[Messenger] re-emitted identify for userId=', uid);
+        }
+      } catch (e) {}
+    }, 2500);
+  } catch (e) { /* ignore timer issues */ }
+
+  s.on('receiveMessage', (payload) => {
         try {
           const fromId = (payload && payload.from && (payload.from.id || payload.from._id)) || null;
           const text = payload && (payload.text || payload.message || payload.content) || '';
@@ -131,6 +162,21 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
             status: 'delivered'
           };
           allMessages.push(newMsg);
+          // update unread counters if this is for current user
+          try {
+            const fromIdLocal = fromId || newMsg.fromId;
+            if (String(newMsg.toId) === String(userId)) {
+              // if the user isn't currently viewing that conversation, count as unread
+              if (String(selectedAgentId) !== String(fromIdLocal)) {
+                newMsg.read = false;
+                recomputeUnread();
+              } else {
+                // if viewing the conversation, mark read
+                newMsg.read = true;
+                recomputeUnread();
+              }
+            }
+          } catch (e) {}
           // reconcile optimistic local message if server returned tempId
           try {
             const tempId = payload && (payload.tempId || payload.tempID || payload.clientTempId || payload.temp_id);
@@ -142,6 +188,49 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
           try { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; } catch (e) {}
         } catch (e) { console.error('[Messenger] receiveMessage handler error', e); }
       });
+
+        // incoming private messages (from other users)
+        s.on('privateMessage', (payload) => {
+          try {
+            const fromId = payload && (payload.sender || (payload.from && (payload.from.id || payload.from._id))) ? (payload.sender || payload.from.id || payload.from._id) : null;
+            const text = payload && (payload.content || payload.text || payload.message) || '';
+            const timestamp = payload && (payload.timestamp || payload.date) ? new Date(payload.timestamp || payload.date).getTime() : Date.now();
+            const newMsg = {
+              id: payload && (payload._id || payload.id) ? (payload._id || payload.id) : Date.now() + Math.floor(Math.random()*1000),
+              fromId: fromId || 'unknown',
+              from: payload && (payload.fromName || payload.senderName || payload.from && payload.from.name) || 'Contact',
+              toId: userId,
+              to: 'Vous',
+              text,
+              time: timestamp,
+              read: false,
+              channel: 'socket',
+              status: 'delivered'
+            };
+            allMessages.push(newMsg);
+            // reconcile optimistic local message if server returned tempId
+            try {
+              const tempId = payload && (payload.tempId || payload.tempID || payload.clientTempId || payload.temp_id);
+              if (tempId) {
+                const local = safeMessages.find(m => String(m.id) === String(tempId));
+                if (local) local.status = 'delivered';
+              }
+            } catch (e) {}
+            try { if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight; } catch (e) {}
+            // auto-add sender to contacts if unknown (best-effort)
+            try {
+              const senderId = fromId || (payload && (payload.fromId || payload.sender || (payload.from && (payload.from.id || payload.from._id))));
+              if (senderId) {
+                const exists = safeAgents.find(a => String(a.id) === String(senderId));
+                if (!exists) {
+                  safeAgents.push({ id: senderId, name: payload && (payload.senderName || payload.fromName) || 'Contact', photo: '/uploads/agents/anonymous.png' });
+                }
+              }
+            } catch (e) { console.warn('[Messenger] auto-add sender failed', e); }
+            // recompute unread after handling this incoming message
+            try { recomputeUnread(); } catch (e) {}
+          } catch (e) { console.error('[Messenger] privateMessage handler error', e); }
+        });
 
       s.on('notification', (n) => { try { setNotif(n && (n.message || n.title) ? (n.message || n.title) : 'Notification'); setTimeout(()=>setNotif(null), 2500); } catch (e) {} });
 
@@ -166,11 +255,31 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
         } catch (e) { console.error('[Messenger] messageHistory handler error', e); }
       });
 
+      // Acknowledgement from server for optimistic messages -> reconcile tempId with DB id
+      s.on('privateMessageAck', (ack) => {
+        try {
+          console.log('[Messenger] privateMessageAck', ack);
+          const tempId = ack && (ack.tempId || ack.tempID || ack.clientTempId || null);
+          if (tempId) {
+            const local = safeMessages.find(m => String(m.id) === String(tempId));
+            if (local) {
+              // Replace temporary id with real id (non-destructive) and update status
+              if (ack.id || ack._id) local.id = ack.id || ack._id;
+              local.status = 'delivered';
+              try {
+                const ts = ack.timestamp || ack.date || null;
+                if (ts) local.time = new Date(ts).getTime ? new Date(ts).getTime() : Date.now();
+              } catch (e) {}
+            }
+          }
+        } catch (e) { console.error('[Messenger] privateMessageAck handler error', e); }
+      });
+
     } catch (err) {
       console.warn('[Messenger] socket init failed', err);
     }
 
-    return () => { try { socketRef.current && socketRef.current.disconnect(); } catch (e) {} socketRef.current = null; };
+    return () => { try { socketRef.current && socketRef.current.disconnect(); } catch (e) {} socketRef.current = null; try { if (identInterval) clearInterval(identInterval); } catch(e) {} };
   }, []);
 
   // when initialAgentId is provided (like from AgentContactModal), select that agent on open
@@ -243,6 +352,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
     for (let m of safeMessages) {
       if (String(m.fromId) === String(agentId) && !m.read) m.read = true;
     }
+    try { recomputeUnread(); } catch (e) {}
     setTimeout(() => {
       try { inputRef.current && inputRef.current.focus(); } catch (e) {}
       if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -291,7 +401,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
     // emit via socket if available; include tempId to help server/client reconciliation
     try {
       if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit('newMessage', { userId: String(selectedAgentId), text: input, tempId: tmpId });
+        socketRef.current.emit('privateMessage', { recipientId: String(selectedAgentId), content: input, tempId: tmpId });
         // optimistic mark as sent
         const local = safeMessages.find(m => m.id === tmpId);
         if (local) local.status = 'sent';
@@ -350,6 +460,9 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+        {unreadCount > 0 && (
+          <span className="messenger-floating-badge" style={{position:'absolute',top:-6,right:-6,background:'#d7263d',color:'#fff',borderRadius:12,padding:'2px 6px',fontSize:'0.75rem'}}>{unreadCount}</span>
+        )}
       </button>
 
       {visible && (
