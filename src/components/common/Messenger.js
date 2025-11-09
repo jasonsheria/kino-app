@@ -1,14 +1,35 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { agents, messages as allMessages } from '../../data/fakedata';
 import authService from '../../services/authService';
+import { useAuth } from '../../contexts/AuthContext';
 import './Messenger.css';
 import { useMessageContext } from '../../contexts/MessageContext';
 function formatTime(date) {
-  if (!date) return '';
-  if (typeof date === 'number') date = new Date(date);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  try {
+    if (!date && date !== 0) return '';
+    // Normalize many possible shapes: number, ISO string, Date, Mongo-style {$date: ...}
+    if (typeof date === 'number') date = new Date(date);
+    else if (typeof date === 'string') date = new Date(date);
+    else if (date && typeof date === 'object') {
+      // MongoDB extended JSON may use {$date: xxx}
+      if (date.$date || date['$date']) {
+        date = new Date(date.$date || date['$date']);
+      } else if (typeof date.getTime === 'function') {
+        // already a Date-like object
+      } else {
+        // attempt to coerce to string then Date
+        date = new Date(String(date));
+      }
+    }
+
+    if (!(date instanceof Date) || isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    // Defensive fallback
+    try { if (date && date.toString) return String(date).slice(0,5); } catch (er) {}
+    return '';
+  }
 }
 
 // Message status: sent, delivered, read, pending
@@ -20,16 +41,35 @@ function getStatusIcon(status) {
   return null;
 }
 
-const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) => {
+function formatDateTime(date) {
+  try {
+    if (!date && date !== 0) return '';
+    if (typeof date === 'number') date = new Date(date);
+    else if (typeof date === 'string') date = new Date(date);
+    else if (date && typeof date === 'object') {
+      if (date.$date || date['$date']) date = new Date(date.$date || date['$date']);
+      else if (typeof date.getTime === 'function') {}
+      else date = new Date(String(date));
+    }
+    if (!(date instanceof Date) || isNaN(date.getTime())) return '';
+    return date.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return ''; }
+}
+
+const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }) => {
   const [visible, setVisible] = useState(Boolean(open));
   const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id);
   const [input, setInput] = useState('');
   const [notif, setNotif] = useState(null);
+  const [ MessegesVersion, setMessagesVersion ] = useState(0); // to force re-render on messages array change
+  // current conversation shown in the UI (filtered, sorted and deduplicated)
+  const [conversationMessages, setConversationMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [theme, setTheme] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const fileInput = useRef();
   const bodyRef = useRef();
   const inputRef = useRef(null);
+  const {user} =useAuth();
   const socketRef = useRef(null);
   const pendingQueue = useRef([]);
   const instanceId = useRef(`messenger_${Date.now()}_${Math.floor(Math.random()*10000)}`);
@@ -37,30 +77,81 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const safeAgents = agents || [];
   const safeMessages = allMessages || [];
-  // prepare sorted contacts with last message & unread
+  // resolve authenticated user id if available (prefer auth service or localStorage)
+  const authUser = (authService && authService.getUser ? authService.getUser() : null) || (localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null);
+  const effectiveUserId = userId || (authUser && (authUser.id || authUser._id)) || null;
+  // prepare sorted contacts with last message SENT TO the contact (where contact is the recipient) & unread
   const contacts = safeAgents.map(agent => {
-    const msgs = safeMessages.filter(m => String(m.fromId) === String(agent.id) || String(m.toId) === String(agent.id));
-    const last = msgs.slice().sort((a,b)=>b.time-a.time)[0];
-    const unread = safeMessages.filter(m => String(m.fromId) === String(agent.id) && !m.read).length;
-    return { agent, lastMsg: last, unread, lastTime: last ? last.time : 0 };
+    // Only consider messages where this agent is the recipient (toId === agent.id)
+    const msgsToAgent = (safeMessages || []).filter(m => String(m.toId) === String(agent.id));
+    const last = msgsToAgent.slice().sort((a,b) => {
+      const ta = new Date(a.time || a.timestamp || a.date || Date.now()).getTime();
+      const tb = new Date(b.time || b.timestamp || b.date || Date.now()).getTime();
+      return tb - ta;
+    })[0];
+    // unread count remains messages from agent to current user
+    const unread = (safeMessages || []).filter(m => String(m.fromId) === String(agent.id) && !m.read).length;
+    return { agent, lastMsg: last, unread, lastTime: last ? (last.time || last.timestamp || last.date || 0) : 0 };
   });
   const contactsSorted = contacts.sort((a,b) => {
     if (b.unread !== a.unread) return b.unread - a.unread;
     if (b.lastTime !== a.lastTime) return b.lastTime - a.lastTime;
     return (a.agent.name || '').localeCompare(b.agent.name || '');
   });
-  // Simuler messages par agent
-  const agentMessages = safeMessages.filter(m => String(m.fromId) === String(selectedAgentId) || String(m.toId) === String(selectedAgentId));
+  // Messages for the selected conversation (between current user and selected agent)
+  const agentMessages = (safeMessages || []).filter(m => {
+    const from = String(m.fromId || m.from || '');
+    const to = String(m.toId || m.to || '');
+    const sel = String(selectedAgentId || '');
+    const me = String(user?.id) || String(user?._id) ? String(user.id || user._id) : String(effectiveUserId || '');
+    if (to===me) console.log("un message dont je suis destianateur",m.content);
+    return (from === sel && to === me) || (from === me && to === sel);
+  }).slice().sort((a, b) => {
+    const ta = new Date(a.time || a.timestamp || a.date || a.time || Date.now()).getTime();
+    const tb = new Date(b.time || b.timestamp || b.date || b.time || Date.now()).getTime();
+    return ta - tb; // oldest -> newest
+  });
 
   const currentAgent = safeAgents.find(a => String(a.id) === String(selectedAgentId)) || null;
 
   // helper to recompute unread count from safeMessages
   const recomputeUnread = () => {
     try {
-      const count = (safeMessages || []).filter(m => String(m.toId) === String(userId) && !m.read).length;
+      const count = (safeMessages || []).filter(m => String(m.toId) === String(effectiveUserId) && !m.read).length;
       setUnreadCount(count);
     } catch (e) { setUnreadCount(0); }
   };
+
+  // helper: build conversation messages for selected agent with deduplication & sort
+  const buildConversationMessages = (agentId) => {
+    try {
+      const sel = String(agentId || selectedAgentId || '');
+      const me = String(user?.id || user?._id || effectiveUserId || '');
+      const list = (safeMessages || []).filter(m => {
+        const from = String(m.fromId || m.from || '');
+        const to = String(m.toId || m.to || '');
+        return (from === sel && to === me) || (from === me && to === sel);
+      }).slice().sort((a,b) => {
+        const ta = new Date(a.time || a.timestamp || a.date || Date.now()).getTime();
+        const tb = new Date(b.time || b.timestamp || b.date || Date.now()).getTime();
+        return ta - tb;
+      });
+      // deduplicate by id (preserve order)
+      const seen = new Map();
+      for (const m of list) {
+        const id = String(m.id || m._id || `${m.time}_${Math.random()}`);
+        if (!seen.has(id)) seen.set(id, { ...m, id });
+      }
+      return Array.from(seen.values());
+    } catch (e) { return []; }
+  };
+
+  // rebuild conversation when selected agent or messages version changes
+  useEffect(() => {
+    try {
+      setConversationMessages(buildConversationMessages(selectedAgentId));
+    } catch (e) {}
+  }, [selectedAgentId, MessegesVersion, effectiveUserId]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -72,11 +163,12 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
   // initial unread compute on mount
   useEffect(() => { recomputeUnread(); }, []);
 
+  // scroll to bottom whenever selected conversation changes or messages change
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
-  }, [selectedAgentId, agentMessages]);
+  }, [selectedAgentId, conversationMessages]);
 
   // initialize socket connection for messaging (mount)
   useEffect(() => {
@@ -107,6 +199,31 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
           if (uid) {
             s.emit('identify', { userId: uid });
             console.log('[Messenger] emitted identify for userId=', uid);
+            console.log('selected agent id',String(selectedAgentId))
+            // request history as before (keeps compatibility)
+            try {
+              const payload = { userId: uid, withUserId: String(selectedAgentId || ''), limit: 200 };
+              s.emit('getMessageHistory', payload, (err, history) => {
+                if (!err && Array.isArray(history)) {
+                  console.log('[Messenger] received history via callback, count=', history.length);
+                  history.forEach(m => {
+                    allMessages.push({
+                      id: m.id || Date.now()+Math.floor(Math.random()*1000),
+                      fromId: m.fromId || (m.from && m.from.id) || null,
+                      from: m.fromName || (m.from && m.from.name) || '',
+                      toId: m.toId || null,
+                      to: m.toName || '',
+                      text: m.text || m.content || '',
+                      time: m.timestamp || (m.time || Date.now()),
+                      read: !(m.unread),
+                      channel: 'socket',
+                      status: 'delivered'
+                    });
+                  });
+                  setMessagesVersion(v => v + 1);
+                }
+              });
+            } catch (err) { console.warn('[Messenger] request history emit failed', err); }
           }
 
           // flush pending queue (send messages queued while disconnected)
@@ -153,7 +270,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
             id: Date.now() + Math.floor(Math.random()*1000),
             fromId: fromId || 'bot',
             from: payload.from && (payload.from.name || payload.from.email) || 'Bot',
-            toId: userId,
+            toId: effectiveUserId,
             to: 'Vous',
             text,
             time: timestamp,
@@ -165,7 +282,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
           // update unread counters if this is for current user
           try {
             const fromIdLocal = fromId || newMsg.fromId;
-            if (String(newMsg.toId) === String(userId)) {
+            if (String(newMsg.toId) === String(effectiveUserId)) {
               // if the user isn't currently viewing that conversation, count as unread
               if (String(selectedAgentId) !== String(fromIdLocal)) {
                 newMsg.read = false;
@@ -199,7 +316,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
               id: payload && (payload._id || payload.id) ? (payload._id || payload.id) : Date.now() + Math.floor(Math.random()*1000),
               fromId: fromId || 'unknown',
               from: payload && (payload.fromName || payload.senderName || payload.from && payload.from.name) || 'Contact',
-              toId: userId,
+              toId: effectiveUserId,
               to: 'Vous',
               text,
               time: timestamp,
@@ -236,6 +353,7 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
 
       s.on('messageHistory', (history) => {
         try {
+          console.log('[Messenger] received messageHistory event, count=', Array.isArray(history)?history.length:0);
           if (Array.isArray(history)) {
             history.forEach(m => {
               allMessages.push({
@@ -251,6 +369,8 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
                 status: 'delivered'
               });
             });
+            // force a react re-render so UI updates immediately
+            setMessagesVersion(v => v + 1);
           }
         } catch (e) { console.error('[Messenger] messageHistory handler error', e); }
       });
@@ -347,6 +467,8 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
 
   // helper to select an agent and focus/scroll
   const selectAgent = (agentId) => {
+    // clear old conversation immediately to avoid mixing messages while recomputing
+    setConversationMessages([]);
     setSelectedAgentId(agentId);
     // mark read locally (simple approach)
     for (let m of safeMessages) {
@@ -384,11 +506,14 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
       setShowAuthPrompt(true);
       return;
     }
-    // Ici, on simule l'envoi localement et on envoie via socket si connecté
+
+    // create deterministic roomId on front if not present
+    const roomId = `dm_${[String(effectiveUserId), String(selectedAgentId)].sort().join('_')}`;
+
     const tmpId = Date.now() + Math.floor(Math.random()*1000);
     safeMessages.push({
       id: tmpId,
-      fromId: userId,
+      fromId: effectiveUserId,
       from: 'Vous',
       toId: selectedAgentId,
       to: (safeAgents.find(a => String(a.id) === String(selectedAgentId)) || {}).name,
@@ -397,23 +522,41 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
       read: false,
       channel: 'web',
       status: 'pending',
+      roomId
     });
-    // emit via socket if available; include tempId to help server/client reconciliation
+    // force UI to rebuild conversation after optimistic push
+    setMessagesVersion(v => v + 1);
+
     try {
       if (socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit('privateMessage', { recipientId: String(selectedAgentId), content: input, tempId: tmpId });
-        // optimistic mark as sent
-        const local = safeMessages.find(m => m.id === tmpId);
-        if (local) local.status = 'sent';
-        setNotif('Message envoyé');
-        setTimeout(() => setNotif(null), 1200);
+        const payload = { senderId: String(effectiveUserId), recipientId: String(selectedAgentId), content: input, tempId: tmpId, roomId };
+        // use callback to get ack on same event
+        socketRef.current.emit('privateChat', payload, (err, ack) => {
+          if (err) {
+            console.warn('[Messenger] privateChat emit callback error', err);
+            setNotif("Erreur d'envoi");
+            setTimeout(()=>setNotif(null),1500);
+            return;
+          }
+          // optimistic mark as sent/delivered per ack
+          try {
+            const local = safeMessages.find(m => String(m.id) === String(tmpId));
+            if (local) {
+              if (ack && (ack.id || ack._id)) local.id = ack.id || ack._id;
+              local.status = 'delivered';
+              local.time = ack && ack.timestamp ? (new Date(ack.timestamp)).getTime() : local.time;
+            }
+            setMessagesVersion(v => v + 1);
+            setNotif('Message envoyé');
+            setTimeout(()=>setNotif(null),1200);
+          } catch (e) { console.warn('[Messenger] processing ack failed', e); }
+        });
       } else {
-        // queue for later sending when socket reconnects
-        pendingQueue.current.push({ id: tmpId, toId: selectedAgentId, text: input });
+        pendingQueue.current.push({ id: tmpId, toId: selectedAgentId, text: input, roomId });
         setNotif("Message mis en file d'attente (connexion indisponible)");
         setTimeout(() => setNotif(null), 2000);
       }
-    } catch (e) { console.warn('[Messenger] failed to emit newMessage', e); }
+    } catch (e) { console.warn('[Messenger] failed to emit privateChat', e); }
     setInput('');
   };
 
@@ -432,6 +575,8 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
         channel: 'web',
         status: 'pending',
       });
+      // force UI update for attachment
+      setMessagesVersion(v => v + 1);
       setNotif('Fichier envoyé');
       setTimeout(() => setNotif(null), 1200);
     }
@@ -524,17 +669,18 @@ const MessengerWidget = ({ open, onClose, userId = 1, initialAgentId = null }) =
 
               {/* Body chat */}
               <div className="messenger-body" ref={bodyRef} style={{flex:1,overflowY:'auto',padding:'18px 18px 10px 18px',background:'#f7f7f7'}}>
-                {agentMessages.length===0 && <div style={{color:'#888',textAlign:'center',marginTop:40}}>Aucun message avec cet agent.</div>}
-                {agentMessages.map((msg, i) => (
-                  <div key={msg.id||i} className={`msg-bubble ${msg.fromId===userId?'user':'agent'}`}>
-                    {msg.fromId!==userId && <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(msg.fromId))?.photo} alt="avatar" className="msg-avatar" />}
+                {conversationMessages.length===0 && <div style={{color:'#888',textAlign:'center',marginTop:40}}>Aucun message avec cet agent.</div>}
+                {conversationMessages.map((msg) => (
+                  <div key={msg.id} className={`msg-bubble ${String(msg.fromId)===String(effectiveUserId)?'user':'agent'}`}>
+                    {String(msg.fromId)!==String(effectiveUserId) && <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(msg.fromId))?.photo} alt="avatar" className="msg-avatar" />}
                     <div className="msg-content">
                       <div className="msg-text">{msg.text}</div>
-                      <div className="msg-time">{formatTime(msg.time)} {msg.fromId===userId && getStatusIcon(msg.status||'sent')}</div>
+                        <div className="msg-time">{formatDateTime(msg.time || msg.timestamp || msg.date || msg.time)} {String(msg.fromId)===String(effectiveUserId) && getStatusIcon(msg.status||'sent')}</div>
                     </div>
-                    {msg.fromId===userId && <div className="msg-avatar user-avatar">👤</div>}
+                      {String(msg.fromId)===String(effectiveUserId) && <div className="msg-avatar user-avatar">👤</div>}
                   </div>
                 ))}
+
               </div>
 
               {/* Inline auth prompt when user tries to send while unauthenticated */}
