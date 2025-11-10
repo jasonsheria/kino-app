@@ -51,13 +51,14 @@ import AgencyPrivacy from './pages/AgencyPrivacy';
 import AgencyAgents from './pages/AgencyAgents';
 import AgencyMessages from './pages/AgencyMessages';
 import AgencyPay from './pages/AgencyPay';
+import Reservations from './pages/Reservations';
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Home />} />
     <Route path="/about" element={<About />} />
     <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-
+    <Route path="/reservations" element={<PrivateRoute><Reservations/></PrivateRoute>} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/voitures" element={<Voitures />} />
     <Route path="/terrain" element={<Terrain />} />

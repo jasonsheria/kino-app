@@ -567,6 +567,7 @@ export default function HomeLayout({ children }) {
             className="kn-menu-text"
             onClick={() => {
               setAnchorProfile(null);
+              navigate('/profile');
             }}
             sx={{ py: 1.5 }}
           >

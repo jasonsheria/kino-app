@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import './App.css';
 import { ThemeProvider, CssBaseline, IconButton, Tooltip } from '@mui/material';
@@ -16,6 +14,7 @@ import GoogleAuthPromptInternal from '../src/auth/GoogleAuthPrompt'; // Renommé
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
+
 function App() {
   // Force le mode à 'light' ou 'dark' uniquement
   const getValidMode = (value) => (value === 'dark' ? 'dark' : 'light');

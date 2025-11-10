@@ -58,12 +58,15 @@ function formatDateTime(date) {
 
 const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }) => {
   const [visible, setVisible] = useState(Boolean(open));
-  const [selectedAgentId, setSelectedAgentId] = useState(agents[0]?.id);
+  // normalize incoming data: drop falsy entries to avoid null access later
+  const safeAgents = (agents || []).filter(Boolean);
+  const safeMessages = (allMessages || []).filter(Boolean);
+  // pick a safe default selected agent id (first valid agent)
+  const [selectedAgentId, setSelectedAgentId] = useState(safeAgents[0]?.id);
+  const [conversationMessages, setConversationMessages] = useState([]);
   const [input, setInput] = useState('');
   const [notif, setNotif] = useState(null);
   const [ MessegesVersion, setMessagesVersion ] = useState(0); // to force re-render on messages array change
-  // current conversation shown in the UI (filtered, sorted and deduplicated)
-  const [conversationMessages, setConversationMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [theme, setTheme] = useState(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const fileInput = useRef();
@@ -75,8 +78,6 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
   const instanceId = useRef(`messenger_${Date.now()}_${Math.floor(Math.random()*10000)}`);
   const sidebarRef = useRef(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const safeAgents = agents || [];
-  const safeMessages = allMessages || [];
   // resolve authenticated user id if available (prefer auth service or localStorage)
   const authUser = (authService && authService.getUser ? authService.getUser() : null) || (localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null);
   const effectiveUserId = userId || (authUser && (authUser.id || authUser._id)) || null;
@@ -103,7 +104,7 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
     const from = String(m.fromId || m.from || '');
     const to = String(m.toId || m.to || '');
     const sel = String(selectedAgentId || '');
-    const me = String(user?.id) || String(user?._id) ? String(user.id || user._id) : String(effectiveUserId || '');
+    const me = user ? String(user.id || user._id || '') : String(effectiveUserId || '');
     if (to===me) console.log("un message dont je suis destianateur",m.content);
     return (from === sel && to === me) || (from === me && to === sel);
   }).slice().sort((a, b) => {
@@ -498,115 +499,156 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
 
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
+  // Ajouter l'écouteur d'événement 'privateChat' pour les messages reçus
+  socketRef.current?.on('privateChat', (payload) => {
+    try {
+      console.log('[Messenger] received privateChat:', payload);
+      const newMsg = {
+        id: payload.id || Date.now() + Math.random(),
+        fromId: payload.fromId || payload.sender,
+        from: payload.fromName || payload.senderName || 'Contact',
+        toId: effectiveUserId,
+        to: 'Vous',
+        text: payload.content || payload.text || '',
+        time: payload.timestamp || Date.now(),
+        read: false,
+        status: 'delivered'
+      };
+      
+      allMessages.push(newMsg);
+      setMessagesVersion(v => v + 1);
+      
+      // Auto scroll to bottom
+      if (bodyRef.current) {
+        bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+      }
+    } catch (e) {
+      console.error('[Messenger] privateChat handler error:', e);
+    }
+  });
+
   const handleSend = () => {
     if (!input.trim()) return;
-    // require authentication to send
+    
     if (!authService.isAuthenticated()) {
-      // show inline prompt asking user to login
       setShowAuthPrompt(true);
       return;
     }
 
-    // create deterministic roomId on front if not present
-    const roomId = `dm_${[String(effectiveUserId), String(selectedAgentId)].sort().join('_')}`;
+    const safeUserId = effectiveUserId || (user?.id || user?._id);
+    if (!safeUserId || !selectedAgentId) {
+      setNotif("Erreur: Impossible d'envoyer le message");
+      setTimeout(() => setNotif(null), 1500);
+      return;
+    }
 
-    const tmpId = Date.now() + Math.floor(Math.random()*1000);
-    safeMessages.push({
+    const tmpId = Date.now() + Math.random();
+    const newMsg = {
       id: tmpId,
-      fromId: effectiveUserId,
+      fromId: safeUserId,
       from: 'Vous',
       toId: selectedAgentId,
-      to: (safeAgents.find(a => String(a.id) === String(selectedAgentId)) || {}).name,
+      to: safeAgents.find(a => String(a.id) === String(selectedAgentId))?.name,
       text: input,
       time: Date.now(),
       read: false,
-      channel: 'web',
-      status: 'pending',
-      roomId
-    });
-    // force UI to rebuild conversation after optimistic push
-    setMessagesVersion(v => v + 1);
+      status: 'pending'
+    };
 
-    try {
-      if (socketRef.current && socketRef.current.connected) {
-        const payload = { senderId: String(effectiveUserId), recipientId: String(selectedAgentId), content: input, tempId: tmpId, roomId };
-        // use callback to get ack on same event
-        socketRef.current.emit('privateChat', payload, (err, ack) => {
-          if (err) {
-            console.warn('[Messenger] privateChat emit callback error', err);
-            setNotif("Erreur d'envoi");
-            setTimeout(()=>setNotif(null),1500);
-            return;
-          }
-          // optimistic mark as sent/delivered per ack
-          try {
-            const local = safeMessages.find(m => String(m.id) === String(tmpId));
-            if (local) {
-              if (ack && (ack.id || ack._id)) local.id = ack.id || ack._id;
-              local.status = 'delivered';
-              local.time = ack && ack.timestamp ? (new Date(ack.timestamp)).getTime() : local.time;
-            }
-            setMessagesVersion(v => v + 1);
-            setNotif('Message envoyé');
-            setTimeout(()=>setNotif(null),1200);
-          } catch (e) { console.warn('[Messenger] processing ack failed', e); }
-        });
-      } else {
-        pendingQueue.current.push({ id: tmpId, toId: selectedAgentId, text: input, roomId });
-        setNotif("Message mis en file d'attente (connexion indisponible)");
-        setTimeout(() => setNotif(null), 2000);
-      }
-    } catch (e) { console.warn('[Messenger] failed to emit privateChat', e); }
+    // Optimistic update - ajouter immédiatement le message à l'UI
+    allMessages.push(newMsg);
+    setMessagesVersion(v => v + 1);
+    
+    // Scroll to bottom after adding new message
+    if (bodyRef.current) {
+      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }
+    
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('privateChat', {
+        senderId: String(safeUserId),
+        recipientId: String(selectedAgentId), 
+        content: input,
+        tempId: tmpId
+      }, (err, ack) => {
+        if (err) {
+          console.error('[Messenger] Send error:', err);
+          setNotif("Erreur d'envoi");
+          setTimeout(() => setNotif(null), 1500);
+          return;
+        }
+        // Update message status on success
+        const msg = allMessages.find(m => m.id === tmpId);
+        if (msg) {
+          msg.status = 'delivered';
+          msg.id = ack?.id || msg.id;
+          setMessagesVersion(v => v + 1);
+        }
+        setNotif('Message envoyé');
+        setTimeout(() => setNotif(null), 1200);
+      });
+    } else {
+      pendingQueue.current.push({ 
+        id: tmpId,
+        toId: selectedAgentId,
+        text: input 
+      });
+      setNotif("Message en attente (hors ligne)");
+      setTimeout(() => setNotif(null), 2000);
+    }
+
     setInput('');
   };
 
   const handleAttach = e => {
     const file = e.target.files[0];
-    if (file) {
-      safeMessages.push({
-        id: Date.now(),
-        fromId: userId,
-        from: 'Vous',
-        toId: selectedAgentId,
-        to: (safeAgents.find(a => String(a.id) === String(selectedAgentId)) || {}).name,
-        text: `📎 Fichier envoyé : ${file.name}`,
-        time: Date.now(),
-        read: false,
-        channel: 'web',
-        status: 'pending',
-      });
-      // force UI update for attachment
-      setMessagesVersion(v => v + 1);
-      setNotif('Fichier envoyé');
-      setTimeout(() => setNotif(null), 1200);
-    }
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      if (!evt.target?.result) return;
+      const content = evt.target.result;
+      // TODO: implement actual file send
+      console.log('File selected:', file.name, 'Content:', content);
+      setNotif('Envoi de fichiers pas encore implémenté dans cette démo');
+      setTimeout(() => setNotif(null), 2000);
+    };
+    reader.readAsDataURL(file);
+    // reset input
+    e.target.value = null;
   };
 
-  // Always render the floating toggle so chat can be opened from any page.
+  // Always render the floating toggle button and messenger modal
   return (
     <>
       <button
         aria-label={visible ? 'Fermer la messagerie' : 'Ouvrir la messagerie'}
         className={`messenger-toggle-btn ${visible ? 'open' : ''}`}
         onClick={() => {
-          // request that the global messenger manager open this instance (or toggle if same instance)
           try {
-            window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { detail: { sourceId: instanceId.current, agentId: selectedAgentId } }));
+            window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { 
+              detail: { sourceId: instanceId.current, agentId: selectedAgentId } 
+            }));
           } catch (err) {
-            // fallback to local toggle if dispatch fails
             setVisible(v => {
               const nv = !v;
-              if (nv) setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 120);
+              if (nv) setTimeout(() => { 
+                try { inputRef.current?.focus(); } catch (e) {} 
+              }, 120);
               return nv;
             });
           }
         }}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" 
+                stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         {unreadCount > 0 && (
-          <span className="messenger-floating-badge" style={{position:'absolute',top:-6,right:-6,background:'#d7263d',color:'#fff',borderRadius:12,padding:'2px 6px',fontSize:'0.75rem'}}>{unreadCount}</span>
+          <span className="messenger-floating-badge" 
+                style={{position:'absolute',top:-6,right:-6,background:'#d7263d',
+                        color:'#fff',borderRadius:12,padding:'2px 6px',fontSize:'0.75rem'}}>
+            {unreadCount}
+          </span>
         )}
       </button>
 
@@ -615,126 +657,194 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
           <div className="messenger-inner" style={{display:'flex',height:'420px',maxWidth:'98vw'}}>
 
             {/* Sidebar contacts */}
-            <div ref={sidebarRef} className={`messenger-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} style={{width: sidebarCollapsed ? 64 : 200,background:'#f7f7f7',borderRight:'1px solid #f1f5f3',display:'flex',flexDirection:'column',transition:'width 0.18s ease'}}>
-              <div className="sidebar-header" style={{padding:'12px 10px',fontWeight:800,fontSize:'1.05rem',color:'var(--ndaku-primary)',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+            <div ref={sidebarRef} className={`messenger-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} 
+                 style={{width: sidebarCollapsed ? 64 : 200,background:'#f7f7f7',
+                        borderRight:'1px solid #f1f5f3',display:'flex',
+                        flexDirection:'column',transition:'width 0.18s ease'}}>
+              <div className="sidebar-header" style={{padding:'12px 10px',fontWeight:800,
+                                                    fontSize:'1.05rem',color:'var(--ndaku-primary)',
+                                                    display:'flex',alignItems:'center',
+                                                    justifyContent:'space-between',gap:8}}>
                 {!sidebarCollapsed ? 'Contacts' : ' '}
-                <button aria-label={sidebarCollapsed? 'Ouvrir la liste' : 'Réduire la liste'} className="sidebar-toggle" onClick={()=>setSidebarCollapsed(s=>!s)}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                    <path d="M9 6L16 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <button aria-label={sidebarCollapsed? 'Ouvrir la liste' : 'Réduire la liste'} 
+                        className="sidebar-toggle" onClick={()=>setSidebarCollapsed(s=>!s)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 6L16 12L9 18" stroke="currentColor" strokeWidth="2" 
+                          strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               </div>
               <div className="sidebar-list" style={{flex:1,overflowY:'auto'}}>
-                {contactsSorted.map(({agent, lastMsg, unread}) => {
-                  return (
-                    <div key={agent.id || agent._id} className={`sidebar-contact${String(selectedAgentId)===String(agent.id)?' active':''}`} onClick={()=>selectAgent(agent.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',cursor:'pointer',background:String(selectedAgentId)===String(agent.id)?'#eef7f3':'',borderBottom:'1px solid #f7f7f7'}}>
-                      <img src={process.env.REACT_APP_BACKEND_APP_URL+agent.photo} alt={agent.name} className="agent-avatar" style={{width:36,height:36}} />
-                      {!sidebarCollapsed && (
-                        <div style={{flex:1}}>
-                          <div style={{fontWeight:700,fontSize:'1.05em',color:'#0a223a'}}>{agent.name}</div>
-                          <div style={{fontSize:'0.92em',color:'#888',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:140}}>{lastMsg?.text||'Aucun message'}</div>
+                {contactsSorted.map(({agent, lastMsg, unread}) => (
+                  <div key={agent.id} 
+                       className={`sidebar-contact${String(selectedAgentId)===String(agent.id)?' active':''}`}
+                       onClick={()=>selectAgent(agent.id)}
+                       style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',
+                              cursor:'pointer',
+                              background:String(selectedAgentId)===String(agent.id)?'#eef7f3':'',
+                              borderBottom:'1px solid #f7f7f7'}}>
+                    <img src={process.env.REACT_APP_BACKEND_APP_URL+agent.photo} 
+                         alt={agent.name} className="agent-avatar" 
+                         style={{width:36,height:36}} />
+                    {!sidebarCollapsed && (
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:700,fontSize:'1.05em',color:'#0a223a'}}>{agent.name}</div>
+                        <div style={{fontSize:'0.92em',color:'#888',whiteSpace:'nowrap',
+                                   overflow:'hidden',textOverflow:'ellipsis',maxWidth:140}}>
+                          {lastMsg?.text||'Aucun message'}
                         </div>
-                      )}
-                      {unread>0 && <span className="badge" style={{background:'#d7263d',color:'#fff',borderRadius:8,padding:'2px 7px',fontSize:'0.85em'}}>{unread}</span>}
-                    </div>
-                  );
-                })}
+                      </div>
+                    )}
+                    {unread>0 && 
+                      <span className="badge" 
+                            style={{background:'#d7263d',color:'#fff',
+                                   borderRadius:8,padding:'2px 7px',fontSize:'0.85em'}}>
+                        {unread}
+                      </span>
+                    }
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Zone de chat */}
-            <div className="messenger-chat" style={{flex:1,display:'flex',flexDirection:'column',position:'relative',background:'#fff'}}>
-              {/* Header chat */}
-              <div className="messenger-header" style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderBottom:'1px solid #f1f5f3'}}>
+            {/* Chat Area */}
+            <div className="messenger-chat" 
+                 style={{flex:1,display:'flex',flexDirection:'column',
+                        position:'relative',background:'#fff'}}>
+              
+              {/* Chat Header */}
+              <div className="messenger-header" 
+                   style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+                          padding:'10px 12px',borderBottom:'1px solid #f1f5f3'}}>
                 <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12}}>
-                   <button
-                    className="header-sidebar-toggle"
-                    aria-label={sidebarCollapsed ? 'Ouvrir la liste de contacts' : 'Fermer la liste de contacts'}
-                    title={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}
-                    onClick={() => setSidebarCollapsed(s => !s)}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <button className="header-sidebar-toggle"
+                          aria-label={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}
+                          title={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}
+                          onClick={() => setSidebarCollapsed(s => !s)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.6" 
+                            strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
-                  <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(selectedAgentId))?.photo} alt="avatar" className="agent-avatar" style={{width:36,height:36}} />
-                  <div style={{fontWeight:700}}>{safeAgents.find(a=>String(a.id)===String(selectedAgentId))?.prenom || 'Agent'}</div>
+                  {currentAgent && (
+                    <>
+                      <img src={process.env.REACT_APP_BACKEND_APP_URL+currentAgent.photo} 
+                           alt={currentAgent.name} className="agent-avatar" 
+                           style={{width:36,height:36}} />
+                      <div style={{fontWeight:700}}>{currentAgent.name}</div>
+                    </>
+                  )}
                 </div>
-                  {/* Header toggle to open/close sidebar (next to avatar) */}
-                 
-                  <div>
-                    <button onClick={() => { setVisible(false); if (onClose) onClose(); }} className="close-btn" aria-label="Fermer la messagerie">&times;</button>
-                  </div>
+                <button onClick={() => { setVisible(false); if (onClose) onClose(); }} 
+                        className="close-btn" aria-label="Fermer la messagerie">&times;</button>
               </div>
 
-              {/* Body chat */}
-              <div className="messenger-body" ref={bodyRef} style={{flex:1,overflowY:'auto',padding:'18px 18px 10px 18px',background:'#f7f7f7'}}>
-                {conversationMessages.length===0 && <div style={{color:'#888',textAlign:'center',marginTop:40}}>Aucun message avec cet agent.</div>}
+              {/* Messages Body */}
+              <div className="messenger-body" ref={bodyRef}
+                   style={{flex:1,overflowY:'auto',padding:'18px 18px 10px 18px',
+                          background:'#f7f7f7'}}>
+                {conversationMessages.length === 0 && (
+                  <div style={{color:'#888',textAlign:'center',marginTop:40}}>
+                    Aucun message avec cet agent.
+                  </div>
+                )}
                 {conversationMessages.map((msg) => (
                   <div key={msg.id} className={`msg-bubble ${String(msg.fromId)===String(effectiveUserId)?'user':'agent'}`}>
-                    {String(msg.fromId)!==String(effectiveUserId) && <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(msg.fromId))?.photo} alt="avatar" className="msg-avatar" />}
+                    {String(msg.fromId)!==String(effectiveUserId) && (
+                      <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(msg.fromId))?.photo}
+                           alt="avatar" className="msg-avatar" style={{width:36,height:36}} />
+                    )}
                     <div className="msg-content">
                       <div className="msg-text">{msg.text}</div>
-                        <div className="msg-time">{formatDateTime(msg.time || msg.timestamp || msg.date || msg.time)} {String(msg.fromId)===String(effectiveUserId) && getStatusIcon(msg.status||'sent')}</div>
+                      <div className="msg-time">
+                        {formatDateTime(msg.time || msg.timestamp || msg.date || msg.time)}
+                        {String(msg.fromId)===String(effectiveUserId) && getStatusIcon(msg.status||'sent')}
+                      </div>
                     </div>
-                      {String(msg.fromId)===String(effectiveUserId) && <div className="msg-avatar user-avatar">👤</div>}
+                    {String(msg.fromId)===String(effectiveUserId) && (
+                      <div className="msg-avatar user-avatar">👤</div>
+                    )}
                   </div>
                 ))}
-
               </div>
 
-              {/* Inline auth prompt when user tries to send while unauthenticated */}
+              {/* Auth Prompt */}
               {showAuthPrompt && (
                 <div className="auth-prompt" role="dialog" aria-modal="true">
                   <div className="auth-prompt-inner">
                     <div style={{marginBottom:8}}>Veuillez vous connecter pour envoyer un message.</div>
                     <div style={{display:'flex',gap:8}}>
-                      <button className="btn btn-sm btn-primary" onClick={() => { window.dispatchEvent(new CustomEvent('ndaku-show-login')); setShowAuthPrompt(false); }}>
+                      <button className="btn btn-sm btn-primary" 
+                              onClick={() => { 
+                                window.dispatchEvent(new CustomEvent('ndaku-show-login')); 
+                                setShowAuthPrompt(false); 
+                              }}>
                         Se connecter
                       </button>
-                      <button className="btn btn-sm btn-secondary" onClick={() => setShowAuthPrompt(false)}>Annuler</button>
+                      <button className="btn btn-sm btn-secondary" 
+                              onClick={() => setShowAuthPrompt(false)}>
+                        Annuler
+                      </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Footer chat */}
-              <div className="messenger-footer" style={{display:'flex',alignItems:'center',padding:'12px 18px',borderTop:'1.5px solid #e9f7f3',background:'#fff',gap:8}}>
+              {/* Input Footer */}
+              <div className="messenger-footer" 
+                   style={{display:'flex',alignItems:'center',padding:'12px 18px',
+                          borderTop:'1.5px solid #e9f7f3',background:'#fff',gap:8}}>
                 <div style={{display:'flex',alignItems:'center',flex:1,gap:8}}>
-                  <input
-                    ref={inputRef}
-                    className="messenger-input"
-                    type="text"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    placeholder="Écrivez un message..."
-                    onKeyDown={e => e.key === 'Enter' && handleSend()}
-                    aria-label="Votre message"
+                  <input ref={inputRef}
+                         className="messenger-input"
+                         type="text"
+                         value={input}
+                         onChange={e => setInput(e.target.value)}
+                         placeholder="Écrivez un message..."
+                         onKeyDown={e => e.key === 'Enter' && handleSend()}
+                         aria-label="Votre message"
                   />
                 </div>
-                <input
-                  type="file"
-                  style={{ display: 'none' }}
-                  ref={fileInput}
-                  onChange={handleAttach}
-                  aria-hidden
+                
+                <input type="file"
+                       style={{ display: 'none' }}
+                       ref={fileInput}
+                       onChange={handleAttach}
+                       aria-hidden
                 />
-                <button className="attach-btn" title="Joindre un fichier" onClick={() => fileInput.current.click()} aria-label="Joindre un fichier">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                    <path d="M21.44 11.05l-8.49 8.49a5 5 0 0 1-7.07-7.07l8.49-8.49a3.5 3.5 0 0 1 4.95 4.95l-7.07 7.07a2 2 0 0 1-2.83-2.83l6.36-6.36" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                
+                <button className="attach-btn" 
+                        title="Joindre un fichier" 
+                        onClick={() => fileInput.current.click()} 
+                        aria-label="Joindre un fichier">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.44 11.05l-8.49 8.49a5 5 0 0 1-7.07-7.07l8.49-8.49a3.5 3.5 0 0 1 4.95 4.95l-7.07 7.07a2 2 0 0 1-2.83-2.83l6.36-6.36" 
+                          stroke="currentColor" strokeWidth="1.6" 
+                          strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
-                <button className="send-btn" onClick={handleSend} disabled={!input.trim()} aria-label="Envoyer le message" title="Envoyer">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                    <path d="M22 2L11 13" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                
+                <button className="send-btn" 
+                        onClick={handleSend} 
+                        disabled={!input.trim()} 
+                        aria-label="Envoyer le message" 
+                        title="Envoyer">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13" stroke="#fff" strokeWidth="1.6" 
+                          strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" strokeWidth="1.2" 
+                          strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               </div>
-              {notif && <div className="messenger-notif">{notif}</div>}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Notification Toast */}
+      {notif && (
+        <div className="messenger-notif">{notif}</div>
       )}
     </>
   );

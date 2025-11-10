@@ -15,8 +15,31 @@ import {
   Grid,
   CircularProgress,
   Alert,
-  Paper
+  Paper,
+  Box,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Badge,
 } from '@mui/material';
+import {
+  Edit as EditIcon,
+  Settings as SettingsIcon,
+  Favorite as FavoriteIcon,
+  Message as MessageIcon,
+  Business as BusinessIcon,
+  Person as PersonIcon,
+  Home as HomeIcon,
+  Mail as MailIcon,
+  Phone as PhoneIcon,
+  LocationOn as LocationIcon,
+} from '@mui/icons-material';
+import HomeLayout from '../components/homeComponent/HomeLayout';
 
 export default function Profile() {
   const { user, token } = useAuth();
@@ -27,6 +50,12 @@ export default function Profile() {
   const [agency, setAgency] = useState(null);
   const [agentProfiles, setAgentProfiles] = useState(null);
   const [error, setError] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [stats, setStats] = useState({
+    favoriteCount: 0,
+    messageCount: 0,
+    propertyCount: 0,
+  });
 
   useEffect(() => {
     const detectRoles = async () => {
@@ -89,6 +118,28 @@ export default function Profile() {
     detectRoles();
   }, [token]);
 
+  useEffect(() => {
+    // Ajout: Charger les statistiques de l'utilisateur
+    const loadStats = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/users/stats/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (e) {
+        console.warn('Failed to load user stats', e);
+      }
+    };
+    
+    if (user?.id || user?._id) {
+      loadStats();
+    }
+    console.log("usr :", user);
+  }, [user, token]);
+
   if (!user) {
     return (
       <>
@@ -111,104 +162,223 @@ export default function Profile() {
 
   return (
     <>
-      <Navbar />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Card sx={{ mx: 'auto' }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={3} sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-                <Avatar
-                  src={user.profileImage || user.avatar || '/logo192.png'}
-                  alt={user.name || user.username || 'Utilisateur'}
-                  sx={{ width: 96, height: 96, mx: { xs: 'auto', sm: 0 } }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={9}>
-                <Typography variant="h6">{user.name || user.fullName || user.username || 'Utilisateur'}</Typography>
-                <Typography color="text.secondary" variant="body2">{user.email}</Typography>
-                <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
-                  <Button size="small" component={RouterLink} to="/profile/edit" variant="outlined">Modifier le profil</Button>
-                  <Button size="small" component={RouterLink} to="/settings" variant="outlined">Paramètres</Button>
-                </Stack>
-              </Grid>
-            </Grid>
+      <HomeLayout />
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={1}>
+          {/* Colonne de gauche: Profile principal */}
+          <Grid item xs={12} md={8} sx={{ width : '100%'}}>
+            <Card sx={{ height: '100%'}}>
+              <CardContent >
+                <Box sx={{ textAlign: 'center', position: 'relative' }}>
+                  <Avatar
+                    src={user?.profileUrl || '/default-avatar.png'}
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      mx: 'auto',
+                      border: 3,
+                      borderColor: 'primary.main'
+                    }}
+                  />
+                  <IconButton 
+                    sx={{ position: 'absolute', right: 0, top: 0 }}
+                    component={RouterLink}
+                    to="/profile/edit"
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </Box>
 
-            <Stack sx={{ mt: 3 }} spacing={2}>
-              {loading ? (
-                <Stack alignItems="center">
-                  <CircularProgress size={28} />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Chargement des informations du compte...</Typography>
-                </Stack>
-              ) : (
-                <>
-                  {error && <Alert severity="error">{error}</Alert>}
+                <Typography variant="h5" align="center" sx={{ mt: 2 }}>
+                  {user?.username || 'Utilisateur'}
+                </Typography>
+                <Typography color="text.secondary" align="center">
+                  {user?.email}
+                </Typography>
 
-                  <div>
-                    <Typography variant="subtitle1">Rôles détectés :</Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
-                      {ownerAccount?.hasAccount ? <Chip label="Propriétaire" color="success" /> : null}
-                      {agencySession ? <Chip label="Agence" color="primary" /> : null}
-                      {agentProfiles && agentProfiles.length ? <Chip label={`Agent (${agentProfiles.length})`} color="warning" /> : null}
-                      {!ownerAccount?.hasAccount && !agencySession && !(agentProfiles && agentProfiles.length) ? <Chip label="Utilisateur" /> : null}
+                <List>
+                  {user?.telephone && (
+                    <ListItem>
+                      <ListItemIcon><PhoneIcon /></ListItemIcon>
+                      <ListItemText primary={user.telephone} />
+                    </ListItem>
+                  )}
+                  {user?.adresse && (
+                    <ListItem>
+                      <ListItemIcon><LocationIcon /></ListItemIcon>
+                      <ListItemText primary={user.adresse} />
+                    </ListItem>
+                  )}
+                </List>
+
+                <Box sx={{ mt: 2 }}>
+                  <Grid container spacing={2} sx={{ display : 'flex', justifyContent: 'center'}}>
+                    <Grid item xs={4}>
+                      <Paper elevation={0} sx={{ p: 1, textAlign: 'center' }}>
+                        <Typography variant="h6">{stats.favoriteCount}</Typography>
+                        <Typography variant="body2">Favoris</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Paper elevation={0} sx={{ p: 1, textAlign: 'center' }}>
+                        <Typography variant="h6">{stats.messageCount}</Typography>
+                        <Typography variant="body2">Messages</Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={4}>
+                      <Paper elevation={0} sx={{ p: 1, textAlign: 'center' }}>
+                        <Typography variant="h6">{stats.propertyCount}</Typography>
+                        <Typography variant="body2">Biens</Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Colonne de droite: Rôles et actions */}
+          <Grid item xs={12} md={8}>
+            {loading ? (
+              <Paper sx={{ p: 3, textAlign: 'center' }}>
+                <CircularProgress size={40} />
+                <Typography sx={{ mt: 2 }}>Chargement des informations...</Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={3}>
+                {/* Carte des rôles */}
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Rôles et Accès
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+                      {ownerAccount?.hasAccount && (
+                        <Chip 
+                          icon={<HomeIcon />}
+                          label="Propriétaire"
+                          color="success"
+                          variant="outlined"
+                          onClick={() => navigate('/owner/dashboard')}
+                        />
+                      )}
+                      {agencySession && (
+                        <Chip
+                          icon={<BusinessIcon />}
+                          label="Agence"
+                          color="primary"
+                          variant="outlined"
+                          onClick={() => navigate('/agency/dashboard')}
+                        />
+                      )}
+                      {agentProfiles?.length > 0 && (
+                        <Chip
+                          icon={<PersonIcon />}
+                          label={`Agent (${agentProfiles.length})`}
+                          color="warning"
+                          variant="outlined"
+                          onClick={() => navigate('/agent/dashboard')}
+                        />
+                      )}
                     </Stack>
-                  </div>
 
-                  {ownerAccount?.hasAccount && (
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="h6">Espace propriétaire</Typography>
-                      <Typography variant="body2" color="text.secondary">Vous avez un compte propriétaire enregistré sur la plateforme.</Typography>
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1 }}>
-                        <Button component={RouterLink} to="/owner/dashboard" variant="contained">Accéder à mon espace propriétaire</Button>
-                        <Button component={RouterLink} to="/owner/properties" variant="outlined">Mes biens</Button>
-                      </Stack>
-                    </Paper>
-                  )}
+                    {/* Actions rapides */}
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          startIcon={<MessageIcon />}
+                          component={RouterLink}
+                          to="/messages"
+                        >
+                          Messages
+                        </Button>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          startIcon={<FavoriteIcon />}
+                          component={RouterLink}
+                          to="/favourites"
+                        >
+                          Favoris
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
 
-                  {agencySession && (
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="h6">Agence</Typography>
-                      <Typography variant="body2" color="text.secondary">Session agence active : {agencySession.email || agencySession.id}</Typography>
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1 }}>
-                        <Button component={RouterLink} to="/agency/dashboard" variant="contained">Espace agence</Button>
-                        <Button component={RouterLink} to="/agency/agents" variant="outlined">Gérer les agents</Button>
-                        <Button component={RouterLink} to="/agency/profile" variant="outlined">Profil agence</Button>
-                      </Stack>
-                    </Paper>
-                  )}
+                {/* Section Propriétaire */}
+                {ownerAccount?.hasAccount && (
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Espace Propriétaire
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            component={RouterLink}
+                            to="/owner/properties"
+                          >
+                            Gérer mes biens
+                          </Button>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/reservations"
+                          >
+                            Voir les réservations
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                )}
 
-                  {agentProfiles && agentProfiles.length > 0 && (
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="h6">Compte agent</Typography>
-                      <Typography variant="body2" color="text.secondary">Vous êtes lié à {agentProfiles.length} profil(s) agent.</Typography>
-                      <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap' }}>
-                        {agentProfiles.map((a, idx) => (
-                          <Card key={a._id || a.id || idx} sx={{ p: 1, minWidth: 200 }}>
-                            <Typography sx={{ fontWeight: 600 }}>{a.name || a.displayName || 'Agent'}</Typography>
-                            <Typography variant="caption" color="text.secondary">{a.phone || a.email || ''}</Typography>
-                            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                              <Button size="small" component={RouterLink} to={`/agents/${a._id || a.id}`}>Voir</Button>
-                            </Stack>
-                          </Card>
-                        ))}
-                      </Stack>
-                    </Paper>
-                  )}
-
-                  {!ownerAccount?.hasAccount && !agencySession && !(agentProfiles && agentProfiles.length) && (
-                    <Paper variant="outlined" sx={{ p: 2 }}>
-                      <Typography variant="h6">Compte utilisateur</Typography>
-                      <Typography variant="body2" color="text.secondary">Utilisez les boutons ci-dessous pour gérer votre compte.</Typography>
-                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                        <Button component={RouterLink} to="/favourites" variant="outlined">Favoris</Button>
-                        <Button component={RouterLink} to="/messages" variant="outlined">Messages</Button>
-                      </Stack>
-                    </Paper>
-                  )}
-                </>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
+                {/* Section Agence */}
+                {agencySession && (
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Espace Agence
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            component={RouterLink}
+                            to="/agency/properties"
+                          >
+                            Catalogue de biens
+                          </Button>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/agency/agents"
+                          >
+                            Gérer les agents
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                )}
+              </Stack>
+            )}
+          </Grid>
+        </Grid>
       </Container>
     </>
   );
