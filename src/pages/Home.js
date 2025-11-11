@@ -21,6 +21,7 @@ import Preloader from '../components/common/Preloader';
 import PropertyCard from '../components/property/PropertyCard';
 import VisitBookingModal from '../components/common/VisitBookingModal';
 import AgentCard from '../components/agent/AgentCard';
+import PromoCard from '../components/promotion/PromoCard';
 import ScrollReveal from '../components/common/ScrollReveal';
 import AutoReveal from '../components/common/AutoReveal';
 import AgentContactModal from '../components/common/Messenger';
@@ -1102,110 +1103,109 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Promotions section: Voir plus d'offre (batching) - full width professional cards */}
+            {/* Promotions section avec PromoCard - Design professionnel */}
             <section className="container py-4" aria-label="Promotions">
-                <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d' }}>Offres en promotion</h3>
+                <div className="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d' }}>
+                            🔥 Offres en promotion
+                        </h3>
+                        <p className="text-muted mt-2 mb-0">Les meilleures réductions du moment</p>
+                    </div>
                 </div>
-                <div className="row g-3">
+                <div className="row g-4">
                     {promotions && promotions.length > 0 ? promotions.map((p, i) => {
                         const promoKey = ensurePromoKey(p, i);
-                        const likes = p.likes || 0;
-                        const comments = p.comments || [];
                         return (
-                            <div key={promoKey} id={`promo-${promoKey}`} className="col-12">
-                                <div className="promo-salle-card animate-card position-relative d-flex flex-lg-row flex-column align-items-stretch shadow-lg border-0" style={{ background: 'linear-gradient(90deg, #fff 60%, #ffe06622 100%)', borderRadius: 18, overflow: 'hidden', minHeight: 220 }}>
-                                    <div className="promo-salle-img-wrap flex-shrink-0" style={{ minWidth: 0, width: '100%', maxWidth: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff8e1' }}>
-                                        <img src={p.images?.[0] || p.image || require('../img/property-1.jpg')} className="promo-salle-img" alt={p.name || p.title} style={{ width: '100%', maxWidth: 340, height: 220, objectFit: 'cover', borderRadius: 16, boxShadow: '0 2px 16px #d7263d22' }} />
-                                    </div>
-                                    <div className="promo-salle-body d-flex flex-column justify-content-between p-4" style={{ flex: 1, minWidth: 0 }}>
-                                        <div>
-                                            <h4 className="promo-salle-title mb-2" style={{ color: '#d7263d', fontWeight: 800, fontSize: '1.25rem' }}>{p.name || p.title}</h4>
-                                            <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{p.address || p.excerpt || ''}</p>
-                                            <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                                                {p.oldPrice && <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{p.oldPrice} $</span>}
-                                                {p.newPrice && <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: 'var(--ndaku-primary)', fontWeight: 900 }}>{p.newPrice} $</span>}
-                                                {p._promoMeta && p._promoMeta.discountPercent && <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-{p._promoMeta.discountPercent}%</span>}
-                                            </div>
-                                            {p.description && <div className="mb-2 text-secondary small">{p.description}</div>}
-                                            <div className="mb-3">
-                                                <span className="badge bg-warning text-dark" style={{ fontSize: '1rem', fontWeight: 600 }}>Offre limitée : réservez avant la fin du mois !</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                               <Button className="btn btn-sm btn-outline-danger fw-bold px-3" onClick={() => toggleLikePromo(promoKey)}>
-                                                    👍 {likes} J'aime
-                                               </Button>
-                                                <small className="text-muted">{comments.length} commentaires</small>
-                                               <Button className="btn btn-sm btn-outline-secondary" onClick={() => {
-                                                    const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
-                                                    if (navigator.share) {
-                                                        navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => { });
-                                                    } else if (navigator.clipboard) {
-                                                        navigator.clipboard.writeText(shareUrl).then(() => {
-                                                            setInfoMsg('Lien de l’offre copié dans le presse-papiers');
-                                                            setInfoOpen(true);
-                                                        }).catch(() => {
-                                                            setInfoMsg('Impossible de copier le lien');
-                                                            setInfoOpen(true);
-                                                        });
-                                                    } else {
-                                                        setInfoMsg('Partage non disponible sur ce navigateur');
-                                                        setInfoOpen(true);
-                                                    }
-                                                }}>Partager</Button>
-                                                                                             <Link to={`/promotion/${p.id || promoKey}`} style={{ textDecoration: 'none' }}>
-                                                                                                 <Button className="btn btn-sm btn-success">Voir</Button>
-                                                                                             </Link>
-                                            </div>
-                                            <ul className="list-unstyled mb-2 w-100" style={{ maxHeight: 80, overflowY: 'auto' }}>
-                                                {comments.map(c => (
-                                                    <li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>
-                                                ))}
-                                            </ul>
-                                            <CommentInput onAdd={(author, text) => addCommentPromo(promoKey, author || 'Anonyme', text)} />
-                                            {comments.length > 0 && (
-                                                <div className="mt-2">
-                                                   <Button className="btn btn-link p-0 small" onClick={() => toggleCommentsOpen(promoKey)}>{commentsOpen[promoKey] ? 'Masquer les commentaires' : `Voir ${comments.length} commentaires`}</Button>
-                                                    {commentsOpen[promoKey] && (
-                                                        <ul className="list-unstyled mt-2 mb-0 small" style={{ maxHeight: 160, overflowY: 'auto' }}>
-                                                            {comments.map(c => (<li key={c.id} className="mb-1"><strong>{c.author}:</strong> <span className="text-muted">{c.text}</span></li>))}
-                                                        </ul>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="position-absolute top-0 end-0 m-3" style={{ zIndex: 2 }}>
-                                        {p._promoMeta && p._promoMeta.discountPercent && <span className="badge bg-danger" style={{ fontSize: '1.1rem', fontWeight: 700, padding: '0.7em 1.2em', boxShadow: '0 2px 8px #d7263d33' }}>-{p._promoMeta.discountPercent}%</span>}
-                                    </div>
-                                </div>
+                            <div key={promoKey} className="col-12 col-lg-6">
+                                <PromoCard
+                                    id={p.id || promoKey}
+                                    promoId={p._promoMeta?.promoId || promoKey}
+                                    title={p.name || p.title || 'Offre spéciale'}
+                                    description={p.address || p.excerpt || p.description || ''}
+                                    image={p.images?.[0] || p.image || require('../img/property-1.jpg')}
+                                    oldPrice={p.oldPrice}
+                                    newPrice={p.newPrice}
+                                    discountPercent={p._promoMeta?.discountPercent}
+                                    likes={p.likes || 0}
+                                    comments={p.comments || []}
+                                    category={p.category || 'Immobilier'}
+                                    isHot={i === 0}
+                                    isTrending={i % 2 === 0}
+                                    onLike={(id) => toggleLikePromo(promoKey)}
+                                    onShare={(id) => {
+                                        const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
+                                        if (navigator.share) {
+                                            navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => { });
+                                        } else if (navigator.clipboard) {
+                                            navigator.clipboard.writeText(shareUrl).then(() => {
+                                                setInfoMsg('Lien de l\'offre copié dans le presse-papiers');
+                                                setInfoOpen(true);
+                                            }).catch(() => {
+                                                setInfoMsg('Impossible de copier le lien');
+                                                setInfoOpen(true);
+                                            });
+                                        } else {
+                                            setInfoMsg('Partage non disponible sur ce navigateur');
+                                            setInfoOpen(true);
+                                        }
+                                    }}
+                                    onComment={(id, text) => addCommentPromo(promoKey, text)}
+                                />
                             </div>
                         );
                     }) : (
-                        <div className="col-12 text-muted">Aucune offre en promotion pour le moment.</div>
+                        <div className="col-12 text-center py-5">
+                            <div className="text-muted" style={{ fontSize: '1.1rem' }}>
+                                🎉 Aucune offre en promotion pour le moment. Revenez bientôt !
+                            </div>
+                        </div>
                     )}
                 </div>
-                {/* centralized load more Buttons */}
-                <div className="d-flex justify-content-center mt-3">
-                   <Button className="btn btn-lg btn-success fw-bold" onClick={() => {
-                        setPromotions(prev => {
-                            const already = prev.__shownCount || prev.length || 0;
-                            const next = promoData.slice(already, already + 10).map(item => {
-                                const prop = item.property || {};
-                                return {
-                                    ...prop,
-                                    _promoMeta: { promoId: item.promoId, discountPercent: item.discountPercent },
-                                    likes: prop.likes || 0,
-                                    comments: prop.comments || []
-                                };
+                {/* Load more button */}
+                <div className="d-flex justify-content-center mt-5">
+                   <Button 
+                       className="btn btn-lg btn-success fw-bold px-5"
+                       onClick={() => {
+                            setPromotions(prev => {
+                                const already = prev.__shownCount || prev.length || 0;
+                                const next = promoData.slice(already, already + 10).map(item => {
+                                    const prop = item.property || {};
+                                    return {
+                                        ...prop,
+                                        __key: prop.__key || prop.id || item.promoId || `promo-${already + Math.random()}`,
+                                        _promoMeta: { promoId: item.promoId, discountPercent: item.discountPercent },
+                                        likes: prop.likes || 0,
+                                        comments: prop.comments || []
+                                    };
+                                });
+                                const newList = [...prev, ...next];
+                                newList.__shownCount = already + next.length;
+                                return newList;
                             });
-                            const newList = [...prev, ...next];
-                            newList.__shownCount = already + next.length;
-                            return newList;
-                        });
-                    }}>Voir plus d'offre</Button>
+                        }}
+                       style={{
+                           background: 'linear-gradient(135deg, #0f5132 0%, #083822 100%)',
+                           border: 'none',
+                           borderRadius: '12px',
+                           padding: '14px 40px',
+                           fontSize: '1.05rem',
+                           fontWeight: 700,
+                           letterSpacing: '0.5px',
+                           boxShadow: '0 6px 20px rgba(15, 81, 50, 0.3)',
+                           transition: 'all 0.3s ease'
+                       }}
+                       onMouseEnter={(e) => {
+                           e.target.style.transform = 'translateY(-3px)';
+                           e.target.style.boxShadow = '0 8px 28px rgba(15, 81, 50, 0.4)';
+                       }}
+                       onMouseLeave={(e) => {
+                           e.target.style.transform = 'translateY(0)';
+                           e.target.style.boxShadow = '0 6px 20px rgba(15, 81, 50, 0.3)';
+                       }}
+                   >
+                       ⬇️ Voir plus d'offres
+                   </Button>
                 </div>
             </section>
 

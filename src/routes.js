@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import PrivateRoute from './components/PrivateRoute';
 import Home from './pages/Home';
 import PropertyDetails from './pages/PropertyDetails';
-import PromotionDetails from './pages/PromotionDetails';
+import PromotionDetails from './pages/PromotionDetailsNew';
 import Agents from './pages/Agents';
 import AgentDetails from './pages/AgentDetails';
 import Login from './pages/Login';

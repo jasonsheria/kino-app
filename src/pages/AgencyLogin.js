@@ -20,7 +20,7 @@ export default function AgencyLogin(){
   };
 
   return (
-    <div className="auth-page" style={{paddingTop:40,paddingBottom:40}}>
+    <div className="auth-page" style={{display : 'flex', alignItems : 'center', justifyContent : 'center', minHeight : '100vh', padding: '1rem'}}>
       <div className="auth-card shadow-sm" style={{maxWidth:960}}>
         <div className="auth-illustration" aria-hidden>
           <img src={require('../img/header.jpg')} alt="illustration" />
@@ -39,9 +39,28 @@ export default function AgencyLogin(){
 
           <form onSubmit={submit}>
             <div className="mb-3">
+
+              {/* Email */}
               <label htmlFor="agency-email" className="form-label small">Email de l'agence</label>
               <input id="agency-email" type="email" className="form-control" value={email} onChange={e=> setEmail(e.target.value)} placeholder="contact@agence.cd" autoComplete="email" />
+
+              {/* Password */}
+
+              <label htmlFor="agency-password" className="form-label small">Password de l'agence</label>
+              <input id="agency-password" type="password" className="form-control" placeholder="Votre mot de passe" autoComplete="current-password" />
+
+
             </div>
+             <div className="mb-3">
+               <div className="mb-3">
+                <Link to="/agency/login-google" className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center">
+                  <FaGoogle className="me-2" /> Se connecter avec Google
+                </Link>
+               </div>
+             </div>
+             <div className="mb-3">
+              <Link to="/agency/onboard" className="small">Vous avez oublié l'email de votre agence ?</Link>
+             </div>
 
             {err && <div className="alert alert-danger py-2 mb-3 small">{err}</div>}
 

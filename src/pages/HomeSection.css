@@ -1065,7 +1065,7 @@ img {
   }
 
   img {
-    max-height: 300px;
+    /* max-height: 300px; */
     object-fit: cover;
   }
 

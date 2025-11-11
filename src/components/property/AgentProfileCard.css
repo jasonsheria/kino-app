@@ -1,0 +1,600 @@
+/* ============================================
+   AGENT PROFILE CARD - Styles modernes et réactifs
+   ============================================ */
+
+.agent-profile-card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.5s ease-out;
+}
+
+.agent-profile-card:hover {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+/* ============================================
+   HEADER AVEC FOND DÉGRADÉ
+   ============================================ */
+
+.agent-profile-header {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+}
+
+.agent-header-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  }
+}
+
+/* Avatar circulaire */
+.agent-avatar-container {
+  position: absolute;
+  bottom: -30px;
+  left: 20px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.agent-avatar-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid white;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Badge Top Agent */
+.badge-top-agent {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ============================================
+   CONTENU DU PROFIL
+   ============================================ */
+
+.agent-profile-content {
+  padding: 50px 24px 24px;
+}
+
+/* Titre et infos de base */
+.agent-profile-header-text {
+  margin-bottom: 20px;
+  animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+.agent-name-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.agent-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.badge-verified {
+  color: #0f5132;
+  font-size: 1.1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.agent-title {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0;
+  font-weight: 500;
+}
+
+.agent-location {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  color: #888;
+}
+
+/* ============================================
+   ÉVALUATION ET COTE
+   ============================================ */
+
+.agent-rating-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f8f9ff;
+  border-radius: 12px;
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.rating-stars {
+  display: flex;
+  align-items: center;
+}
+
+.stars-container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.star {
+  font-size: 1.1rem;
+  color: #ddd;
+  transition: all 0.2s ease;
+}
+
+.star.filled {
+  color: #ffc107;
+  text-shadow: 0 0 6px rgba(255, 193, 7, 0.4);
+}
+
+.star.empty {
+  color: #ddd;
+}
+
+.star-half {
+  position: relative;
+  display: inline-block;
+}
+
+.star-half .star {
+  position: absolute;
+  width: 0.55em;
+  overflow: hidden;
+}
+
+.rating-value {
+  font-size: 1.3rem;
+  color: #ffc107;
+}
+
+.rating-count {
+  color: #999;
+}
+
+/* ============================================
+   BADGES ET CERTIFICATIONS
+   ============================================ */
+
+.agent-badges-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+  animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.badge-certification {
+  background: #e7f5ff;
+  color: #0066cc;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #b3d9ff;
+  transition: all 0.2s ease;
+}
+
+.badge-certification:hover {
+  background: #cce5ff;
+  transform: translateY(-2px);
+}
+
+.badge-achievement {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.badge-achievement:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================
+   STATISTIQUES EN GRILLE
+   ============================================ */
+
+.agent-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 12px;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: white;
+  color: #667eea;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 500;
+}
+
+/* ============================================
+   SECTION DESCRIPTION
+   ============================================ */
+
+.agent-description-section {
+  margin: 20px 0;
+  animation: fadeInUp 0.6s ease-out 0.5s both;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #667eea;
+}
+
+.agent-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-left: 4px solid #667eea;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.agent-description:hover {
+  background: #f0f4ff;
+}
+
+/* ============================================
+   BOUTONS D'ACTION
+   ============================================ */
+
+.agent-action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 20px 0;
+  animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.btn-action {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  color: white;
+}
+
+.btn-whatsapp {
+  background: linear-gradient(135deg, #25d366 0%, #20ba58 100%);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.btn-whatsapp:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 211, 102, 0.3);
+  background: linear-gradient(135deg, #20ba58 0%, #1aa74a 100%);
+}
+
+.btn-phone {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.btn-phone:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.3);
+  background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+}
+
+.btn-email {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.btn-email:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 107, 107, 0.3);
+  background: linear-gradient(135deg, #ee5a52 0%, #dd4337 100%);
+}
+
+.btn-facebook {
+  background: linear-gradient(135deg, #1877f2 0%, #0a66c2 100%);
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);
+  grid-column: 1 / -1;
+}
+
+.btn-facebook:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 119, 242, 0.3);
+  background: linear-gradient(135deg, #0a66c2 0%, #003d82 100%);
+}
+
+/* ============================================
+   BOUTON "VOIR PLUS"
+   ============================================ */
+
+.btn-view-more {
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 2px solid #667eea;
+  color: #667eea;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out 0.7s both;
+}
+
+.btn-view-more:hover {
+  background: #667eea;
+  color: white;
+  transform: translateX(4px);
+}
+
+/* ============================================
+   DIVIDER
+   ============================================ */
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #ddd 50%, transparent 100%);
+  margin: 16px 0;
+}
+
+/* ============================================
+   ANIMATIONS UTILITAIRES
+   ============================================ */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .agent-profile-card {
+    border-radius: 14px;
+  }
+
+  .agent-profile-content {
+    padding: 45px 16px 16px;
+  }
+
+  .agent-avatar-large {
+    width: 80px;
+    height: 80px;
+  }
+
+  .agent-name {
+    font-size: 1.3rem;
+  }
+
+  .agent-action-buttons {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .btn-facebook {
+    grid-column: 1;
+  }
+
+  .agent-stats-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .badge-certification,
+  .badge-achievement {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .agent-profile-header {
+    height: 120px;
+  }
+
+  .agent-avatar-container {
+    bottom: -25px;
+    left: 16px;
+  }
+
+  .agent-avatar-large {
+    width: 70px;
+    height: 70px;
+  }
+
+  .agent-profile-content {
+    padding: 40px 12px 12px;
+  }
+
+  .agent-name {
+    font-size: 1.1rem;
+  }
+
+  .agent-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 12px;
+    margin: 16px 0;
+  }
+
+  .stat-item {
+    gap: 8px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .rating-stars {
+    flex-wrap: wrap;
+  }
+
+  .agent-badges-section {
+    gap: 6px;
+  }
+
+  .btn-action {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+}

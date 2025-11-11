@@ -9,6 +9,8 @@ import {
   Rating,
   Chip,
   Button,
+  Stack,
+  CardMedia,
   Divider,
   Avatar,
   List,

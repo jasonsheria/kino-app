@@ -1,0 +1,785 @@
+/* ========================================
+   PromoCard.css - Design Professionnel
+   ======================================== */
+
+/* Root Variables */
+:root {
+  --promo-primary: #667eea;
+  --promo-secondary: #764ba2;
+  --promo-accent: #d7263d;
+  --promo-success: #0f5132;
+  --promo-warning: #ff9800;
+  --promo-danger: #d32f2f;
+  --promo-light: #f8f9fa;
+  --promo-text-dark: #1e293b;
+  --promo-text-light: #64748b;
+  --promo-border: #e2e8f0;
+  --promo-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --promo-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --promo-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --promo-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --promo-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --promo-radius: 16px;
+}
+
+/* ========================================
+   Main Card Container
+   ======================================== */
+.promo-card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.promo-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--promo-radius);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  transition: var(--promo-transition);
+  position: relative;
+
+  /* 3D Perspective Effect */
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.promo-card:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(31, 38, 135, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* ========================================
+   Badge - Hot/Trending
+   ======================================== */
+.promo-badge-hot {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  z-index: 20;
+  backdrop-filter: blur(10px);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.promo-badge-hot.hot {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.95) 0%, rgba(215, 38, 61, 0.95) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(215, 38, 61, 0.4);
+}
+
+.promo-badge-hot.trending {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ========================================
+   Image Section
+   ======================================== */
+.promo-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(200, 200, 255, 0.3) 100%);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.promo-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.1) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.promo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--promo-transition);
+  display: block;
+}
+
+.promo-card:hover .promo-image {
+  transform: scale(1.08) rotate(1deg);
+  filter: brightness(1.1) saturate(1.1);
+}
+
+/* ========================================
+   Discount Badge - Animated
+   ======================================== */
+.promo-discount-badge {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  animation: badge-float 3s ease-in-out infinite;
+}
+
+.badge-content {
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(211, 47, 47, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.badge-percent {
+  font-size: 1.4rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.badge-save {
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  opacity: 0.95;
+}
+
+@keyframes badge-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+}
+
+/* ========================================
+   Category Tag
+   ======================================== */
+.promo-category-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--promo-accent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+/* ========================================
+   Content Section
+   ======================================== */
+.promo-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 24px;
+  gap: 12px;
+}
+
+/* Title */
+.promo-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--promo-primary) 0%, var(--promo-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+/* Description */
+.promo-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--promo-text-light);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ========================================
+   Price Section
+   ======================================== */
+.promo-price-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12px;
+  border-left: 4px solid var(--promo-primary);
+  margin: 8px 0;
+}
+
+.promo-old-price {
+  font-size: 1rem;
+  color: var(--promo-text-light);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--promo-accent);
+  font-weight: 500;
+}
+
+.promo-new-price {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--promo-success) 0%, #0f7338 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -1px;
+}
+
+.promo-savings {
+  font-size: 0.85rem;
+  color: var(--promo-success);
+  font-weight: 700;
+  background: rgba(15, 81, 50, 0.1);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 81, 50, 0.2);
+}
+
+/* ========================================
+   Limited Offer Banner
+   ======================================== */
+.promo-limited-banner {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 193, 7, 0.15) 100%);
+  border-left: 4px solid var(--promo-warning);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e65100;
+  animation: banner-slide 0.6s ease-out;
+}
+
+@keyframes banner-slide {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   Stats Section
+   ======================================== */
+.promo-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  color: var(--promo-text-light);
+  font-weight: 600;
+  transition: var(--promo-transition);
+}
+
+.stat-item:hover {
+  color: var(--promo-primary);
+  transform: scale(1.05);
+}
+
+.stat-icon {
+  font-size: 1.2rem;
+  display: inline-block;
+}
+
+.stat-value {
+  color: var(--promo-primary);
+  font-weight: 800;
+}
+
+.trending-indicator {
+  margin-left: auto;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border-radius: 8px;
+  color: var(--promo-primary);
+  font-size: 0.85rem;
+}
+
+/* ========================================
+   Comments Preview
+   ======================================== */
+.promo-comments-preview {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.comment-preview {
+  padding: 8px 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.comment-preview:last-child {
+  border-bottom: none;
+}
+
+.comment-author {
+  color: var(--promo-text-dark);
+  font-weight: 700;
+}
+
+.comment-text {
+  color: var(--promo-text-light);
+  margin-left: 8px;
+}
+
+.comments-more {
+  padding: 8px 0;
+  font-size: 0.85rem;
+  color: var(--promo-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========================================
+   Action Buttons
+   ======================================== */
+.promo-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.promo-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--promo-transition);
+  color: var(--promo-text-dark);
+}
+
+.promo-action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--promo-shadow-md);
+}
+
+.promo-action-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Like Button */
+.like-btn {
+  border-color: #ffc0cb;
+  color: #d7263d;
+}
+
+.like-btn:hover:not(.liked) {
+  background: rgba(215, 38, 61, 0.15);
+  border-color: var(--promo-accent);
+}
+
+.like-btn.liked {
+  background: linear-gradient(135deg, #ff6b6b 0%, #d7263d 100%);
+  border-color: #d7263d;
+  color: white;
+  animation: like-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes like-bounce {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Share Button */
+.share-btn {
+  border-color: #b3d9ff;
+  color: var(--promo-primary);
+}
+
+.share-btn:hover {
+  background: rgba(102, 126, 234, 0.08);
+  border-color: var(--promo-primary);
+}
+
+/* View Button */
+.view-btn {
+  background: linear-gradient(135deg, var(--promo-primary) 0%, var(--promo-secondary) 100%);
+  color: white;
+  border: none;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.view-btn:hover {
+  background: linear-gradient(135deg, #5a6fd4 0%, #6b3d92 100%);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+}
+
+/* ========================================
+   Comment Input
+   ======================================== */
+.promo-comment-input {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: var(--promo-transition);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.comment-input-field:focus {
+  outline: none;
+  border-color: var(--promo-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.comment-input-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-cancel,
+.btn-send {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--promo-transition);
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: var(--promo-text-dark);
+}
+
+.btn-cancel:hover {
+  background: #cbd5e1;
+}
+
+.btn-send {
+  background: var(--promo-success);
+  color: white;
+}
+
+.btn-send:hover {
+  background: #0d3d29;
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Comment Toggle Button
+   ======================================== */
+.promo-comment-toggle {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--promo-text-light);
+  cursor: pointer;
+  transition: var(--promo-transition);
+}
+
+.promo-comment-toggle:hover {
+  border-color: var(--promo-primary);
+  color: var(--promo-primary);
+  background: rgba(102, 126, 234, 0.08);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .promo-card {
+    max-width: 100%;
+  }
+
+  .promo-content {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .promo-title {
+    font-size: 1.1rem;
+  }
+
+  .promo-image-wrapper {
+    height: 180px;
+  }
+
+  .promo-actions {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .view-btn {
+    flex: 1 !important;
+  }
+
+  .promo-stats {
+    font-size: 0.85rem;
+    gap: 12px;
+  }
+
+  .trending-indicator {
+    margin-left: 0;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .promo-card-wrapper {
+    padding: 0;
+  }
+
+  .promo-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .promo-content {
+    padding: 14px;
+  }
+
+  .promo-image-wrapper {
+    height: 150px;
+  }
+
+  .promo-title {
+    font-size: 0.95rem;
+  }
+
+  .promo-new-price {
+    font-size: 1.3rem;
+  }
+
+  .promo-badge-hot {
+    padding: 6px 10px;
+    font-size: 0.65rem;
+  }
+
+  .badge-content {
+    padding: 10px 12px;
+  }
+
+  .badge-percent {
+    font-size: 1.2rem;
+  }
+
+  .promo-action-btn {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .promo-stats {
+    font-size: 0.8rem;
+    gap: 10px;
+  }
+
+  .comment-preview {
+    font-size: 0.8rem;
+  }
+
+  .promo-actions {
+    flex-direction: row;
+    gap: 6px;
+  }
+}
+
+/* ========================================
+   Dark Mode Support
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .promo-card {
+    /* background: rgba(30, 41, 59, 0.6); */
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .promo-content {
+    color: #e2e8f0;
+  }
+
+  .promo-title {
+    background: linear-gradient(135deg, #93c5fd 0%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .promo-description {
+    color: #cbd5e1;
+  }
+
+  .promo-price-section {
+    background: rgba(102, 126, 234, 0.15);
+    border-left-color: #93c5fd;
+  }
+
+  .promo-limited-banner {
+    background: rgba(255, 152, 0, 0.2);
+  }
+
+  .promo-comments-preview {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
+  .comment-preview {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .promo-action-btn {
+    background: rgba(51, 65, 85, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+  }
+
+  .promo-action-btn:hover {
+    background: rgba(51, 65, 85, 0.8);
+  }
+
+  .promo-comment-toggle {
+    background: rgba(15, 23, 42, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+  }
+
+  .comment-input-field {
+    background: rgba(51, 65, 85, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+  }
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+  .promo-actions,
+  .promo-comment-toggle,
+  .promo-comment-input {
+    display: none !important;
+  }
+
+  .promo-card {
+    box-shadow: none;
+    border: 1px solid #999;
+  }
+}

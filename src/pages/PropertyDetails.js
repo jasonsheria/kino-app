@@ -8,6 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../pages/HomeSection.css';
+import '../pages/PropertyDetails.css';
 import ChatWidget from '../components/common/ChatWidget';
 import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
@@ -15,6 +16,9 @@ import '../components/property/PropertyCard.css';
 import VisitBookingModal from '../components/common/VisitBookingModal';
 import { Button, IconButton } from '@mui/material';
 import HomeLayout from '../components/homeComponent/HomeLayout';
+import AgentProfileCard from '../components/property/AgentProfileCard';
+import SuggestionsEnhanced from '../components/property/SuggestionsEnhanced';
+import AmenitiesSection from '../components/property/AmenitiesSection';
 // Redesigned image carousel (thumbnail strip + main image + simple autoplay)
 function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   const [current, setCurrent] = useState(0);
@@ -443,72 +447,6 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   );
 }
 
-// Local helper component for agent block with reservation logic
-const AgentBlockWithReservation = ({ agent, property }) => {
-  const [showContact, setShowContact] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
-  const [isReserved, setIsReserved] = useState(() => {
-    try {
-      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String); return reserved.includes(String(property.id)) || Boolean(property.isReserved);
-    } catch (e) {
-      return Boolean(property.isReserved);
-    }
-  });
-
-  useEffect(() => {
-    console.log("agent is :", agent);
-    const handler = (e) => { const reservedId = e?.detail?.propertyId; if (String(reservedId) === String(property.id)) setIsReserved(true); };
-    const storageHandler = (e) => { if (e.key === 'reserved_properties') { try { const reserved = JSON.parse(e.newValue || '[]').map(String); if (reserved.includes(String(property.id))) setIsReserved(true); } catch (_) { } } };
-    window.addEventListener('property-reserved', handler); window.addEventListener('storage', storageHandler);
-    return () => { window.removeEventListener('property-reserved', handler); window.removeEventListener('storage', storageHandler); };
-  }, [property.id]);
-
-  const handleSuccess = () => {
-    setIsReserved(true);
-    setShowBooking(false);
-    try {
-      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-      if (!reserved.includes(String(property.id))) {
-        reserved.push(String(property.id));
-        localStorage.setItem('reserved_properties', JSON.stringify(reserved));
-      }
-    } catch (e) { }
-  };
-
-
-  const agentName = agent?.prenom || agent?.name || 'Agent';
-  const agentPhoto = (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.photo || agent?.image || agent?.avatar || '');
-  const agentPhone = agent?.whatsapp || agent?.phone || '';
-  const agentFacebook = agent?.facebook || agent?.fb || '';
-
-  return (
-    <div className="property-agent d-flex align-items-center mt-3 p-2 rounded-3 bg-light">
-      <div className="property-agent-inner">
-        <div className="agent-left">
-          <div className="agent-avatar-wrapper"><img src={agentPhoto} alt={agentName} className="agent-thumb" /></div>
-          <div className="agent-meta"><div className="fw-semibold small agent-name">{agentName}</div><div className="small text-muted agent-phone">{agentPhone}</div></div>
-        </div>
-        <div className="agent-right">
-          {!isReserved ? (
-            <button className="btns btn-primary reserve-btn" onClick={() => setShowBooking(true)}>Réserver une visite</button>
-          ) : (
-            <div className="agent-contact-buttons">
-              <span className="badge bg-success reserve-badge">Réservé</span>
-              <button className="btns btn-outline-success ms-2 contact-icon" onClick={() => setShowContact(true)} title="WhatsApp"><FaWhatsapp /></button>
-              {agentFacebook ? (
-                <a href={agentFacebook} className="btns btn-outline-primary ms-2 contact-icon" target="_blank" rel="noopener noreferrer"><FaFacebook /></a>
-              ) : null}
-              <button className="btns btn-outline-dark ms-2 contact-icon" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: agent?.id || agent?._id, propertyId: property.id } } }))}><FaPhone /></button>
-            </div>
-          )}
-        </div>
-      </div>
-      {showContact && <AgentContactModal agent={agent} open={showContact} onClose={() => setShowContact(false)} />}
-      {showBooking && <VisitBookingModal open={showBooking} onClose={() => setShowBooking(false)} onSuccess={handleSuccess} agent={agent} property={property} />}
-    </div>
-  );
-};
-
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -554,6 +492,10 @@ const PropertyDetails = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   // map selection state for floating detail panel
   const [selectedMapProperty, setSelectedMapProperty] = useState(null);
+  // Booking modal state
+  const [showBooking, setShowBooking] = useState(false);
+  // Track if property is already reserved
+  const [isReserved, setIsReserved] = useState(false);
 
   // Try fetching user-scoped agents if we couldn't resolve and local agents list is empty
   useEffect(() => {
@@ -600,6 +542,31 @@ const PropertyDetails = () => {
       // ignore
     }
   }, [property, agents]);
+
+  // Check if property is already reserved
+  useEffect(() => {
+    if (property) {
+      try {
+        const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+        const isPropertyReserved = reserved.includes(String(property.id || property._id));
+        setIsReserved(isPropertyReserved);
+      } catch (e) {
+        setIsReserved(false);
+      }
+    }
+  }, [property]);
+
+  // Listen for property-reserved event to update reservation status
+  useEffect(() => {
+    const handlePropertyReserved = (event) => {
+      if (String(event.detail?.propertyId) === String(property?.id || property?._id)) {
+        setIsReserved(true);
+      }
+    };
+    
+    window.addEventListener('property-reserved', handlePropertyReserved);
+    return () => window.removeEventListener('property-reserved', handlePropertyReserved);
+  }, [property]);
 
   // Neighborhood scores state (can be updated by evaluation)
   // Compute initial neighborhood deterministically without reading `property` when missing
@@ -746,7 +713,10 @@ return (
         <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
         <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
       </div>
+      
+      {/* Layout principal - 3 colonnes (main content + right sidebar) */}
       <div className="row">
+        {/* COLONNE GAUCHE - Images et détails principaux (70%) */}
         <div className="col-12 col-lg-7 mb-4 mb-lg-0">
           <div className="card shadow-lg border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
             <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
@@ -760,7 +730,11 @@ return (
                   </div>
                 </div>
                 <div className="text-end">
-                  <div className="fs-5 text-success fw-bold"><FaRegMoneyBillAlt className="me-2" />{property.price.toLocaleString()} $</div>
+                  <div className="price-display">
+                    <FaRegMoneyBillAlt />
+                    <span className="price-value">{property.price.toLocaleString()}</span>
+                    <span className="price-currency">$</span>
+                  </div>
                 </div>
               </div>
 
@@ -777,7 +751,7 @@ return (
                 </div>
               )}
 
-              <div className="d-flex justify-content-end gap-2 mb-3">
+              <div className="d-flex justify-content-end gap-2 mb-3 mt-3">
                 <Button variant="contained"
                   color="primary"
                   onClick={() => navigate(-1)}>Retour</Button>
@@ -810,40 +784,41 @@ return (
                 </div>
               )}
 
-              {/* Agent block (responsive, reuse property styles) */}
-              {resolvedAgent && (
-                <AgentBlockWithReservation agent={resolvedAgent} property={property} />
-              )}
+              {/* Amenities Section */}
+              <AmenitiesSection property={property} />
             </div>
           </div>
         </div>
 
+        {/* COLONNE DROITE - Profil agent et suggestions (30%) */}
         <div className="col-12 col-lg-5 mt-4 mt-lg-0">
-          <div className="mb-4">
-            <h5 className="fw-bold text-primary mb-2">Suggestions</h5>
-            <div className="row g-3">
-              {suggestions.map(sug => {
-                const sugAgent = agents.find(a => String(a.id) === String(sug.agentId));
-                return (
-                  <div className="col-12" key={sug.id}>
-                    <div className="card border-0 shadow-sm h-100" style={{ cursor: 'pointer' }} onClick={() => navigate(`/properties/${sug.id}`)}>
-                      <div className="d-flex align-items-center gap-2 p-2">
-                        <img src={process.env.REACT_APP_BACKEND_APP_URL + sug.images[0]} alt={sug.name} className="rounded" style={{ width: 110, height: 80, objectFit: 'cover' }} />
-                        <div className="flex-grow-1">
-                          <div className="fw-semibold small text-success">{sug.name}</div>
-                          <div className="small text-muted">{sug.type} • {sug.price.toLocaleString()} $</div>
-                          {sugAgent && <div className="small text-secondary">{sugAgent.name}</div>}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Profil Agent enrichi */}
+          {resolvedAgent && (
+            <div className="mb-4">
+              <AgentProfileCard 
+                agent={resolvedAgent} 
+                property={property}
+                isReserved={isReserved}
+                onContactClick={(type) => {
+                  if (type === 'whatsapp' && resolvedAgent.whatsapp) {
+                    window.open(`https://wa.me/${resolvedAgent.whatsapp.replace(/[^0-9]/g, '')}`, '_blank');
+                  } else if (type === 'phone' && resolvedAgent.phone) {
+                    window.location.href = `tel:${resolvedAgent.phone}`;
+                  } else if (type === 'email' && resolvedAgent.email) {
+                    window.location.href = `mailto:${resolvedAgent.email}`;
+                  } else if (type === 'reservation') {
+                    setShowBooking(true);
+                  }
+                }}
+                onViewMoreClick={() => {
+                  navigate(`/agents/${resolvedAgent.id || resolvedAgent._id}`);
+                }}
+              />
             </div>
-          </div>
+          )}
 
-          <div className="rounded-4 overflow-hidden border" style={{ height: 260, position: 'relative' }}>
-
+          {/* Carte */}
+          <div className="rounded-4 overflow-hidden border mb-4" style={{ height: 320, position: 'relative' }}>
             <MapContainer center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {/* Main property marker */}
@@ -912,15 +887,15 @@ return (
 
             {/* Floating detail panel when a marker is selected */}
             {selectedMapProperty && (
-              <div style={{ position: 'absolute', right: 12, top: 12, width: 320, zIndex: 9999 }}>
+              <div style={{ position: 'absolute', right: 12, top: 12, width: 300, zIndex: 9999 }}>
                 <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
                   <div style={{ display: 'flex' }}>
-                    <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 120, height: 90, objectFit: 'cover' }} />
+                    <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 100, height: 80, objectFit: 'cover' }} />
                     <div style={{ padding: 12, flex: 1 }}>
-                      <div style={{ fontWeight: 700 }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
                       <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
-                      <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
-                      <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                      <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132', fontSize: '0.9rem' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
+                      <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
                         <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
                         <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
                         <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
@@ -931,6 +906,9 @@ return (
               </div>
             )}
           </div>
+
+          {/* Suggestions enrichies */}
+          <SuggestionsEnhanced suggestions={suggestions} agents={agents} />
         </div>
       </div>
 
@@ -1004,6 +982,23 @@ return (
 
     {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
 
+    {/* Modal de réservation visite */}
+    {showBooking && (
+      <VisitBookingModal 
+        open={showBooking}
+        property={property}
+        agent={resolvedAgent}
+        onClose={() => setShowBooking(false)}
+        onSubmit={(bookingData) => {
+          console.log('Booking submitted:', bookingData);
+          setShowBooking(false);
+        }}
+        onSuccess={(bookingData) => {
+          console.log('Booking success:', bookingData);
+          setShowBooking(false);
+        }}
+      />
+    )}
 
     <FooterPro />
   </div>
