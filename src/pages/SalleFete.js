@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pagination, Stack } from '@mui/material';
+import { Pagination, Stack, Button } from '@mui/material';
 import Navbar from '../components/common/Navbar';
 import PropertyCard from '../components/property/PropertyCard';
 import PropertyFilterBar from '../components/property/PropertyFilterBar';
@@ -57,7 +57,13 @@ const SalleFete = () => {
     setFiltered(out);
     setPage(1);
   };
-
+const scrollToId = (id) => {
+        try {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else window.location.hash = id;
+        } catch (e) { /* ignore */ }
+    };
   return (
     <>
        <HomeLayout/>
@@ -121,14 +127,20 @@ const SalleFete = () => {
           <MapView />
         </div>
       </div>
-       {/* Call to action */}
-                  <div className="bg-success text-white text-center py-5">
-                      <div className="container">
-                          <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
-                          <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-                          <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill" style={{ fontSize: '1.2rem', minWidth: 180 }}>Devenir agent</a>
-                      </div>
-                  </div>
+        {/* Call to action */}
+            <div className=" text-white text-center py-5" style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                background : 'var(--ndaku-primary)',
+            }}>
+                <div className="container">
+                    <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
+                    <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+                   <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
+                </div>
+            </div >
       
                   {/* Footer pro et interactif */}
                  

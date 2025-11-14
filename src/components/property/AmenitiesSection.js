@@ -100,7 +100,7 @@ const AmenitiesSection = ({ property = {} }) => {
       </motion.div>
 
       {/* Section des équipements principaux (si présents) */}
-      {(property.chambres || property.douches || property.sdb || property.cuisine) && (
+      {(property.chambres || property.sdb || property.cuisine || property.salon) && (
         <div className="main-features-section">
           <h6 className="features-title">Caractéristiques principales</h6>
           <div className="main-features-grid">
@@ -118,21 +118,10 @@ const AmenitiesSection = ({ property = {} }) => {
             {property.douches && (
               <div className="main-feature-item">
                 <div className="feature-icon-main">
-                  <FaFaucet />
-                </div>
-                <div className="feature-content-main">
-                  <div className="feature-value">{property.douches}</div>
-                  <div className="feature-name">Douche{property.douches > 1 ? 's' : ''}</div>
-                </div>
-              </div>
-            )}
-            {property.sdb && (
-              <div className="main-feature-item">
-                <div className="feature-icon-main">
                   <FaFaucet style={{ transform: 'rotate(90deg)' }} />
                 </div>
                 <div className="feature-content-main">
-                  <div className="feature-value">{property.sdb}</div>
+                  <div className="feature-value">{property.douches}</div>
                   <div className="feature-name">Salle de bain</div>
                 </div>
               </div>
@@ -145,6 +134,17 @@ const AmenitiesSection = ({ property = {} }) => {
                 <div className="feature-content-main">
                   <div className="feature-value">{property.cuisine}</div>
                   <div className="feature-name">Cuisine{property.cuisine > 1 ? 's' : ''}</div>
+                </div>
+              </div>
+            )}
+            {property.salon && (
+              <div className="main-feature-item">
+                <div className="feature-icon-main">
+                  <FaHome />
+                </div>
+                <div className="feature-content-main">
+                  <div className="feature-value">{property.salon}</div>
+                  <div className="feature-name">salon{property.salon > 1 ? 's' : ''}</div>
                 </div>
               </div>
             )}

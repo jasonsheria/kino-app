@@ -48,7 +48,7 @@ const TestimonialSlider = () => {
     <div className="testimonial-slider-container py-5 animate__animated animate__fadeInUp" style={{background: 'linear-gradient(120deg, #f8f9fa 60%, #e9f7f3 100%)'}}>
       <div className="container">
         <div className="section-title text-center mb-4">
-          <span className="icon-circle bg-success text-white me-3"><FaCommentDots size={28}/></span>
+          <span className="icon-circle  text-white me-3"><FaCommentDots size={28}/></span>
           <span className="fw-bold" style={{fontSize:'2.2rem', color:'#222', letterSpacing:'-1px'}}>Avis de nos utilisateurs</span>
         </div>
         <div className="d-flex justify-content-center align-items-center position-relative" style={{minHeight:260}}>

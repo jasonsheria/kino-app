@@ -415,11 +415,7 @@ html, body {
 }
 
 /* Make default bootstrap-like buttons more consistent and responsive */
-.btn {
-  border-radius: 999px;
-  padding: .55rem 1.1rem;
-  font-weight: 700;
-}
+
 
 .btn-lg {
   padding: .85rem 1.6rem;

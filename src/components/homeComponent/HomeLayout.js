@@ -266,7 +266,7 @@ export default function HomeLayout({ children }) {
           {/* Brand / logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12 }}>
             <img src="/img/logo.svg" alt="Kino App" style={{ width: 34, height: 34, marginRight: 8 }} />
-            <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 400, fontSize: "1rem", color: "#00c895" }}>K-App</Typography>
+            <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 400, fontSize: "1rem", color: "#138f6b" }}>K-App</Typography>
           </Link>
 
           {/* On mobile show a menu loicon that opens the sidebar. On desktop we render the primary navigation in the topbar. */}

@@ -3,14 +3,14 @@
    ============================================ */
 
 :root {
-  --ndaku-primary: #667eea;
-  --ndaku-secondary: #764ba2;
-  --ndaku-success: #0f5132;
-  --ndaku-danger: #dc3545;
-  --ndaku-warning: #ffc107;
-  --ndaku-info: #0dcaf0;
-  --ndaku-light: #f8f9fa;
-  --ndaku-dark: #1a1a1a;
+  --ndaku-primary: var(--color-primary, #138f6b);
+  --ndaku-secondary: var(--color-primary-dark, #0d5543);
+  --ndaku-success: var(--color-success, #10b981);
+  --ndaku-danger: var(--color-error, #ef4444);
+  --ndaku-warning: var(--color-warning, #f59e0b);
+  --ndaku-info: var(--color-info, #3b82f6);
+  --ndaku-light: var(--color-bg-primary, #ffffff);
+  --ndaku-dark: var(--color-text-primary, #1e293b);
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -222,103 +222,6 @@
   letter-spacing: -0.5px;
 }
 
-/* ============================================
-   BADGES STYLING
-   ============================================ */
-
-.badge {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  transition: var(--transition-smooth);
-}
-
-.badge.bg-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
-}
-
-.badge.bg-info {
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%) !important;
-  box-shadow: 0 2px 6px rgba(0, 188, 212, 0.15);
-}
-
-.badge.bg-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
-}
-
-.badge:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-}
-
-/* ============================================
-   BUTTONS STYLING
-   ============================================ */
-
-.btn {
-  font-weight: 600;
-  border-radius: 10px;
-  transition: var(--transition-smooth);
-  letter-spacing: 0.3px;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.btn:active::before {
-  width: 300px;
-  height: 300px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-
-.btn-outline-primary {
-  border: 2px solid #667eea;
-  color: #667eea;
-}
-
-.btn-outline-primary:hover {
-  background: #667eea;
-  border-color: #667eea;
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border: none;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
-}
-
-.btn-success:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-
 /* Bouton Réserver visite - Style spécial */
 .btn-reserve-visite {
   background: linear-gradient(135deg, #0f5132 0%, #083822 100%);
@@ -435,7 +338,7 @@
    ============================================ */
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--ndaku-dark);
+  color:#138f6b;
   font-weight: 700;
 }
 
@@ -605,7 +508,6 @@ a:focus, button:focus {
   }
 
   body {
-    background-color: #1a1a1a;
     color: #f8f9fa;
   }
 

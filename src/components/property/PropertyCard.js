@@ -286,7 +286,10 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const agentResolved = resolvedAgent;
   // Pour la map, on prend la géoloc de l'agent (sinon défaut Kinshasa)
   const mainPos = agentResolved?.geoloc || { lat: -4.325, lng: 15.322 };
-
+  function tronquerTexte(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
   return (
     <div className="card shadow-lg border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
@@ -307,9 +310,9 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       <div className="card-body">
         <div className="title-row">
           <h6 className="card-title mb-0">{displayName}</h6>
-          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1"/>{property.address}</div>
+          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1"/>{tronquerTexte(property.address, 30)}</div>
         </div>
-        <p className="card-desc text-secondary small">{property.description}</p>
+        <p className="card-desc text-secondary small"> {tronquerTexte((property.description), 40)}</p>
         <div className="features-row">
           {(property.chambres || property.douches || property.salon || property.cuisine) && (
             <>
@@ -320,7 +323,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
             </>
           )}
         </div>
-        <div className="d-flex justify-content-end">
+        <div className="d-flex justify-content-end mt-3">
           <button className="btns btn-primary btn-sm fw-bold" onClick={() => navigate(`/properties/${property.id}`)}>Voir le bien</button>
         </div>
         {/* Agent lié : toujours affiché, mais flouté/muted tant que non-réservé; le bouton de réservation reste actif */}

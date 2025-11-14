@@ -104,7 +104,7 @@ const Voitures = () => {
         </div>
       </div>
        {/* Call to action */}
-                  <div className="bg-success text-white text-center py-5">
+                  <div className=" text-white text-center py-5">
                       <div className="container">
                           <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
                           <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>

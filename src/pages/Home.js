@@ -548,7 +548,7 @@ const Home = () => {
             {/* Section Biens moderne (6 biens, 3 par ligne) */}
             <div className="container py-5" id="biens">
                 <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                    <span className="icon-circle bg-success text-white me-3"><FaHome size={28} /></span>
+                    <span className="icon-circle text-white me-3"><FaHome size={28} /></span>
                     <span className="fw-bold">Découvrez nos meilleures offres immobilières à Kinshasa</span>
                 </div>
                 <p className="text-center text-muted mb-4 ">Appartements, maisons, terrains, boutiques, magasins : trouvez le bien qui vous correspond vraiment.<br /><span className="text-success">Tala ndako, lopango, biloko nyonso ya sika na Kinshasa !</span></p>
@@ -834,7 +834,7 @@ const Home = () => {
             {/* Section Véhicules à louer ou à vendre */}
             <div className="container py-5" id="vehicules">
                 <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                    <span className="icon-circle bg-success text-white me-3"><FaCar size={28} /></span>
+                    <span className="icon-circle  text-white me-3"><FaCar size={28} /></span>
                     <span >Véhicules à louer ou à vendre</span>
                 </div>
                 <p className="text-center text-muted mb-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span>Location ou achat, tout est possible sur Ndaku !</span></p>
@@ -908,11 +908,11 @@ const Home = () => {
             <div className="bg-light py-5" id="agents">
                 <div className="container">
                     <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                        <span className="icon-circle bg-success text-white me-3"><FaUserFriends size={28} /></span>
+                        <span className="icon-circle  text-white me-3"><FaUserFriends size={28} /></span>
                         <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
-                    <div className="row justify-content-center">
+                    <div className="row justify-content-center" style={{gap: '70px'}}>
                         {(() => {
                             // make agent list deterministic and surface best matches first
                             const sorted = [...agents].sort((a, b) => {
@@ -984,7 +984,7 @@ const Home = () => {
                         <div key={t.id} className="col-12 col-md-4">
                             <div className="p-3 rounded-3 shadow-sm" style={{ minHeight: 110, fontSize: '0.95rem', background: 'var(--bs-body-bg, #fff)' }}>
                                 <div className="d-flex align-items-start gap-2">
-                                    <div className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, fontSize: 14 }}>
+                                    <div className="rounded-circle  text-white d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, fontSize: 14 }}>
                                         {t.name.charAt(0)}
                                     </div>
                                     <div>
@@ -1185,11 +1185,12 @@ const Home = () => {
                             });
                         }}
                        style={{
-                           background: 'linear-gradient(135deg, #0f5132 0%, #083822 100%)',
+                           background: 'linear-gradient(135deg, #667eea 0%)',
                            border: 'none',
                            borderRadius: '12px',
                            padding: '14px 40px',
                            fontSize: '1.05rem',
+                           color : 'white',
                            fontWeight: 700,
                            letterSpacing: '0.5px',
                            boxShadow: '0 6px 20px rgba(15, 81, 50, 0.3)',
@@ -1212,18 +1213,19 @@ const Home = () => {
             {/* Carte interactive des biens et position utilisateur */}
             <div className="container" style={{ paddingBottom: "3vh" }}>
                 <div className="section-title text-center mb-3 animate__animated animate__fadeInDown">
-                    <span className="icon-circle bg-success text-white me-3"><FaMapMarkerAlt size={28} /></span>
+                    <span className="icon-circle  text-white me-3"><FaMapMarkerAlt size={28} /></span>
                     <span className="fw-bold" style={{ fontSize: '2rem', color: theme.palette.text.primary }}>Carte des biens à Kinshasa</span>
                 </div>
                 <MapView />
             </div>
 
             {/* Call to action */}
-            <div className="bg-success text-white text-center py-5" style={{
+            <div className=" text-white text-center py-5" style={{
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                alignItems: "center"
+                alignItems: "center",
+                background : 'var(--ndaku-primary)',
             }}>
                 <div className="container">
                     <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>

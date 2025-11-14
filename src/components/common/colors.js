@@ -3,14 +3,14 @@
 // NOTE: MUI utilities require concrete color formats (hex/rgb) rather than CSS variables.
 // Expose both a hex value for MUI and the CSS variable string for pure-CSS usage.
 const CSS_PRIMARY = 'var(--ndaku-primary)';
-const PRIMARY_HEX = '#13c296';
+const PRIMARY_HEX = '#667eea';
 const PRIMARY_LIGHT_APPROX = '#eaf9f4'; // visual approximation of rgba(19,194,150,0.08)
 const colors = {
   primary: {
     // Hex values for MUI (safe for alpha() and other color helpers)
     main: PRIMARY_HEX,
     light: PRIMARY_LIGHT_APPROX,
-    dark: '#0ea078',
+    dark: '#4a4d4cff',
     contrastText: '#ffffff',
     // Keep the CSS variable available to components that render inline styles
     cssVar: CSS_PRIMARY,

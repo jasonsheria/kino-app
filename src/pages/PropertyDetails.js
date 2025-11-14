@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { properties, agents } from '../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaStepBackward, FaStepForward, FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaExpand, FaTimes } from 'react-icons/fa';
@@ -706,10 +706,16 @@ const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition
 return (
   <div>
     <HomeLayout/>
-    <div className="container" style={{ "marginTop": "85px" }}>
+    <div className="container" style={{ "marginTop": "25px" }}>
       {/* Page header */}
       <div className="mb-4">
-        <div className="small text-muted">Accueil / Annonces / Détails</div>
+          <div className="promo-breadcrumb">
+                <Link to="/">Accueil</Link>
+                <span className="breadcrumb-sep">/</span>
+                <Link to="/appartement">Annonce</Link>
+                <span className="breadcrumb-sep">/</span>
+                <span>{property.type}</span>
+              </div>
         <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
         <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
       </div>
@@ -971,11 +977,11 @@ return (
     </div>
     <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
     {/* Call to action */}
-    <div className="bg-success text-white text-center py-5">
+    <div className="text-white text-center py-5" style={{background : 'var(--ndaku-primary)', color : 'white'}}>
       <div className="container">
-        <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
-        <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-        <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill" style={{ fontSize: '1.2rem', minWidth: 180 }}>Devenir agent</a>
+        <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
+        <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+        <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill text-white" style={{ fontSize: '1.2rem', minWidth: 180, color : 'white' }}>Devenir agent</a>
       </div>
     </div>
 

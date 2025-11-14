@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './styles/ColorSystem.css';
 import './App.css';
 import { ThemeProvider, CssBaseline, IconButton, Tooltip } from '@mui/material';
 import { HashRouter } from 'react-router-dom';
@@ -77,7 +78,7 @@ function App() {
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
-                        color: "#0ea078",
+                        color: "white",
                         border: '2px solid var(--ndaku-primary)',
                         borderRadius: '50%',
                         width: 48,

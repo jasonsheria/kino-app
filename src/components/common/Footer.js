@@ -42,8 +42,6 @@ const Footer = () => {
     <Box
       component="footer"
       sx={{
-  bgcolor: isDark ? 'background.paper' : '#f8f9fa',
-  borderTop: '4px solid var(--ndaku-primary)',
         mt: 'auto',
         position: 'relative',
         '&::before': {
@@ -53,9 +51,7 @@ const Footer = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: isDark ? 
-            'linear-gradient(45deg, rgba(19,194,150,0.03) 0%, rgba(19,194,150,0) 100%)' : 
-            'linear-gradient(45deg, rgba(19,194,150,0.05) 0%, rgba(255,255,255,0) 100%)',
+     
           pointerEvents: 'none'
         }
       }}
@@ -70,9 +66,9 @@ const Footer = () => {
                   variant="h4"
                     sx={{ 
                     fontWeight: 800,
-                    color: 'var(--ndaku-primary)',
                     letterSpacing: 2,
-                    mb: 1
+                    mb: 1,
+                   color: "#00a8a7"
                   }}
                 >
                   NDAKU
@@ -80,7 +76,7 @@ const Footer = () => {
                 <Typography 
                   variant="subtitle2"
                   sx={{
-                    color: isDark ? 'var(--ndaku-primary)' : '#10a37f',
+                    color: isDark ? 'var(--ndaku-primary)' : '#667eea',
                     letterSpacing: 3,
                     textTransform: 'uppercase'
                   }}
@@ -109,7 +105,7 @@ const Footer = () => {
                   textTransform: 'none',
                   px: 3,
                   '&:hover': {
-                    bgcolor: '#10a37f',
+                    bgcolor: '#667eea',
                     transform: 'translateY(-2px)',
                     transition: 'all 0.2s'
                   }
@@ -208,7 +204,7 @@ const Footer = () => {
                       alignItems: 'center',
                       ml: 7,
                       '&:hover': {
-                        color: '#10a37f',
+                        color: '#667eea',
                         textDecoration: 'underline'
                       }
                     }}
