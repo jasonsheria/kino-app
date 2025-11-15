@@ -870,29 +870,3 @@ body {
     order: -1;
   }
 }
-
-/* ========================================
-   Dark Mode Support
-   ======================================== */
-@media (prefers-color-scheme: dark) {
-  
-
-  .promo-gallery-section,
-  .promo-content-section,
-  .agent-section,
-  .suggestions-section,
-  .promo-quick-card,
-  .promo-footer {
-    background: rgba(30, 41, 59, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-  }
-
-  .promo-title {
-    color: #93c5fd;
-  }
-
-  .section-header {
-    color: #e2e8f0;
-  }
-}

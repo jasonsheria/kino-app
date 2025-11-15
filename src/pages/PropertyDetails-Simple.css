@@ -1,0 +1,732 @@
+/* ============================================================
+   PROPERTY DETAILS - SIMPLIFIED & CLEAN DESIGN
+   Design minimaliste avec focus sur la lisibilité et l'UX
+   ============================================================ */
+
+:root {
+  --ndaku-primary: var(--color-primary, #138f6b);
+  --ndaku-secondary: var(--color-primary-dark, #0d5543);
+  --ndaku-success: var(--color-success, #10b981);
+  --ndaku-danger: var(--color-error, #ef4444);
+  --ndaku-warning: var(--color-warning, #f59e0b);
+  --ndaku-info: var(--color-info, #3b82f6);
+  --ndaku-light: var(--color-bg-primary, #ffffff);
+  --ndaku-dark: var(--color-text-primary, #1e293b);
+  
+  /* Simplified Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+  
+  /* Transitions */
+  --transition: all 0.3s ease;
+}
+
+/* ============================================================
+   ANIMATIONS SIMPLES
+   ============================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   GLOBAL STYLES - CLEAN & SIMPLE
+   ============================================================ */
+
+body {
+  background-color: #ffffff;
+  color: var(--ndaku-dark);
+}
+
+.container {
+  background-color: #ffffff;
+  padding: 0 1rem;
+}
+
+/* ============================================================
+   PAGE HEADER - TITRE PRINCIPAL
+   ============================================================ */
+
+.promo-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+}
+
+.promo-breadcrumb a {
+  color: var(--ndaku-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.promo-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.promo-breadcrumb .breadcrumb-sep {
+  color: #999;
+}
+
+/* Titre Principal - SIMPLIFIÉ */
+.display-6 {
+  font-size: 2.2rem !important;
+  font-weight: 700 !important;
+  color: var(--ndaku-dark) !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0.75rem !important;
+  letter-spacing: -0.5px;
+  animation: slideUp 0.4s ease;
+}
+
+/* Description principale - ÉPURÉE */
+.property-details-container > .container > .mb-4 > p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 500px;
+}
+
+/* ============================================================
+   CARD PRINCIPAL - IMAGES ET DÉTAILS
+   ============================================================ */
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #d8d8d8;
+}
+
+/* Image Carousel - PROPRE ET MINIMALISTE */
+.image-carousel {
+  width: 100%;
+}
+
+.carousel-main {
+  position: relative;
+  overflow: hidden;
+  background-color: #f5f5f5;
+  border-radius: 8px 8px 0 0;
+}
+
+.carousel-main img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Thumbnails - SIMPLIFIÉS */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.carousel-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background-color: #ddd;
+  padding: 0;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.carousel-dots .dot.btn-success {
+  background-color: var(--ndaku-primary);
+}
+
+.carousel-dots .dot:hover {
+  background-color: #999;
+}
+
+/* Thumbnails images */
+.thumb {
+  width: 80px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #e8e8e8;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb:hover {
+  border-color: var(--ndaku-primary);
+}
+
+.thumb.border-success {
+  border-color: var(--ndaku-primary) !important;
+}
+
+/* ============================================================
+   CARD BODY - INFORMATIONS PROPERTY
+   ============================================================ */
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Titre et Prix - LAYOUT SIMPLIFIÉ */
+.card-body > .d-flex {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.card-body .fw-bold {
+  font-weight: 700 !important;
+  font-size: 1.2rem;
+  color: var(--ndaku-dark);
+}
+
+/* Prix Display - SIMPLIFIÉ */
+.price-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ndaku-primary);
+  background-color: transparent;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.price-display:hover {
+  background-color: #f8f8f8;
+  border-color: var(--ndaku-primary);
+}
+
+.price-display svg {
+  color: var(--ndaku-primary);
+  font-size: 1.2rem;
+}
+
+.price-currency {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+/* Adresse */
+.card-body .mb-2 {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Description */
+.card-body .text-secondary {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Badges pour chambres, douches, etc. */
+.card-body .d-flex.flex-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.75rem !important;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.card-body .badge {
+  background-color: #f0f0f0;
+  color: var(--ndaku-dark);
+  border: 1px solid #e8e8e8;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.card-body .badge:hover {
+  background-color: #e8e8e8;
+}
+
+.card-body .badge svg {
+  color: var(--ndaku-primary);
+  font-size: 1rem;
+}
+
+.badge.bg-info,
+.badge.bg-light,
+.badge.bg-secondary {
+  background-color: #f0f0f0 !important;
+  color: var(--ndaku-dark) !important;
+  border: 1px solid #e8e8e8 !important;
+}
+
+/* ============================================================
+   BUTTONS - SIMPLIFIÉ
+   ============================================================ */
+
+.btn {
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid;
+  transition: var(--transition);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-primary,
+.btn-success,
+.btn-contained {
+  background-color: var(--ndaku-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--ndaku-primary) !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover {
+  background-color: var(--ndaku-secondary) !important;
+  border-color: var(--ndaku-secondary) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-outline-primary,
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--ndaku-primary);
+  border-color: var(--ndaku-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover {
+  background-color: rgba(19, 143, 107, 0.05);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Flex gap for buttons */
+.d-flex.justify-content-end.gap-2 {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 1rem !important;
+  margin-top: 1.5rem;
+}
+
+/* ============================================================
+   NEIGHBORHOOD SECTION - INDICES DU QUARTIER
+   ============================================================ */
+
+.card.p-3 {
+  padding: 1.2rem !important;
+  margin-bottom: 1rem;
+}
+
+.card.p-3 h6 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ndaku-dark);
+  margin-bottom: 0.5rem;
+}
+
+.card.p-3 p {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.75rem;
+}
+
+.progress {
+  height: 6px;
+  background-color: #e8e8e8;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  background-color: var(--ndaku-primary);
+  transition: width 0.4s ease;
+  height: 100%;
+}
+
+/* ============================================================
+   LAYOUT PRINCIPAL - ROW 2 COLONNES
+   ============================================================ */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 0;
+}
+
+@media (max-width: 991px) {
+  .row {
+    gap: 1.5rem;
+  }
+}
+
+.col-12 {
+  flex: 0 0 100%;
+  padding: 0;
+}
+
+.col-lg-7 {
+  flex: 0 0 calc(66.666% - 1rem);
+}
+
+.col-lg-5 {
+  flex: 0 0 calc(33.333% - 1rem);
+}
+
+@media (max-width: 991px) {
+  .col-lg-7,
+  .col-lg-5 {
+    flex: 0 0 100%;
+  }
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+
+.mb-lg-0 {
+  margin-bottom: 0 !important;
+}
+
+.mt-4 {
+  margin-top: 1.5rem !important;
+}
+
+.mt-lg-0 {
+  margin-top: 0 !important;
+}
+
+/* ============================================================
+   MAP SECTION - SIMPLIFIÉE
+   ============================================================ */
+
+.rounded-4 {
+  border-radius: 8px;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.border {
+  border: 1px solid #e8e8e8;
+}
+
+/* Map container */
+.leaflet-container {
+  border-radius: 8px;
+}
+
+/* ============================================================
+   AMENITIES SECTION - ÉQUIPEMENTS
+   ============================================================ */
+
+.amenities-section {
+  margin-top: 1.5rem;
+}
+
+.amenities-section h5 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ndaku-dark);
+  margin-bottom: 0.75rem;
+}
+
+.amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.amenity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  padding: 0.5rem;
+  background-color: #f8f8f8;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.amenity-item svg {
+  color: var(--ndaku-primary);
+}
+
+/* ============================================================
+   SUGGESTIONS SECTION - SIMILAIRES
+   ============================================================ */
+
+.suggestions-section {
+  margin-top: 2rem;
+}
+
+.suggestions-section h5 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ndaku-dark);
+  margin-bottom: 1rem;
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+/* ============================================================
+   AGENT CARD - SIMPLIFIÉ
+   ============================================================ */
+
+.agent-card {
+  background-color: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: var(--transition);
+}
+
+.agent-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #d8d8d8;
+}
+
+.agent-card-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.agent-card-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #f0f0f0;
+}
+
+.agent-card-info h6 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ndaku-dark);
+  margin-bottom: 0.25rem;
+}
+
+.agent-card-info p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ============================================================
+   CTA SECTION - FOOTER
+   ============================================================ */
+
+.cta-section {
+  background-color: #ffffff;
+  border-top: 2px solid #e8e8e8;
+  padding: 2rem 0;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.cta-section h5 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ndaku-dark);
+  margin-bottom: 0.75rem;
+}
+
+.cta-section p {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================
+   RESPONSIVE - MOBILE FIRST
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .display-6 {
+    font-size: 1.6rem !important;
+  }
+
+  .price-display {
+    font-size: 1.3rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .d-flex.flex-wrap {
+    gap: 0.5rem !important;
+  }
+
+  .carousel-main img {
+    height: 300px;
+  }
+
+  .suggestions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .d-flex.justify-content-end.gap-2 {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .cta-section {
+    padding: 1.5rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .display-6 {
+    font-size: 1.3rem !important;
+  }
+
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  .carousel-main img {
+    height: 220px;
+  }
+
+  .price-display {
+    font-size: 1.1rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .badge {
+    font-size: 0.8rem;
+  }
+}
+
+/* ============================================================
+   TEXT UTILITIES - TEXTE AMÉLIORÉ
+   ============================================================ */
+
+.text-primary {
+  color: var(--ndaku-primary) !important;
+}
+
+.text-dark {
+  color: var(--ndaku-dark) !important;
+}
+
+.text-muted {
+  color: #999 !important;
+}
+
+.text-secondary {
+  color: #666 !important;
+}
+
+.fw-bold {
+  font-weight: 700 !important;
+}
+
+.small {
+  font-size: 0.9rem;
+}
+
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 2rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 2rem !important; }
+
+.me-1 { margin-right: 0.25rem !important; }
+.me-2 { margin-right: 0.5rem !important; }
+.me-3 { margin-right: 1rem !important; }
+
+.gap-1 { gap: 0.5rem !important; }
+.gap-2 { gap: 1rem !important; }
+.gap-3 { gap: 1.5rem !important; }
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+
+@media print {
+  .btn,
+  .cta-section,
+  .carousel-dots {
+    display: none;
+  }
+}

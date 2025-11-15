@@ -291,10 +291,10 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     return text.substring(0, maxLength) + '...';
   }
   return (
-    <div className="card shadow-lg border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
+    <div className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
         <img src={process.env.REACT_APP_BACKEND_APP_URL+ imgs[0]} alt={displayName} className="property-img" />
-        <div className="image-overlay" />
+        <div className="image-overlay"/>
         <div className="badges">
           <div className="badge status-badge">{property.status || ''}</div>
           <div className="badge type-badge">{property.type || ''}</div>

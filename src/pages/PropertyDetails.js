@@ -9,7 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../pages/HomeSection.css';
 import '../pages/PropertyDetails.css';
-import ChatWidget from '../components/common/ChatWidget';
+import ChatWidget from '../components/common/Messenger';
 import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
@@ -979,8 +979,8 @@ return (
     {/* Call to action */}
     <div className="text-white text-center py-5" style={{background : 'var(--ndaku-primary)', color : 'white'}}>
       <div className="container">
-        <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
-        <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+        <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
+        <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d'une visibilité maximale sur Ndaku.</p>
         <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill text-white" style={{ fontSize: '1.2rem', minWidth: 180, color : 'white' }}>Devenir agent</a>
       </div>
     </div>

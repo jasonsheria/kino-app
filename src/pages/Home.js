@@ -457,7 +457,7 @@ const Home = () => {
                         <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
                         <div className="hero-ctas">
-                            <MuiButton onClick={() => scrollToId('biens')} variant="contained" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir les biens</MuiButton>
+                            <MuiButton onClick={() => scrollToId('biens')} variant="outlined" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir les biens</MuiButton>
                             <Button variant="outlined" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir agents</Button>
                         </div>
 
@@ -1166,6 +1166,7 @@ const Home = () => {
                 <div className="d-flex justify-content-center mt-5">
                    <Button 
                        className="btn btn-lg btn-success fw-bold px-5"
+                       variant='outlined'
                        onClick={() => {
                             setPromotions(prev => {
                                 const already = prev.__shownCount || prev.length || 0;
@@ -1185,7 +1186,7 @@ const Home = () => {
                             });
                         }}
                        style={{
-                           background: 'linear-gradient(135deg, #667eea 0%)',
+                           
                            border: 'none',
                            borderRadius: '12px',
                            padding: '14px 40px',
@@ -1228,8 +1229,8 @@ const Home = () => {
                 background : 'var(--ndaku-primary)',
             }}>
                 <div className="container">
-                    <h5 className="fw-bold mb-3 fs-3">Vous êtes agent ou propriétaire ?</h5>
-                    <p className="mb-4 fs-5">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+                    <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
+                    <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
                    <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
             </div >

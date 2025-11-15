@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container, Grid, Card, CardContent, Typography, Chip,
+  DialogContent, Container, Grid, Card, CardContent, Typography, Chip,
   Button, TextField, MenuItem, Box, CircularProgress,
-  Alert, Tabs, Tab, Divider, Avatar, IconButton
+  Alert, Tabs, Tab, Divider, Avatar, IconButton, Dialog, DialogTitle, DialogActions
 } from '@mui/material';
 import {
   CalendarMonth as CalendarIcon,
@@ -35,9 +35,30 @@ export default function Reservations() {
     sortBy: 'date',
     dateRange: 'all'
   });
-
-  useEffect(() => {
-    const fetchReservations = async () => {
+ const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   const [deleteTargetIndex, setDeleteTargetIndex] = useState(null);
+   const [deleteLoading, setDeleteLoading] = useState(false);
+   const [deleteError, setDeleteError] = useState(null);
+  const formatError = (errOrMessage) => {
+    if (!errOrMessage) return null;
+    // If it's already a string
+    if (typeof errOrMessage === 'string') return errOrMessage;
+    // If it's an array (e.g., validation messages)
+    if (Array.isArray(errOrMessage)) return errOrMessage.join(', ');
+    // If it's an object, try to extract common fields
+    if (typeof errOrMessage === 'object') {
+      // If it's an Axios response.data object that contains { message }
+      if (errOrMessage.message) {
+        if (typeof errOrMessage.message === 'string') return errOrMessage.message;
+        if (Array.isArray(errOrMessage.message)) return errOrMessage.message.join(', ');
+        try { return JSON.stringify(errOrMessage.message); } catch (e) { /* fallthrough */ }
+      }
+      // Fallback to stringify the whole object
+      try { return JSON.stringify(errOrMessage); } catch (e) { return String(errOrMessage); }
+    }
+    return String(errOrMessage);
+  };
+  const fetchReservations = async () => {
       setLoading(true);
       try {
         // Correction de l'URL et ajout de l'ID de l'utilisateur dans le chemin
@@ -80,7 +101,7 @@ export default function Reservations() {
         setLoading(false);
       }
     };
-
+  useEffect(() => { 
     if (user?._id || user?.id) {
       fetchReservations();
     } else {
@@ -111,6 +132,41 @@ export default function Reservations() {
       month: 'short',
       year: 'numeric'
     });
+  };
+  const remove = async (i) => { 
+    // Open confirmation dialog instead of using window.confirm
+    setDeleteTargetIndex(i);
+    setDeleteError(null);
+    setDeleteDialogOpen(true);
+  };
+ const handledeleteReservation = async () => {
+  if (deleteTargetIndex == null) return;
+    try {
+      setDeleteLoading(true);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/reservations/${deleteTargetIndex}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression de la réservation');
+      }
+      setDeleteDialogOpen(false);
+      setDeleteTargetIndex(null);
+      setDeleteError(null);
+      // Mettre à jour la liste des réservations après la suppression
+      await fetchReservations();
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err);
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors de la suppression';
+      setDeleteError(msg);
+    } finally {
+      setDeleteLoading(false);
+    }
+
   };
 
   return (
@@ -213,7 +269,7 @@ export default function Reservations() {
                       <Grid item xs={12} sm={4}>
                         <Box sx={{ position: 'relative' }}>
                           <img 
-                            src={reservation.property.images[0] || '/default-property.jpg'} 
+                            src={process.env.REACT_APP_BACKEND_APP_URL+reservation.property.images[0] || '/default-property.jpg'} 
                             alt={reservation.property.title}
                             style={{ 
                               width: '100%', 
@@ -267,7 +323,7 @@ export default function Reservations() {
                               <Button 
                                 variant="contained" 
                                 color="error"
-                                onClick={() => {/* Handle cancellation */}}
+                                onClick={() => {remove(reservation._id)}}
                               >
                                 Annuler
                               </Button>
@@ -283,6 +339,29 @@ export default function Reservations() {
           </Grid>
         )}
       </Container>
+       {/* Delete confirmation dialog */}
+              <Dialog
+                open={deleteDialogOpen}
+                onClose={() => { if (!deleteLoading) { setDeleteDialogOpen(false); setDeleteTargetIndex(null); setDeleteError(null); } }}
+                maxWidth="xs"
+                fullWidth
+              >
+                <DialogTitle>Confirmer la suppression</DialogTitle>
+                <DialogContent>
+                  <Typography>Êtes-vous sûr de vouloir supprimer ce bien ? Cette action est irréversible.</Typography>
+                  {deleteError && (
+                    <Box sx={{ mt: 2 }}>
+                      <Alert severity="error">{deleteError}</Alert>
+                    </Box>
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => { setDeleteDialogOpen(false); setDeleteTargetIndex(null); setDeleteError(null); }} disabled={deleteLoading}>Annuler</Button>
+                  <Button color="error" variant="contained" onClick={handledeleteReservation} disabled={deleteLoading} startIcon={deleteLoading ? <CircularProgress size={16} /> : null}>
+                    {deleteLoading ? 'Suppression...' : 'Supprimer'}
+                  </Button>
+                </DialogActions>
+              </Dialog>
     </>
   );
 }
