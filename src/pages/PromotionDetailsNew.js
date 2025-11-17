@@ -3,7 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaHeart, FaShare2, FaChevronLeft, FaChevronRight, FaCheckCircle, FaHome, FaDoors, FaRulerCombined, FaCalendarAlt } from 'react-icons/fa';
 import './PromotionDetailsNew.css';
 import HomeLayout from '../components/homeComponent/HomeLayout';
-
+import img1 from '../img/property-1.jpg';
+import img2 from '../img/property-2.jpg';
+import img3 from '../img/property-3.jpg';
+import img4 from '../img/property-4.jpg';
 const PromotionDetailsNew = () => {
   const { id } = useParams();
   const [promo, setPromo] = useState(null);
@@ -22,10 +25,10 @@ const PromotionDetailsNew = () => {
     location: 'Douala, Akwa',
     district: 'Quartier résidentiel premium',
     images: [
-      'https://via.placeholder.com/800x600?text=Appartement+Vue+1',
-      'https://via.placeholder.com/800x600?text=Appartement+Vue+2',
-      'https://via.placeholder.com/800x600?text=Appartement+Vue+3',
-      'https://via.placeholder.com/800x600?text=Appartement+Vue+4',
+      img1,
+      img2,
+      img3,
+      img4
     ],
     priceBefore: 45000000,
     priceNow: 37500000,

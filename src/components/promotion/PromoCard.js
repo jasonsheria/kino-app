@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaHeart, FaShare, FaArrowRight,  FaTag, FaFire } from 'react-icons/fa';
+import { FaHeart, FaShare, FaArrowRight,  FaTag, FaFire, FaComments } from 'react-icons/fa';
 import { Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import './PromoCard.css';
@@ -134,11 +134,13 @@ const PromoCard = ({
           {/* Engagement Stats */}
           <div className="promo-stats">
             <div className="stat-item">
-              <span className="stat-icon">👍</span>
+              <span className="stat-icon"  style={{boxShadow : 'none'}}> 
+                <FaHeart size={16} />
+              </span>
               <span className="stat-value">{likeCount}</span>
             </div>
             <div className="stat-item">
-              <span className="stat-icon">💬</span>
+              <span className="stat-icon" style={{boxShadow : 'none'}}><FaComments size={16} /></span>
               <span className="stat-value">{comments.length}</span>
             </div>
 

@@ -26,7 +26,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
     setTouchStart(e.targetTouches[0].clientY);
   };
 
-  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientY);
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientY, onClose());
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
@@ -195,7 +195,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
               <button 
                 className="btn btn-outline-success w-100" 
                 onClick={() => { 
-                  startCall(); 
+                  startCall(); onClose();
                   window.dispatchEvent(new CustomEvent('ndaku-call', { 
                     detail: { to: 'support', meta: { agentId: agent.id } } 
                   })); 

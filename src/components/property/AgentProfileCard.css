@@ -6,14 +6,11 @@
   background: white;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideInUp 0.5s ease-out;
 }
 
 .agent-profile-card:hover {
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
 }
 
@@ -30,8 +27,7 @@
 .agent-header-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  animation: gradientShift 8s ease infinite;
+  background: #00cdf2;
 }
 
 @keyframes gradientShift {

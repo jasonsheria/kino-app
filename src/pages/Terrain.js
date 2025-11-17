@@ -10,6 +10,7 @@ import '../pages/HomeSection.css';
 import useRevealOnScroll from '../hooks/useRevealOnScroll';
 import FooterPro from '../components/common/Footer';
 import HomeLayout from '../components/homeComponent/HomeLayout';
+import MessengerWidget from '../components/common/Messenger';
 
 const Terrain = () => {
   const [commune, setCommune] = React.useState('Toutes');
@@ -123,6 +124,7 @@ const Terrain = () => {
                  
       
                   <FooterPro />
+                  <MessengerWidget/>
     </>
   );
 };

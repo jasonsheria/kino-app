@@ -326,7 +326,10 @@ a:hover {
   color: var(--color-primary-light);
   text-decoration: underline;
 }
-
+img, svg {
+    vertical-align: middle;
+    color: #00a8a7;
+}
 /* ============================================================
    BUTTON STYLES - UNIFIÉES
    ============================================================ */

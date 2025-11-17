@@ -264,7 +264,7 @@ export default function HomeLayout({ children }) {
       >
         <Toolbar>
           {/* Brand / logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12 }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12, marginTop:'-3px' }}>
             <img src="/img/logo.svg" alt="Kino App" style={{ width: 34, height: 34, marginRight: 8 }} />
             <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 400, fontSize: "1rem", color: "#138f6b" }}>K-App</Typography>
           </Link>
@@ -296,7 +296,6 @@ export default function HomeLayout({ children }) {
                 id="properties-button"
                 aria-controls={Boolean(anchorProp) ? 'properties-menu' : undefined}
                 aria-haspopup="true"
-                onClick={(e) => { if (isMobile) setAnchorProp(e.currentTarget); }}
                 onMouseEnter={(e) => { if (!isMobile) { setAnchorProp(e.currentTarget); } }}
                 onMouseLeave={(e) => {
                   if (!isMobile) {
@@ -315,7 +314,7 @@ export default function HomeLayout({ children }) {
                 }}
                 color={['/voitures', '/terrain', '/appartement', '/salle'].includes(location.pathname) ? 'primary' : 'inherit'}
                 className="kn-menu-text animated-link"
-                sx={{ textTransform: 'none' }}
+                sx={{ textTransform: 'none', gap : '0px' }}
                 endIcon={<FaChevronDown />}
               >
                 Immobilier

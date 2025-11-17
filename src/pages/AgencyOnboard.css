@@ -55,7 +55,6 @@
    ============================================================ */
 
 .agency-onboard-container {
-  display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #f4fbf9 0%, #ffffff 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -300,9 +299,7 @@
    ============================================================ */
 
 .agency-onboard-main {
-  flex: 1;
-  display: flex;
-  align-items: center;
+ align-items: center;
   justify-content: center;
   padding: var(--spacing-lg);
   overflow-y: auto;
@@ -310,7 +307,6 @@
 
 .onboard-content-wrapper {
   width: 100%;
-  max-width: 800px;
   animation: fadeInUp 0.4s ease-out;
 }
 

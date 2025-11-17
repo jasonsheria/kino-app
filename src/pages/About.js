@@ -7,6 +7,7 @@ import ScrollReveal from '../components/common/ScrollReveal';
 import { Button } from '@mui/material';
 import { Link } from 'react-router-dom';
 import HomeLayout from '../components/homeComponent/HomeLayout';
+import MessengerWidget from '../components/common/Messenger';
 
 const About = () => {
     const theme = useTheme();
@@ -260,6 +261,7 @@ const About = () => {
             </section>
 
             <FooterPro />
+            <MessengerWidget/>
         </>
     );
 };

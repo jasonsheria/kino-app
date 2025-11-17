@@ -1,12 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { registerAgency, updateAgency } from '../api/agencies';
 import { useNavigate, Link } from 'react-router-dom';
-import { 
+import {
   FaBuilding, FaUserTie, FaArrowRight, FaCamera, FaCheckCircle, FaBars, FaTimes,
   FaChartLine, FaClipboard, FaClock, FaGlobe, FaHeadset, FaShieldAlt, FaLock
 } from 'react-icons/fa';
 import './AgencyOnboard.css';
-
+import { useAuth } from '../contexts/AuthContext';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useTheme } from '@mui/material/styles';
+import {
+  Box,
+  Container,
+  Grid,
+  Stack,
+  Typography,
+  IconButton,
+  Button,
+  useMediaQuery,
+  Paper,
+  TextField,
+  Chip,
+  CircularProgress,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 export default function AgencyOnboard() {
   // steps: 0 = presentation, 1 = form, 2 = choose plan, 3 = success
   const [step, setStep] = useState(0);
@@ -18,79 +49,155 @@ export default function AgencyOnboard() {
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
-
+  const { user, token } = useAuth();
+  const [types, setTypes] = useState(['agency']);
+  const [Profile, setProfile] = useState(null); // pièce d'identité
+  const [idFile, setIdFile] = useState(null); // pièce d'identité file object
   const plans = [
     { id: 'freemium', title: 'Freemium', price: 0, desc: 'Gratuit, visibilité de base.', features: ['Jusqu\'à 10 annonces', 'Support par email', 'Analytics basique'] },
     { id: 'monthly', title: 'Mensuel', price: 9.99, desc: 'Visibilité prioritaire et outils avancés.', features: ['Annonces illimitées', 'Support prioritaire', 'Analytics avancées', 'Badge professionnel'] },
     { id: 'revshare', title: 'Rétro-commission', price: 0, desc: 'Paiement à la performance, contactez-nous.', features: ['Annonces illimitées', 'Support dédié', 'Analytics complet', 'Assistance commerciale'] }
   ];
 
-  function onFile(e){
+  function onFile(e) {
     const f = e.target.files && e.target.files[0];
-    if(!f) return;
+    if (!f) return;
+    if (f && f.size <= 5 * 1024 * 1024) {
+      setProfile(f);
+    } else {
+      alert('Le fichier doit faire moins de 5MB');
+    }
     const reader = new FileReader();
-    reader.onload = ()=> setAvatar(reader.result);
+    reader.onload = () => setAvatar(reader.result);
     reader.readAsDataURL(f);
   }
 
-  async function createAgency(){
+  async function createAgency() {
     setStatus(null);
-    if(!form.name || !form.email) return setStatus('Veuillez saisir le nom et l\'email de l\'agence');
+    if (!form.name || !form.email) return setStatus('Veuillez saisir le nom et l\'email de l\'agence');
     setLoading(true);
-    try{
+    try {
       const res = await registerAgency({ name: form.name, email: form.email, phone: form.phone });
       setLoading(false);
-      if(res.error){
+      if (res.error) {
         setStatus('exists');
         return;
       }
       setAgency(res.agency);
       // proceed to plan selection
       setStep(2);
-    }catch(err){
+    } catch (err) {
       setLoading(false);
       setStatus('error');
     }
   }
+  useEffect(() => {
 
-  async function confirmPlan(){
-    if(!agency) return setStatus('Aucune agence trouvée');
-    if(!selectedPlan) return setStatus('Veuillez choisir une formule');
+    if (!user) {
+      navigate('/login');
+    }
+
+  });
+
+  async function confirmPlan() {
+    if (!agency) return setStatus('Aucune agence trouvée');
+    if (!selectedPlan) return setStatus('Veuillez choisir une formule');
     setLoading(true);
-    try{
+    try {
+      // Créer le FormData avec tous les fichiers et données
+      const formData = new FormData();
+
+      // Ajouter les métadonnées
+      const metaData = {
+        types,
+        form,
+        subscriptionEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) //7 jours d'essai gratuit
+
+      };
+      formData.append('meta', JSON.stringify(metaData));
+
+      // Ajouter la pièce d'identité
+      formData.append('profile', Profile);
+      formData.append('idFile', idFile);
+
+
+      //ajouter le token du user au form pour la protection des données
+      const token = localStorage.getItem('ndaku_auth_token');
+      if (token) {
+        formData.append('userToken', token);
+      }
+
+
+      // Envoyer la requête à l'API avec le token dans les headers
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/agency/create`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token || ''}`
+        },
+        body: formData
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        throw new Error(responseText);
+      }
+
+      // Convertir le texte en JSON si c'est un JSON valide
+      const result = responseText ? JSON.parse(responseText) : {};
+      // Redirection après 2 secondes
+      // navigate('login#/owner/subscribe'+`?ownerId=${result.ownerId || ''}`+`type=owner`);
+
       // attach extra details and selected subscription
       const patch = { address: form.address || '', phone: form.phone || '', subscription: selectedPlan.id, avatar: avatar || '/logo192.png' };
       await updateAgency(agency.id, patch);
       // create session
-      try{ localStorage.setItem('ndaku_agency_session', JSON.stringify({ id: agency.id, email: agency.email })); }catch(e){}
+      try { localStorage.setItem('ndaku_agency_session', JSON.stringify({ id: agency.id, email: agency.email })); } catch (e) { }
       setLoading(false);
-      setStep(3);
-      // short delay then go to dashboard
-      setTimeout(()=> navigate('/agency/dashboard'), 900);
-    }catch(e){
+      if (selectedPlan.id === 'freemium' || selectedPlan.id === 'revshare') {
+        setStep(3);
+      }
+      navigate(`/payment?plan=${selectedPlan.id}&type=${'agency'}&id=${user._id}`);
+    } catch (e) {
       setLoading(false);
       setStatus('failed');
     }
   }
-
+const FilePreview = ({ file, onDelete }) => {
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 1,
+        mt: 1,
+        border: '1px solid #e0e0e0',
+        borderRadius: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        bgcolor: '#f8f9fa'
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <InsertDriveFileIcon color="primary" />
+        <Typography variant="body2" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {file.name}
+        </Typography>
+        <Chip
+          label={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
+          size="small"
+          variant="outlined"
+          sx={{ ml: 1 }}
+        />
+      </Box>
+      <IconButton size="small" onClick={onDelete} color="error">
+        <DeleteIcon fontSize="small" />
+      </IconButton>
+    </Paper>
+  );
+};
   return (
     <div className="agency-onboard-container">
-      {/* Titre pRINCIPALE */}
-      <header className="agency-onboard-header">
-        <div className="header-content">
-          <div className="header-logo">
-            <FaBuilding className="header-icon" />
-            <span className="header-title">Ndaku - Espace Agence</span>
-          </div>
-          <nav className="header-nav">
-            <Link to="/" className="nav-link">Accueil</Link>
-            <Link to="/properties" className="nav-link">Annonces</Link>
-            <Link to="/agency/login" className="nav-link">Connexion Agence</Link>
-          </nav>
-        </div>
-
-      </header>
-     
 
       {/* Main Content */}
       <main className="agency-onboard-main">
@@ -158,10 +265,10 @@ export default function AgencyOnboard() {
               <form className="agency-form">
                 <div className="form-group">
                   <label>Nom de l'agence *</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="Votre nom d'agence"
-                    value={form.name} 
+                    value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
                     className="form-input"
                   />
@@ -169,10 +276,10 @@ export default function AgencyOnboard() {
 
                 <div className="form-group">
                   <label>Email professionnel *</label>
-                  <input 
+                  <input
                     type="email"
                     placeholder="votre@email.com"
-                    value={form.email} 
+                    value={form.email}
                     onChange={e => setForm({ ...form, email: e.target.value })}
                     className="form-input"
                   />
@@ -181,20 +288,20 @@ export default function AgencyOnboard() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Téléphone</label>
-                    <input 
+                    <input
                       type="tel"
                       placeholder="+243 XXX XXX XXX"
-                      value={form.phone} 
+                      value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
                       className="form-input"
                     />
                   </div>
                   <div className="form-group">
                     <label>Mot de passe *</label>
-                    <input 
+                    <input
                       type="password"
                       placeholder="Créez un mot de passe"
-                      value={form.password} 
+                      value={form.password}
                       onChange={e => setForm({ ...form, password: e.target.value })}
                       className="form-input"
                     />
@@ -203,13 +310,53 @@ export default function AgencyOnboard() {
 
                 <div className="form-group">
                   <label>Adresse (ville, quartier)</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="Kinshasa, Gombe"
-                    value={form.address} 
+                    value={form.address}
                     onChange={e => setForm({ ...form, address: e.target.value })}
                     className="form-input"
                   />
+                  {/* ID Document Upload */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                      Pièce d'identité (passeport, carte, permis)
+                    </Typography>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      sx={{
+                        width: '100%',
+                        py: 2,
+                        border: '2px dashed',
+                        borderColor: idFile ? 'primary.main' : 'grey.300',
+                        '&:hover': {
+                          borderColor: 'primary.main'
+                        }
+                      }}
+                    >
+                      {idFile ? 'Changer le fichier' : 'Télécharger votre pièce d\'identité'}
+                      <VisuallyHiddenInput
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file && file.size <= 5 * 1024 * 1024) {
+                            setIdFile(file);
+                          } else {
+                            alert('Le fichier doit faire moins de 5MB');
+                          }
+                        }}
+                      />
+                    </Button>
+                    {idFile && (
+                      <FilePreview
+                        file={idFile}
+                        onDelete={() => setIdFile(null)}
+                      />
+                    )}
+                  </Box>
                 </div>
 
                 <div className="form-group">
@@ -241,21 +388,21 @@ export default function AgencyOnboard() {
                 )}
 
                 <div className="form-actions">
-                  <button 
+                  <button
                     type="button"
-                    className="btn btn-secondary" 
+                    className="btn btn-secondary"
                     onClick={() => setStep(0)}
                     disabled={loading}
                   >
                     Retour
                   </button>
-                  <button 
+                  <button
                     type="button"
-                    className="btn btn-primary" 
+                    className="btn btn-primary"
                     onClick={createAgency}
                     disabled={loading}
                   >
-                    {loading ? 'Création...' : 'Suivant: Choisir une formule'}
+                    {loading ? 'Création...' : 'Choix une formule'}
                   </button>
                 </div>
               </form>
@@ -271,7 +418,7 @@ export default function AgencyOnboard() {
 
               <div className="plans-grid">
                 {plans.map(p => (
-                  <div 
+                  <div
                     key={p.id}
                     className={`plan-card ${selectedPlan && selectedPlan.id === p.id ? 'selected' : ''}`}
                     onClick={() => setSelectedPlan(p)}
@@ -319,17 +466,17 @@ export default function AgencyOnboard() {
               )}
 
               <div className="form-actions">
-                <button 
+                <button
                   type="button"
-                  className="btn btn-secondary" 
+                  className="btn btn-secondary"
                   onClick={() => setStep(1)}
                   disabled={loading}
                 >
                   Retour
                 </button>
-                <button 
+                <button
                   type="button"
-                  className="btn btn-primary" 
+                  className="btn btn-primary"
                   onClick={confirmPlan}
                   disabled={loading || !selectedPlan}
                 >

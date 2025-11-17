@@ -208,7 +208,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
             position: 'absolute',
             left: 0,
             right: 0,
-            top: 0,
+            top: 15,
             zIndex: 2,
             transition: 'opacity 0.3s ease, transform 0.3s ease',
             opacity: isMobile ? (showControls ? 1 : 0) : 1,
@@ -246,11 +246,11 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                 <Button variant="outlined" color="inherit" size="small" onClick={next} startIcon={<FaStepForward />}>Suiv.</Button>
                 <Button variant="outlined" color="inherit" size="small" onClick={toggleMute} startIcon={muted ? <FaVolumeMute /> : <FaVolumeUp />}>{muted ? 'Activer son' : 'Couper'}</Button>
                 <Button variant="outlined" color="inherit" size="small" onClick={goFull} startIcon={<FaExpand />}>Plein écran</Button>
-                <Button variant="contained" color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
+                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="contained" color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
+                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             )}
           </div>
@@ -307,7 +307,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                         </div>
                         {/* Mobile central play overlay */}
                         {isMobile && current && !isYoutube(current) && !videoError && !playing && (
-                          <Button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} variant="contained" color="primary" startIcon={<FaPlay />} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.7)', borderRadius: 10, padding: '8px 12px', color: '#fff' }}>
+                          <Button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} variant="outlined"  color="primary" startIcon={<FaPlay />} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.7)', borderRadius: 10, padding: '8px 12px', color: '#fff', color : '#00a8a7', border : '1px solid #00a8a7' }}>
                             Lire
                           </Button>
                         )}
@@ -394,7 +394,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                       <IconButton onClick={prev} aria-label="Précédent" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
                         <FaStepBackward />
                       </IconButton>
-                      <Button onClick={togglePlay} variant="contained" color="secondary" aria-label={playing ? 'Pause' : 'Lire'} sx={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.25)' }} startIcon={playing ? <FaPause /> : <FaPlay />}>
+                      <Button onClick={togglePlay} variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="secondary" aria-label={playing ? 'Pause' : 'Lire'} sx={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.25)' }} startIcon={playing ? <FaPause /> : <FaPlay />}>
                         {/* icon only, label provided via aria */}
                       </Button>
                       <IconButton onClick={next} aria-label="Suivant" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
@@ -724,7 +724,7 @@ return (
       <div className="row">
         {/* COLONNE GAUCHE - Images et détails principaux (70%) */}
         <div className="col-12 col-lg-7 mb-4 mb-lg-0">
-          <div className="card shadow-lg border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
+          <div className="card border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
             <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
             <div className="card-body">
               <div className="d-flex align-items-start justify-content-between">
@@ -758,10 +758,10 @@ return (
               )}
 
               <div className="d-flex justify-content-end gap-2 mb-3 mt-3">
-                <Button variant="contained"
+                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}}
                   color="primary"
                   onClick={() => navigate(-1)}>Retour</Button>
-                <Button variant="contained"
+                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}}
                   color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
               </div>
 
@@ -914,7 +914,6 @@ return (
           </div>
 
           {/* Suggestions enrichies */}
-          <SuggestionsEnhanced suggestions={suggestions} agents={agents} />
         </div>
       </div>
 
@@ -977,13 +976,20 @@ return (
     </div>
     <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
     {/* Call to action */}
-    <div className="text-white text-center py-5" style={{background : 'var(--ndaku-primary)', color : 'white'}}>
-      <div className="container">
-        <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
-        <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d'une visibilité maximale sur Ndaku.</p>
-        <a href="#" className="btn btn-outline-light btn-lg px-4 py-2 fw-bold rounded-pill text-white" style={{ fontSize: '1.2rem', minWidth: 180, color : 'white' }}>Devenir agent</a>
-      </div>
-    </div>
+    {/* Call to action */}
+               <div className=" text-white text-center py-5" style={{
+                   display: "flex",
+                   flexDirection: "column",
+                   justifyContent: "center",
+                   alignItems: "center",
+                   background : 'var(--ndaku-primary)',
+               }}>
+                   <div className="container">
+                       <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
+                       <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+                      <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} >Devenir agent</Button>
+                   </div>
+               </div >
 
 
     {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}

@@ -7,7 +7,6 @@
   border-radius: 16px;
   padding: 32px 24px;
   margin: 32px 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.04);
   animation: slideInUp 0.6s ease-out;
 }
@@ -17,6 +16,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -38,6 +38,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -61,9 +62,12 @@
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-8px);
   }
@@ -116,9 +120,8 @@
 }
 
 .amenity-item:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #00a8a7 100%);
   transform: translateY(-8px);
-  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
   border-color: transparent;
 }
 
@@ -143,7 +146,6 @@
 
 .amenity-icon {
   font-size: 2rem;
-  color: #667eea;
   transition: all 0.3s ease;
 }
 
@@ -168,6 +170,7 @@
   from {
     transform: scale(0);
   }
+
   to {
     transform: scale(1);
   }
@@ -220,15 +223,15 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, #fff9e6 0%, #fff3cc 100%);
+  padding: 7px;
   border-radius: 12px;
   border: 1px solid rgba(255, 193, 7, 0.2);
   transition: all 0.3s ease;
+  cursor: default;
+  width: max-content;
 }
 
 .main-feature-item:hover {
-  background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(255, 193, 7, 0.2);
 }
@@ -237,14 +240,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   background: white;
   color: #ffc107;
   font-size: 1.5rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
@@ -258,9 +260,9 @@
 }
 
 .feature-value {
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #ffc107;
+  color: #00906e;
   line-height: 1;
 }
 

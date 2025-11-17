@@ -74,12 +74,11 @@ function App() {
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 10,
+                        bottom: 17,
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
                         color: "white",
-                        border: '2px solid var(--ndaku-primary)',
                         borderRadius: '50%',
                         width: 48,
                         height: 48,
@@ -94,7 +93,6 @@ function App() {
                   <HashRouter>
                     <AppRoutes />
                   </HashRouter>
-                  {/* Global Call Modal (always present) */}
                   <CallModal />
                 </ThemeProvider>
               </SnackbarProvider>
@@ -112,7 +110,6 @@ export default App;
 // global notifications from window events (e.g. ndaku:properties-error).
 function InnerNotifier() {
   const { enqueueSnackbar } = useSnackbar();
-
   try {
     React.useEffect(() => {
       const onErr = (e) => {

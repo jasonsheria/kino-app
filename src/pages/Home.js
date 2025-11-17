@@ -457,8 +457,8 @@ const Home = () => {
                         <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
                         <div className="hero-ctas">
-                            <MuiButton onClick={() => scrollToId('biens')} variant="outlined" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir les biens</MuiButton>
-                            <Button variant="outlined" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px' }}>Voir agents</Button>
+                            <Button onClick={() => scrollToId('biens')} variant="" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px', border : "1px solid" }}> Voir les biens </Button>
+                            <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px', border : "1px solid" }}> Voir agents </Button>
                         </div>
 
                         <div className="hero-stats" aria-hidden>

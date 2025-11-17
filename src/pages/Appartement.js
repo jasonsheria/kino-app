@@ -9,6 +9,7 @@ import MapView from '../components/property/MapView';
 import { properties } from '../data/fakedata';
 import FooterPro from '../components/common/Footer';
 import HomeLayout from '../components/homeComponent/HomeLayout';
+import MessengerWidget from '../components/common/Messenger';
 
 const Appartement = () => {
   const [filter, setFilter] = React.useState({});
@@ -132,6 +133,7 @@ const Appartement = () => {
                  
       
                   <FooterPro />
+                  <MessengerWidget/>
     </>
   );
 };

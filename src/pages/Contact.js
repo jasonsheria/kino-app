@@ -14,6 +14,7 @@ import FooterPro from '../components/common/Footer';
 import ScrollReveal from '../components/common/ScrollReveal';
 import { Button, TextField, Alert, CircularProgress } from '@mui/material';
 import HomeLayout from '../components/homeComponent/HomeLayout';
+import MessengerWidget from '../components/common/Messenger';
 
 const Contact = () => {
     const theme = useTheme();
@@ -307,6 +308,7 @@ const Contact = () => {
             </section>
 
             <FooterPro />
+            <MessengerWidget/>
         </>
     );
 };
