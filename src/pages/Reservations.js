@@ -143,12 +143,13 @@ export default function Reservations() {
   if (deleteTargetIndex == null) return;
     try {
       setDeleteLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/reservations/${deleteTargetIndex}`, {
-        method: 'DELETE',
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/reservations/delete`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ reservationId: deleteTargetIndex })
       });
 
       if (!response.ok) {

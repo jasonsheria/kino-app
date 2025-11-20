@@ -227,6 +227,7 @@
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
+  color: var(--white);
 }
 
 /* Features */
@@ -261,7 +262,8 @@
 .feature-item span {
   font-size: 0.875rem;
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.95;
+  color: var(--white);
 }
 
 /* Sidebar Footer */
