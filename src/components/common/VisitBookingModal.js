@@ -19,7 +19,7 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const VISIT_FEE = 15;
+  const VISIT_FEE = 0;
   
   // Swipe handlers
   const onTouchStart = (e) => {
@@ -136,7 +136,7 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
         const resp = await fetch(url, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ propertyId: property?.id, date: bookingData.date, time: bookingData.time, phone: bookingData.phoneNumber, amount: VISIT_FEE })
+          body: JSON.stringify({ propertyId: property?.id, date: bookingData.date, time: bookingData.time, phone: bookingData.phoneNumber, amount: VISIT_FEE, name : user.username || user.fullname || user.prenom  })
         });
         if (resp.ok) {
           const created = await resp.json();

@@ -1,3 +1,20 @@
+import axios from 'axios';
+
+const API_BASE = process.env.REACT_APP_BACKEND_APP_URL;
+
+export async function confirmReservation(reservationId) {
+  const token = localStorage.getItem('ndaku_auth_token');
+  return axios.post(`${API_BASE}/api/reservations/confirm`, { reservationId }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+export async function rejectReservation(reservationId) {
+  const token = localStorage.getItem('ndaku_auth_token');
+  return axios.post(`${API_BASE}/api/reservations/reject`, { reservationId }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
 // Simple API stub to simulate server sync for appointments
 const DELAY = 400;
 

@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import OwnerLayout from '../components/owner/OwnerLayout';
 import FullCalendar from '@fullcalendar/react';
@@ -5,7 +7,6 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
-import { fetchAppointments, updateAppointment, saveAppointment } from '../api/appointments';
 import { getAppointmentsForOwner as getLocalAppts } from '../data/fakeAppointments';
 import {
   Box, Grid, Paper, Stack, Typography, TextField, Button, useTheme, useMediaQuery,
@@ -16,6 +17,11 @@ import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIco
 import { Fab, Skeleton } from '@mui/material';
 import { useNotifications } from '../contexts/NotificationContext';
 import { alpha } from '@mui/material/styles';
+
+import { saveAppointment, updateAppointment } from '../data/fakeAppointments';
+import { confirmReservation, rejectReservation } from '../api/appointments';
+
+// Fonctions locales pour manipuler les rendez-vous fakeAppointments
 
 function ownerIdFromDraft(){ try{ const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; }catch(e){ return 'owner-123'; } }
 
@@ -41,19 +47,10 @@ export default function OwnerAppointments(){
   const calendarRef = useRef(null);
 
   useEffect(()=>{
-    let mounted = true;
-    (async ()=>{
-      setLoading(true);
-      const backend = await fetchAppointments(ownerId).catch(()=>[]);
-      const local = getLocalAppts(ownerId) || [];
-      if(backend.length === 0 && local.length>0){
-        for(const a of local){ await saveAppointment(ownerId, { ...a, status: 'pending' }).catch(()=>{}); }
-      }
-      const final = (backend.length? backend : local).map(a => ({ ...a, status: a.status || 'pending' }));
-      if(mounted) setAppts(final);
-      setLoading(false);
-    })();
-    return ()=> mounted = false;
+    setLoading(true);
+    const local = getLocalAppts(ownerId) || [];
+    setAppts(local.map(a => ({ ...a, status: a.status || 'pending' })));
+    setLoading(false);
   },[ownerId]);
 
   useEffect(()=>{ try{ localStorage.setItem(`owner_blocked_${ownerId}`, JSON.stringify(blockedDates)); }catch(e){} },[blockedDates, ownerId]);
@@ -96,8 +93,18 @@ export default function OwnerAppointments(){
   const filtered = appts.filter(a => (filterProperty==='all' || a.propertyId===filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
   const unconfirmed = filtered.filter(a => a.status !== 'confirmed' && a.status !== 'cancelled');
 
-  const confirm = async (id) => { await updateAppointment(ownerId, id, { status: 'confirmed' }).catch(()=>{}); setAppts(s => s.map(x => x.id===id? { ...x, status:'confirmed' } : x)); };
-  const cancel = async (id) => { await updateAppointment(ownerId, id, { status: 'cancelled' }).catch(()=>{}); setAppts(s => s.map(x => x.id===id? { ...x, status:'cancelled' } : x)); };
+  const confirm = async (id) => {
+    try {
+      await confirmReservation(id);
+      setAppts(s => s.map(x => x.id===id? { ...x, status:'confirmed' } : x));
+    } catch(e) {}
+  };
+  const cancel = async (id) => {
+    try {
+      await rejectReservation(id);
+      setAppts(s => s.map(x => x.id===id? { ...x, status:'cancelled' } : x));
+    } catch(e) {}
+  };
 
   const onDateSelect = (selectInfo) => {
     const date = selectInfo.startStr.slice(0,10);
@@ -263,7 +270,7 @@ export default function OwnerAppointments(){
                               <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                                 <Box>
                                   <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
-                                  <Typography variant="body2" color="text.secondary">{a.guestName} • {a.propertyId}</Typography>
+                                  <Typography variant="body2" color="text.secondary">{a.name} • {typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId}</Typography>
                                 </Box>
                                 <Stack spacing={1} sx={{ minWidth: 120 }}>
                                   <Button fullWidth size="small" variant="contained" color="success" onClick={()=> confirm(a.id)}>Confirmer</Button>
@@ -283,7 +290,7 @@ export default function OwnerAppointments(){
                               </Stack>
                             )}>
                               <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.12), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
-                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:700}}>{a.date} {a.time}</Typography><Chip label={a.propertyId} size="small" /></Box>} secondary={a.guestName + (a.note? ' — '+a.note : '')} />
+                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:700}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" /></Box>} secondary={a.guestName + (a.note? ' — '+a.note : '')} />
                             </ListItem>
                           ))}
                         </List>
@@ -300,7 +307,7 @@ export default function OwnerAppointments(){
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.12) }}><BlockIcon /></Avatar>
                           <Box>
-                            <Typography sx={{ fontWeight: 700 }}>{b.date}{b.propertyId? ` — ${b.propertyId}`: ''}</Typography>
+                            <Typography sx={{ fontWeight: 700 }}>{b.date}{b.propertyId? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}`: ''}</Typography>
                             <Typography variant="body2" color="text.secondary">{b.note}</Typography>
                           </Box>
                         </Box>
@@ -322,7 +329,7 @@ export default function OwnerAppointments(){
               <Stack spacing={1} sx={{ mt: 1 }}>
                 <TextField label="Date" size="small" value={bookingDraft.date} InputProps={{ readOnly: true }} />
                 <TextField label="Heure" size="small" value={bookingDraft.time} InputProps={{ readOnly: true }} />
-                <TextField label="Propriété" size="small" value={bookingDraft.propertyId || 'Toutes'} InputProps={{ readOnly: true }} />
+                <TextField label="Propriété" size="small" value={typeof bookingDraft.propertyId === 'object' ? bookingDraft.propertyId.titre || bookingDraft.propertyId._id || '—' : bookingDraft.propertyId || 'Toutes'} InputProps={{ readOnly: true }} />
                 {!blockMode && <TextField label="Nom du visiteur / motif" size="small" value={bookingDraft.guestName || ''} onChange={e => setBookingDraft(d => ({ ...d, guestName: e.target.value }))} />}
                 {blockMode && <TextField label="Note (optionnel)" size="small" value={bookingDraft.note || ''} onChange={e => setBookingDraft(d => ({ ...d, note: e.target.value }))} />}
               </Stack>
@@ -360,7 +367,7 @@ export default function OwnerAppointments(){
                 <TextField label="Proposition par" size="small" value={proposalDialog.guestName} InputProps={{ readOnly: true }} />
                 <TextField label="Date" size="small" value={proposalDialog.date} InputProps={{ readOnly: true }} />
                 <TextField label="Heure" size="small" value={proposalDialog.time} InputProps={{ readOnly: true }} />
-                <TextField label="Propriété" size="small" value={proposalDialog.propertyId || '—'} InputProps={{ readOnly: true }} />
+                <TextField label="Propriété" size="small" value={typeof proposalDialog.propertyId === 'object' ? proposalDialog.propertyId.titre || proposalDialog.propertyId._id || '—' : proposalDialog.propertyId || '—'} InputProps={{ readOnly: true }} />
                 <TextField label="Détail" size="small" value={proposalDialog.note || ''} InputProps={{ readOnly: true }} multiline minRows={2} />
               </Stack>
             )}
