@@ -13,7 +13,7 @@ import {
   IconButton, Grow, Switch, FormControlLabel, List, ListItem, ListItemText,
   Dialog, DialogTitle, DialogContent, DialogActions, Avatar, Chip, Divider, Tabs, Tab, Badge
 } from '@mui/material';
-import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIcon, Delete as DeleteIcon, Add as AddIcon, ChevronLeft, ChevronRight, Today as TodayIcon, ViewModule as ViewMonthIcon, ViewWeek as ViewWeekIcon, ViewDay as ViewDayIcon, Add as AddFabIcon } from '@mui/icons-material';
+import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIcon, Delete as DeleteIcon, Add as AddIcon, ChevronLeft, ChevronRight, Today as TodayIcon, ViewModule as ViewMonthIcon, ViewWeek as ViewWeekIcon, ViewDay as ViewDayIcon, Add as AddFabIcon, Check as CheckIcon } from '@mui/icons-material';
 import { Fab, Skeleton } from '@mui/material';
 import { useNotifications } from '../contexts/NotificationContext';
 import { alpha } from '@mui/material/styles';
@@ -92,6 +92,7 @@ export default function OwnerAppointments(){
 
   const filtered = appts.filter(a => (filterProperty==='all' || a.propertyId===filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
   const unconfirmed = filtered.filter(a => a.status !== 'confirmed' && a.status !== 'cancelled');
+  const confirmed = filtered.filter(a => a.status === 'confirmed');
 
   const confirm = async (id) => {
     try {
@@ -119,6 +120,11 @@ export default function OwnerAppointments(){
   },[appts]);
 
   const [rightTab, setRightTab] = useState(0);
+  const rightTabs = [
+    { label: <Badge color="error" badgeContent={unconfirmed.length}>Non confirmés</Badge> },
+    { label: <Badge color="success" badgeContent={confirmed.length}>Confirmés</Badge> },
+    { label: `Bloqués (${blockedDates.length})` }
+  ];
 
   const stats = useMemo(()=>({
     total: appts.length,
@@ -129,43 +135,43 @@ export default function OwnerAppointments(){
 
   return (
     <OwnerLayout>
-      <Box sx={{ p: { xs: 2, md: 4 } }}>
+  <Box sx={{ p: { xs: 2, md: 3 }, width: '100%', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
         {/* Header + actions */}
-        <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: 3 }}>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>Tableau de bord — Rendez-vous</Typography>
-            <Typography variant="body2" color="text.secondary">Gérez vos rendez‑vous, bloquez des jours et traitez les propositions.</Typography>
+  <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: 3, width: '100%' }}>
+          <Box sx={{ mb: { xs: 2, md: 0 } }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: theme.palette.primary.main, mb: .5 }}>Rendez-vous</Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>Gérez vos rendez‑vous, bloquez des jours et traitez les propositions.</Typography>
           </Box>
 
           <Stack direction="row" spacing={1} sx={{ mt: { xs: 2, md: 0 } }}>
-            <Button startIcon={<FileDownloadIcon />} size="small" variant="outlined">Exporter</Button>
-            <Button startIcon={<PrintIcon />} size="small" variant="outlined">Imprimer</Button>
-            <Button startIcon={<AddIcon />} size="small" variant="contained" onClick={()=>{ setBookingDraft({ date: '', time: '09:00', propertyId: null, guestName: '' }); setBookingDialogOpen(true); }}>Ajouter</Button>
+            <Button startIcon={<FileDownloadIcon />} size="small" variant="outlined" sx={{ minWidth: 36, px: 1 }}>Exporter</Button>
+            <Button startIcon={<PrintIcon />} size="small" variant="outlined" sx={{ minWidth: 36, px: 1 }}>Imprimer</Button>
+            <Button startIcon={<AddIcon />} size="small" variant="contained" color="primary" sx={{ minWidth: 36, px: 1, fontWeight: 700 }} onClick={()=>{ setBookingDraft({ date: '', time: '09:00', propertyId: null, guestName: '' }); setBookingDialogOpen(true); }}>Ajouter</Button>
           </Stack>
         </Stack>
 
         {/* Summary cards */}
-        <Box sx={{ maxWidth: 1200, mx: 'auto', mb: 3 }}>
-          <Grid container spacing={2}>
+        <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', mb: 3 }}>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
             {[{
-              label: 'Total', value: stats.total, color: 'text.primary'
+              label: 'Total rendez-vous', value: stats.total, color: theme.palette.primary.dark, bg: theme.palette.primary.light
             },{
-              label: 'Confirmés', value: stats.confirmed, color: 'success.main'
+              label: 'Confirmés', value: stats.confirmed, color: theme.palette.success.dark, bg: theme.palette.success.light
             },{
-              label: 'En attente', value: stats.pending, color: 'warning.main'
+              label: 'En attente', value: stats.pending, color: theme.palette.warning.dark, bg: theme.palette.warning.light
             },{
-              label: 'Jours bloqués', value: stats.blocked, color: 'text.primary'
-            }].map((c, i)=> (
-              <Grid item xs={6} sm={3} md={2} key={c.label}>
-                <Paper elevation={1} sx={{ p: 2, borderRadius: 2, minHeight: 84, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-                  <Typography variant="caption" color="text.secondary">{c.label}</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: c.color }}>{c.value}</Typography>
+              label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary, bg: theme.palette.grey[100]
+            }].map((c, i) => (
+              <Grid item xs={12} sm={6} md={3} key={c.label} sx={{ display: 'flex' }}>
+                <Paper elevation={2} sx={{ p: 2.5, minHeight: 120, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: c.bg, boxShadow: 2 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: .5, color: c.color }}>{c.label}</Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 900, color: c.color }}>{c.value}</Typography>
                 </Paper>
               </Grid>
             ))}
 
             <Grid item xs={12} md={4}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, minHeight: 84 }}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, minHeight: 84, bgcolor: theme.palette.background.paper }}>
                 <Grid container spacing={1} alignItems="center">
                   <Grid item xs={12} sm={6}>
                     <TextField select size="small" fullWidth value={filterProperty} onChange={e=> setFilterProperty(e.target.value)} SelectProps={{ native: true }}>
@@ -188,20 +194,20 @@ export default function OwnerAppointments(){
         </Box>
 
   {/* Main content */}
-        <Grid container spacing={3}>
+  <Grid container spacing={3} sx={{ width: '100%' }}>
           <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 2 }}>
+            <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper }}>
               {/* Custom toolbar above calendar for precise layout */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Stack direction="row" spacing={0.5} alignItems="center">
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, width: '100%' }}>
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
                   <IconButton size="small" onClick={()=> calendarRef.current?.getApi().prev()}><ChevronLeft /></IconButton>
                   <IconButton size="small" onClick={()=> calendarRef.current?.getApi().next()}><ChevronRight /></IconButton>
-                  <Button size="small" startIcon={<TodayIcon />} onClick={()=> calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
+                  <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={()=> calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
                 </Stack>
 
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{calendarTitle}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.dark }}>{calendarTitle}</Typography>
 
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
                   <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('dayGridMonth')} title="Mois"><ViewMonthIcon /></IconButton>
                   <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('timeGridWeek')} title="Semaine"><ViewWeekIcon /></IconButton>
                   <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('timeGridDay')} title="Jour"><ViewDayIcon /></IconButton>
@@ -244,13 +250,12 @@ export default function OwnerAppointments(){
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-              <Tabs value={rightTab} onChange={(e,v)=> setRightTab(v)} variant="fullWidth">
-                <Tab label={<Badge color="error" badgeContent={unconfirmed.length}>Non confirmés</Badge>} />
-                <Tab label={`Bloqués (${blockedDates.length})`} />
+            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', width: '100%', bgcolor: theme.palette.background.paper }}>
+              <Tabs value={rightTab} onChange={(e,v)=> setRightTab(v)} variant="fullWidth" sx={{ width: '100%' }}>
+                {rightTabs.map((tab, i) => <Tab key={i} label={tab.label} sx={{ fontWeight: 700, fontSize: 16 }} />)}
               </Tabs>
               <Divider />
-              <Box sx={{ p: 2, minHeight: 300, maxHeight: 640, overflowY: 'auto' }}>
+              <Box sx={{ p: 2, minHeight: 320, maxHeight: 640, overflowY: 'auto', width: '100%' }}>
                 {rightTab === 0 && (
                   <Box>
                     {loading && (
@@ -266,15 +271,15 @@ export default function OwnerAppointments(){
                       isMobile ? (
                         <Stack spacing={1}>
                           {unconfirmed.map(a => (
-                            <Paper key={a.id} sx={{ p: 1.25, borderRadius: 1 }}>
+                            <Paper key={a.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: theme.palette.grey[50], boxShadow: 1 }}>
                               <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                                 <Box>
                                   <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
                                   <Typography variant="body2" color="text.secondary">{a.name} • {typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId}</Typography>
                                 </Box>
-                                <Stack spacing={1} sx={{ minWidth: 120 }}>
-                                  <Button fullWidth size="small" variant="contained" color="success" onClick={()=> confirm(a.id)}>Confirmer</Button>
-                                  <Button fullWidth size="small" variant="outlined" color="error" onClick={()=> cancel(a.id)}>Annuler</Button>
+                                <Stack direction="row" spacing={1} sx={{ minWidth: 80 }}>
+                                  <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={()=> confirm(a.id)}><CheckIcon /></IconButton>
+                                  <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
                                 </Stack>
                               </Stack>
                             </Paper>
@@ -285,12 +290,53 @@ export default function OwnerAppointments(){
                           {unconfirmed.map((a)=> (
                             <ListItem key={a.id} secondaryAction={(
                               <Stack direction="row" spacing={1}>
-                                <Button size="small" variant="contained" color="success" onClick={()=> confirm(a.id)}>Confirmer</Button>
-                                <Button size="small" variant="outlined" color="error" onClick={()=> cancel(a.id)}>Annuler</Button>
+                                <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={()=> confirm(a.id)}><CheckIcon /></IconButton>
+                                <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
                               </Stack>
                             )}>
-                              <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.12), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
-                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:700}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" /></Box>} secondary={a.guestName + (a.note? ' — '+a.note : '')} />
+                              <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.18), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
+                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:800, color: theme.palette.primary.dark}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" sx={{ fontWeight: 700, bgcolor: theme.palette.primary.light, color: theme.palette.primary.contrastText }} /></Box>} secondary={<Typography sx={{ color: theme.palette.text.secondary }}>{a.guestName + (a.note? ' — '+a.note : '')}</Typography>} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )
+                    )}
+                {rightTab === 1 && (
+                  <Box>
+                    {loading && (
+                      <Stack spacing={1}>
+                        <Skeleton variant="rectangular" height={64} />
+                        <Skeleton variant="rectangular" height={64} />
+                      </Stack>
+                    )}
+                    {!loading && confirmed.length===0 && <Typography variant="body2" color="text.secondary">Aucun rendez-vous confirmé</Typography>}
+                    {!loading && confirmed.length>0 && (
+                      isMobile ? (
+                        <Stack spacing={1}>
+                          {confirmed.map(a => (
+                            <Paper key={a.id} sx={{ p: 1.25, bgcolor: theme.palette.success.light, boxShadow: 1, width: '100%' }}>
+                              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                                <Box>
+                                  <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
+                                  <Typography variant="body2" color="text.secondary">{a.name} • {typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId}</Typography>
+                                </Box>
+                                <Stack direction="row" spacing={1} sx={{ minWidth: 40 }}>
+                                  <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
+                                </Stack>
+                              </Stack>
+                            </Paper>
+                          ))}
+                        </Stack>
+                      ) : (
+                        <List sx={{ width: '100%' }}>
+                          {confirmed.map((a)=> (
+                            <ListItem key={a.id} secondaryAction={(
+                              <Stack direction="row" spacing={1}>
+                                <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
+                              </Stack>
+                            )} sx={{ width: '100%' }}>
+                              <Avatar sx={{ bgcolor: alpha(theme.palette.success.main, 0.18), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
+                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:800, color: theme.palette.success.dark}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" sx={{ fontWeight: 700, bgcolor: theme.palette.success.light, color: theme.palette.success.contrastText }} /></Box>} secondary={<Typography sx={{ color: theme.palette.text.secondary }}>{a.guestName + (a.note? ' — '+a.note : '')}</Typography>} />
                             </ListItem>
                           ))}
                         </List>
@@ -298,20 +344,22 @@ export default function OwnerAppointments(){
                     )}
                   </Box>
                 )}
+                  </Box>
+                )}
 
                 {rightTab === 1 && (
                   <Box>
                     {blockedDates.length===0 && <Typography variant="body2" color="text.secondary">Aucun jour bloqué</Typography>}
                     {blockedDates.map(b => (
-                      <Paper key={b.id} sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Paper key={b.id} sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: theme.palette.warning.light, boxShadow: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.12) }}><BlockIcon /></Avatar>
+                          <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.18) }}><BlockIcon /></Avatar>
                           <Box>
-                            <Typography sx={{ fontWeight: 700 }}>{b.date}{b.propertyId? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}`: ''}</Typography>
-                            <Typography variant="body2" color="text.secondary">{b.note}</Typography>
+                            <Typography sx={{ fontWeight: 800, color: theme.palette.warning.dark }}>{b.date}{b.propertyId? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}`: ''}</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{b.note}</Typography>
                           </Box>
                         </Box>
-                        <IconButton onClick={()=> setBlockedDates(s => s.filter(x=> x.id !== b.id))}><DeleteIcon /></IconButton>
+                        <IconButton size="small" sx={{ color: theme.palette.error.main }} onClick={()=> setBlockedDates(s => s.filter(x=> x.id !== b.id))}><DeleteIcon /></IconButton>
                       </Paper>
                     ))}
                   </Box>

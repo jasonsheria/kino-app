@@ -305,11 +305,6 @@ h5, .h5 {
   color: var(--color-text-primary);
 }
 
-h6, .h6 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
 
 p {
   color: var(--color-text-secondary);

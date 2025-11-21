@@ -152,54 +152,29 @@ export default function OwnerDashboard() {
     return (
         <OwnerLayout>
             <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, md: 4 }, mt: 4, mb: 4, width: '100%' }}>
-                <Grid container spacing={3}>
+                <Grid container>
                     {/* Dashboard Header (mobile/financial) */}
-                    <Grid item xs={12} style={{width : "100%"}}>
-                        <Card sx={{ mb: 2, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff' }}>
-                            <CardContent>
-                                <Box display="flex" alignItems="center" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }}>
+                    <Grid item xs={12} md={6} sx={{ width : "100%" }}>
+                        <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff', boxShadow: 2 }}>
+                            <CardContent sx={{ width: '100%' }}>
+                                <Box display="flex" alignItems="center" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }} sx={{ width: '100%' }}>
                                     <Box>
-                                        <Typography variant="h6">Bonjour, {ownerProfile?.name?.split(' ')[0] || 'Propriétaire'}</Typography>
+                                        <Typography variant="h6">Bonjour, {ownerProfile?.prenom?.split(' ')[0] || 'Propriétaire'}</Typography>
                                         <Typography variant="body2" sx={{ opacity: 0.9 }}>Voici le tableau de bord de votre activité</Typography>
                                     </Box>
-
                                     <Box sx={{ display: 'flex', gap: 1, mt: { xs: 2, sm: 0 } }}>
                                         <Chip icon={<FaBell />} label="Notifications" sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
                                         <Chip icon={<FaWallet />} label={`Solde $${metrics.revenue}`} sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
                                     </Box>
                                 </Box>
-
-                                {/* KPIs row */}
-                                <Grid container spacing={1} sx={{ mt: 2 }} >
-                                    <Grid item xs={6} sm={3}>
-                                        <Box sx={{ textAlign: 'center' }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.visits}</Typography>
-                                            <Typography variant="caption">Visites</Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={6} sm={3}>
-                                        <Box sx={{ textAlign: 'center' }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.bookings}</Typography>
-                                            <Typography variant="caption">Réservations</Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={6} sm={3}>
-                                        <Box sx={{ textAlign: 'center' }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>${metrics.revenue}</Typography>
-                                            <Typography variant="caption">Revenu</Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={6} sm={3}>
-                                        <Box sx={{ textAlign: 'center' }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>4.5</Typography>
-                                            <Typography variant="caption">Note</Typography>
-                                        </Box>
-                                    </Grid>
+                                <Grid container spacing={1} sx={{ mt: 2 }}>
+                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.visits}</Typography><Typography variant="caption">Visites</Typography></Box></Grid>
+                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.bookings}</Typography><Typography variant="caption">Réservations</Typography></Box></Grid>
+                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>${metrics.revenue}</Typography><Typography variant="caption">Revenu</Typography></Box></Grid>
+                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>4.5</Typography><Typography variant="caption">Note</Typography></Box></Grid>
                                 </Grid>
-
-                                {/* Quick actions / small chart */}
                                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                                    <Box sx={{ flex: 1, width : "100%" }}>
+                                    <Box sx={{ flex: 1, width : '100%' }}>
                                         <Typography variant="subtitle2" color="inherit">Revenu - dernière semaine</Typography>
                                         <Box sx={{ height: 88, mt: 1 }}>
                                             <Box sx={{ height: '100%', px: 0.5 }}>
@@ -207,94 +182,30 @@ export default function OwnerDashboard() {
                                             </Box>
                                         </Box>
                                     </Box>
-
-                                    
                                 </Box>
-                                <Box sx={{ display: 'flex', gap: 1, width : "100%", marginBottom : '10px'  }}>
-                                        <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 1, textAlign: 'center' }} onClick={() => navigate('/owner/properties')}>
-                                            <Typography variant="caption">Mes biens</Typography>
-                                        </Box>
-                                        <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 1 }} onClick={() => navigate('/owner/messages')}>
-                                            <Typography variant="caption">Messages</Typography>
-                                        </Box>
-                                    </Box>
+                                <Box sx={{ display: 'flex', gap: 1, width : '100%', marginBottom : '10px' }}>
+                                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/properties')}><Typography variant="caption">Mes biens</Typography></Box>
+                                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/messages')}><Typography variant="caption">Messages</Typography></Box>
+                                </Box>
                             </CardContent>
                         </Card>
                     </Grid>
-
-                    {/* Stat Cards */}
-                    <Grid item xs={12} md={12} style={{"width" : "100%", display : 'flex', flexDirection : 'row', justifyContent : 'space-betwen' }}>
-                    
-                    <Grid item xs={12} md={3} 
-                    style={{
-                       
-                        margin: '10px',
-                        width : '100%',
-
-                    }}
-                    >
-                        <StatCard>
-                            <FaEye size={24} color="#60A5FA" />
-                            <Typography variant="h4" component="div" sx={{ mt: 2 }}>
-                                {metrics.visits}
-                            </Typography>
-                            <Typography color="text.secondary">Visites</Typography>
-                        </StatCard>
+                    <Grid item xs={12} md={6} sx={{ width : "100%" }}>
+                        <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#34D399 0%, #60A5FA 100%)', color: '#fff', boxShadow: 2 }}>
+                            <CardContent sx={{ width: '100%' }}>
+                                <Box display="flex" flexDirection="column" alignItems="flex-start" sx={{ width: '100%' }}>
+                                    <Typography variant="h6" sx={{ mb: 1 }}>Financier</Typography>
+                                    <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>${metrics.revenue}</Typography>
+                                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Solde actuel et historique des revenus</Typography>
+                                </Box>
+                                <Box sx={{ width: '100%', mt: 2 }}>
+                                    <Line data={revenueData} options={revenueOptions} />
+                                </Box>
+                            </CardContent>
+                        </Card>
                     </Grid>
-                    <Grid item xs={12} md={3}
-                    style={{
-                        
-                        margin: '10px',
-                        width : '100%',
-
-                    }}
-                    >
-                        <StatCard>
-                            <FaCalendarCheck size={24} color="#34D399" />
-                            <Typography variant="h4" component="div" sx={{ mt: 2 }}>
-                                {metrics.bookings}
-                            </Typography>
-                            <Typography color="text.secondary">Rendez-vous</Typography>
-                        </StatCard>
-                    </Grid>
-                    <Grid item xs={12} md={3}
-                    style={{
-                      
-                      
-                        margin: '10px',
-                        width : '100%',
-
-                    }}
-                    >
-                        <StatCard>
-                            <FaClock size={24} color="#FBBF24" />
-                            <Typography variant="h4" component="div" sx={{ mt: 2 }}>
-                                12
-                            </Typography>
-                            <Typography color="text.secondary">En attente</Typography>
-                        </StatCard>
-                    </Grid>
-                    <Grid item xs={12}  md={3}
-                    style={{
-                        
-                        margin: '10px',
-                        width : '100%',
-
-                    }}
-                    >
-                        <StatCard>
-                            <FaWallet size={24} color="#F472B6" />
-                            <Typography variant="h4" component="div" sx={{ mt: 2 }}>
-                                ${metrics.revenue}
-                            </Typography>
-                            <Typography color="text.secondary">Revenus</Typography>
-                        </StatCard>
-                    </Grid>
-                    </Grid>
-
-
                     {/* Calendar Section */}
-                    <Grid item xs={12} md={12} style={{"width" : "100%"}}>
+                    <Grid item xs={12} md={12} style={{ width : '100%' }}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
@@ -304,9 +215,8 @@ export default function OwnerDashboard() {
                             </CardContent>
                         </Card>
                     </Grid>
-
                     {/* Activity Section */}
-                    <Grid item xs={12} md={4} style={{"width" : "100%"}}>
+                    <Grid item xs={12} md={4} style={{ width : '100%' }}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>

@@ -320,10 +320,7 @@
    TEXT STYLING
    ============================================ */
 
-h1, h2, h3, h4, h5, h6 {
-  color:#138f6b;
-  font-weight: 700;
-}
+
 
 .text-primary {
   color: var(--ndaku-primary) !important;
