@@ -656,7 +656,7 @@
 .kn-drawer-link:hover,
 .kn-drawer-link.active {
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--bg);
 }
 .kn-cta-group{
   display : flex;

@@ -216,7 +216,9 @@ export default function OwnerDashboard() {
                         </Card>
                     </Grid>
                     {/* Activity Section */}
-                    <Grid item xs={12} md={4} style={{ width : '100%' }}>
+                    <Grid item xs={12} md
+                    
+                    ={4} style={{ width : '100%' }}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>

@@ -20,12 +20,12 @@ import { alpha } from '@mui/material/styles';
 
 import { saveAppointment, updateAppointment } from '../data/fakeAppointments';
 import { confirmReservation, rejectReservation } from '../api/appointments';
-
+import {tronquerTexte } from '../utils/util'
 // Fonctions locales pour manipuler les rendez-vous fakeAppointments
 
-function ownerIdFromDraft(){ try{ const d = JSON.parse(localStorage.getItem('owner_request_draft')||'null'); return d && d.id ? String(d.id) : 'owner-123'; }catch(e){ return 'owner-123'; } }
+function ownerIdFromDraft() { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch (e) { return 'owner-123'; } }
 
-export default function OwnerAppointments(){
+export default function OwnerAppointments() {
   const ownerId = ownerIdFromDraft();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -33,12 +33,14 @@ export default function OwnerAppointments(){
   const [appts, setAppts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
-  const [blockedDates, setBlockedDates] = useState(()=>{ try{ return JSON.parse(localStorage.getItem(`owner_blocked_${ownerId}`)) || []; }catch(e){ return []; } });
+  const [blockedDates, setBlockedDates] = useState([]);
   const { notifications: allNotifications = [] } = useNotifications();
   const [notifications, setNotifications] = useState(() => { try { return allNotifications.filter(n => String(n.userId) === String(ownerId)); } catch (e) { return []; } });
 
   const [filterProperty, setFilterProperty] = useState('all');
   const [range, setRange] = useState({ from: '', to: '' });
+  // Pour éviter les updates infinis
+  const lastFilter = useRef({ filterProperty: 'all', from: '', to: '' });
 
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingDraft, setBookingDraft] = useState(null);
@@ -46,14 +48,15 @@ export default function OwnerAppointments(){
 
   const calendarRef = useRef(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     setLoading(true);
     const local = getLocalAppts(ownerId) || [];
-    setAppts(local.map(a => ({ ...a, status: a.status || 'pending' })));
+    setAppts(local.map(a => ({ ...a, status: a.status })));
     setLoading(false);
-  },[ownerId]);
+    setBlockedDates(local.filter(a => a.status === "cancelled"));
+  }, [ownerId, setAppts]);
 
-  useEffect(()=>{ try{ localStorage.setItem(`owner_blocked_${ownerId}`, JSON.stringify(blockedDates)); }catch(e){} },[blockedDates, ownerId]);
+  useEffect(() => { try { localStorage.setItem(`owner_blocked_${ownerId}`, JSON.stringify(blockedDates)); } catch (e) { } }, [blockedDates, ownerId]);
   // Keep notifications in sync with NotificationContext
   useEffect(() => {
     try {
@@ -61,63 +64,63 @@ export default function OwnerAppointments(){
     } catch (e) { setNotifications([]); }
   }, [allNotifications, ownerId]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const el = document.querySelectorAll('.appt-card');
-    el.forEach((n)=> { n.style.transform = 'translateY(8px)'; n.style.transition = 'transform .36s cubic-bezier(.2,.9,.2,1)'; });
-    setTimeout(()=> el.forEach((n)=> { n.style.transform = 'translateY(0)'; }), 80);
-  },[appts.length]);
+    el.forEach((n) => { n.style.transform = 'translateY(8px)'; n.style.transition = 'transform .36s cubic-bezier(.2,.9,.2,1)'; });
+    setTimeout(() => el.forEach((n) => { n.style.transform = 'translateY(0)'; }), 80);
+  }, [appts.length]);
 
-  const events = useMemo(()=> appts.map(a => ({ id: a.id, title: `${a.time} • ${a.guestName}`, start: `${a.date}T${a.time}:00`, extendedProps: a })), [appts]);
-  const blockedEvents = useMemo(()=> blockedDates.map(b => ({ id: `b-${b.id}`, title: 'Occupé', start: `${b.date}T00:00:00`, allDay: true, extendedProps: { blocked: true, ...b } })), [blockedDates]);
-  const proposalEvents = useMemo(()=> notifications.filter(n=> n.type === 'proposal').map(n=> ({ id: `p-${n.id}`, title: `${n.time} • Proposition • ${n.guestName}`, start: `${n.date}T${n.time}:00`, extendedProps: { proposal: true, ...n } })), [notifications]);
+  const events = useMemo(() => appts.map(a => ({ id: a.id, title: `${a.time} • ${a.guestName}`, start: `${a.date}T${a.time}:00`, extendedProps: a })), [appts]);
+  const blockedEvents = useMemo(() => blockedDates.map(b => ({ id: `b-${b.id}`, title: 'Occupé', start: `${b.date}T00:00:00`, allDay: true, extendedProps: { blocked: true, ...b } })), [blockedDates]);
+  const proposalEvents = useMemo(() => notifications.filter(n => n.type === 'proposal').map(n => ({ id: `p-${n.id}`, title: `${n.time} • Proposition • ${n.guestName}`, start: `${n.date}T${n.time}:00`, extendedProps: { proposal: true, ...n } })), [notifications]);
 
-  const mergedEvents = useMemo(()=> [...blockedEvents, ...proposalEvents, ...events], [blockedEvents, proposalEvents, events]);
+  const mergedEvents = useMemo(() => [...blockedEvents, ...proposalEvents, ...events], [blockedEvents, proposalEvents, events]);
 
   const [calendarTitle, setCalendarTitle] = useState('');
 
-  const handleEventClick = async (clickInfo)=>{
+  const handleEventClick = async (clickInfo) => {
     const ext = clickInfo.event.extendedProps || {};
-    if(ext.proposal){
+    if (ext.proposal) {
       const nid = ext.id || ext.notificationId || null;
-      const notif = notifications.find(n=> String(n.id) === String(nid) || String(n.id) === String(ext.id));
-      if(notif) setProposalDialog(notif);
+      const notif = notifications.find(n => String(n.id) === String(nid) || String(n.id) === String(ext.id));
+      if (notif) setProposalDialog(notif);
       return;
     }
     const existing = appts.find(x => String(x.id) === String(clickInfo.event.id));
-    if(!existing) return;
+    if (!existing) return;
     const nextStatus = existing.status === 'confirmed' ? 'pending' : 'confirmed';
-    await updateAppointment(ownerId, existing.id, { status: nextStatus }).catch(()=>{});
-    setAppts(s => s.map(x => x.id===existing.id? { ...x, status: nextStatus } : x));
+    await updateAppointment(ownerId, existing.id, { status: nextStatus }).catch(() => { });
+    setAppts(s => s.map(x => x.id === existing.id ? { ...x, status: nextStatus } : x));
   };
 
-  const filtered = appts.filter(a => (filterProperty==='all' || a.propertyId===filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
-  const unconfirmed = filtered.filter(a => a.status !== 'confirmed' && a.status !== 'cancelled');
+  const filtered = appts.filter(a => (filterProperty === 'all' || a.propertyId === filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
+  const unconfirmed = filtered.filter(a => a.status == 'pending' && a.status !== 'cancelled');
   const confirmed = filtered.filter(a => a.status === 'confirmed');
 
   const confirm = async (id) => {
     try {
       await confirmReservation(id);
-      setAppts(s => s.map(x => x.id===id? { ...x, status:'confirmed' } : x));
-    } catch(e) {}
+      setAppts(s => s.map(x => x.id === id ? { ...x, status: 'confirmed' } : x));
+    } catch (e) { }
   };
   const cancel = async (id) => {
     try {
       await rejectReservation(id);
-      setAppts(s => s.map(x => x.id===id? { ...x, status:'cancelled' } : x));
-    } catch(e) {}
+      setAppts(s => s.map(x => x.id === id ? { ...x, status: 'cancelled' } : x));
+    } catch (e) { }
   };
 
   const onDateSelect = (selectInfo) => {
-    const date = selectInfo.startStr.slice(0,10);
-    const time = selectInfo.startStr.slice(11,16);
-    setBookingDraft({ date, time, propertyId: filterProperty==='all' ? null : filterProperty });
+    const date = selectInfo.startStr.slice(0, 10);
+    const time = selectInfo.startStr.slice(11, 16);
+    setBookingDraft({ date, time, propertyId: filterProperty === 'all' ? null : filterProperty });
     setBookingDialogOpen(true);
   };
 
-  const properties = useMemo(()=> {
-    const set = new Set(appts.map(a=> a.propertyId).filter(Boolean));
+  const properties = useMemo(() => {
+    const set = new Set(appts.map(a => a.propertyId).filter(Boolean));
     return ['all', ...Array.from(set)];
-  },[appts]);
+  }, [appts]);
 
   const [rightTab, setRightTab] = useState(0);
   const rightTabs = [
@@ -126,27 +129,26 @@ export default function OwnerAppointments(){
     { label: `Bloqués (${blockedDates.length})` }
   ];
 
-  const stats = useMemo(()=>({
+  const stats = useMemo(() => ({
     total: appts.length,
-    confirmed: appts.filter(a=> a.status === 'confirmed').length,
-    pending: appts.filter(a=> a.status === 'pending').length,
+    confirmed: appts.filter(a => a.status === 'confirmed').length,
+    pending: appts.filter(a => a.status === 'pending').length,
     blocked: blockedDates.length
-  }),[appts, blockedDates]);
+  }), [appts, blockedDates]);
 
   return (
     <OwnerLayout>
-  <Box sx={{ p: { xs: 2, md: 3 }, width: '100%', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
+      <Box sx={{ p: { xs: 2, md: 3 }, width: '100%', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
         {/* Header + actions */}
-  <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: 3, width: '100%' }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" sx={{ mb: 3, width: '100%' }}>
           <Box sx={{ mb: { xs: 2, md: 0 } }}>
             <Typography variant="h4" sx={{ fontWeight: 800, color: theme.palette.primary.main, mb: .5 }}>Rendez-vous</Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>Gérez vos rendez‑vous, bloquez des jours et traitez les propositions.</Typography>
           </Box>
-
-          <Stack direction="row" spacing={1} sx={{ mt: { xs: 2, md: 0 } }}>
+          <Stack direction="row" spacing={1} sx={{ mt: { xs: 2, md: 0 }, display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             <Button startIcon={<FileDownloadIcon />} size="small" variant="outlined" sx={{ minWidth: 36, px: 1 }}>Exporter</Button>
             <Button startIcon={<PrintIcon />} size="small" variant="outlined" sx={{ minWidth: 36, px: 1 }}>Imprimer</Button>
-            <Button startIcon={<AddIcon />} size="small" variant="contained" color="primary" sx={{ minWidth: 36, px: 1, fontWeight: 700 }} onClick={()=>{ setBookingDraft({ date: '', time: '09:00', propertyId: null, guestName: '' }); setBookingDialogOpen(true); }}>Ajouter</Button>
+            <Button startIcon={<AddIcon />} size="small" variant="contained" color="primary" sx={{ minWidth: 36, px: 1, fontWeight: 700 }} onClick={() => { setBookingDraft({ date: '', time: '09:00', propertyId: null, guestName: '' }); setBookingDialogOpen(true); }}>Ajouter</Button>
           </Stack>
         </Stack>
 
@@ -155,14 +157,14 @@ export default function OwnerAppointments(){
           <Grid container spacing={2} sx={{ width: '100%' }}>
             {[{
               label: 'Total rendez-vous', value: stats.total, color: theme.palette.primary.dark, bg: theme.palette.primary.light
-            },{
+            }, {
               label: 'Confirmés', value: stats.confirmed, color: theme.palette.success.dark, bg: theme.palette.success.light
-            },{
+            }, {
               label: 'En attente', value: stats.pending, color: theme.palette.warning.dark, bg: theme.palette.warning.light
-            },{
+            }, {
               label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary, bg: theme.palette.grey[100]
             }].map((c, i) => (
-              <Grid item xs={12} sm={6} md={3} key={c.label} sx={{ display: 'flex' }}>
+              <Grid item xs={12} sm={6} md={3} key={c.label} sx={{ display: 'flex', width: '47.5%', justifyContent: 'center' }}>
                 <Paper elevation={2} sx={{ p: 2.5, minHeight: 120, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: c.bg, boxShadow: 2 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: .5, color: c.color }}>{c.label}</Typography>
                   <Typography variant="h3" sx={{ fontWeight: 900, color: c.color }}>{c.value}</Typography>
@@ -170,22 +172,96 @@ export default function OwnerAppointments(){
               </Grid>
             ))}
 
+            {/* design des boutton */}
             <Grid item xs={12} md={4}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, minHeight: 84, bgcolor: theme.palette.background.paper }}>
-                <Grid container spacing={1} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <TextField select size="small" fullWidth value={filterProperty} onChange={e=> setFilterProperty(e.target.value)} SelectProps={{ native: true }}>
-                      {properties.map(p => <option key={p} value={p}>{p === 'all' ? 'Toutes les propriétés' : `Propriété ${p}`}</option>)}
+              <Paper elevation={2} sx={{
+                p: 3,
+                border: `1.5px solid ${theme.palette.primary.light}`,
+                minHeight: 120,
+                bgcolor: theme.palette.background.paper,
+                borderRadius: 3,
+                boxShadow: '0 4px 16px 0 rgba(56,189,248,0.10)'
+              }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={6} sx={{ width: '100%' }}>
+                    <TextField
+                      select
+                      size="medium"
+                      fullWidth
+                      value={filterProperty}
+                      onChange={e => {
+                        if (lastFilter.current.filterProperty !== e.target.value) {
+                          setFilterProperty(e.target.value);
+                          lastFilter.current.filterProperty = e.target.value;
+                        }
+                      }}
+                      SelectProps={{ native: true }}
+                      sx={{
+                        borderRadius: 0,
+                        background: theme.palette.grey[50],
+                        '& fieldset': { borderColor: theme.palette.primary.light },
+                        fontWeight: 700,
+                        fontSize: 16
+                      }}
+                    >
+                      {properties.map(p => <option key={p} value={p}>{p === 'all' ? 'Toutes les propriétés' : `${tronquerTexte(p.titre, 25)}`}</option>)}
                     </TextField>
                   </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <TextField size="small" type="date" fullWidth value={range.from} onChange={e=> setRange(r=>({...r, from:e.target.value}))} />
+                  <Grid item xs={6} sm={3} sx={{ width: '100%' }}>
+                    <TextField
+                      size="medium"
+                      type="date"
+                      fullWidth
+                      value={range.from}
+                      onChange={e => {
+                        if (lastFilter.current.from !== e.target.value) {
+                          setRange(r => ({ ...r, from: e.target.value }));
+                          lastFilter.current.from = e.target.value;
+                        }
+                      }}
+                      sx={{ borderRadius: 0, background: theme.palette.grey[50], '& fieldset': { borderColor: theme.palette.primary.light }, fontWeight: 700, fontSize: 16 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
                   </Grid>
-                  <Grid item xs={6} sm={3}>
-                    <TextField size="small" type="date" fullWidth value={range.to} onChange={e=> setRange(r=>({...r, to:e.target.value}))} />
+                  <Grid item xs={6} sm={3} sx={{ width: '100%' }}>
+                    <TextField
+                      size="medium"
+                      type="date"
+                      fullWidth
+                      value={range.to}
+                      onChange={e => {
+                        if (lastFilter.current.to !== e.target.value) {
+                          setRange(r => ({ ...r, to: e.target.value }));
+                          lastFilter.current.to = e.target.value;
+                        }
+                      }}
+                      sx={{ borderRadius: 0, background: theme.palette.grey[50], '& fieldset': { borderColor: theme.palette.primary.light }, fontWeight: 700, fontSize: 16 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
                   </Grid>
-                  <Grid item xs={12}>
-                    <FormControlLabel control={<Switch checked={blockMode} onChange={e=> setBlockMode(e.target.checked)} />} label={<><BlockIcon sx={{ fontSize: 16, mr: .5 }} />Marquer occupé</>} />
+                  <Grid item xs={12} sx={{ mt: 1, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={blockMode}
+                            onChange={e => setBlockMode(e.target.checked)}
+                            color="warning"
+                            sx={{
+                              '& .MuiSwitch-thumb': { backgroundColor: blockMode ? theme.palette.warning.main : theme.palette.grey[300] },
+                              '& .MuiSwitch-track': { backgroundColor: blockMode ? theme.palette.warning.light : theme.palette.grey[200] }
+                            }}
+                          />
+                        }
+                        label={
+                          <Box sx={{ display: 'flex', alignItems: 'center', fontWeight: 700, color: blockMode ? theme.palette.warning.dark : theme.palette.text.secondary }}>
+                            <BlockIcon sx={{ fontSize: 18, mr: 1, color: blockMode ? theme.palette.warning.dark : theme.palette.text.secondary }} />
+                            Marquer occupé
+                          </Box>
+                        }
+                        sx={{ ml: 0, mr: 0 }}
+                      />
+                    </Box>
                   </Grid>
                 </Grid>
               </Paper>
@@ -193,24 +269,24 @@ export default function OwnerAppointments(){
           </Grid>
         </Box>
 
-  {/* Main content */}
-  <Grid container spacing={3} sx={{ width: '100%' }}>
+        {/* Main content */}
+        <Grid container spacing={3} sx={{ width: '100%' }}>
           <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper }}>
               {/* Custom toolbar above calendar for precise layout */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, width: '100%' }}>
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
-                  <IconButton size="small" onClick={()=> calendarRef.current?.getApi().prev()}><ChevronLeft /></IconButton>
-                  <IconButton size="small" onClick={()=> calendarRef.current?.getApi().next()}><ChevronRight /></IconButton>
-                  <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={()=> calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
+                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().prev()}><ChevronLeft /></IconButton>
+                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().next()}><ChevronRight /></IconButton>
+                  <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={() => calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
                 </Stack>
 
                 <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.dark }}>{calendarTitle}</Typography>
 
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
-                  <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('dayGridMonth')} title="Mois"><ViewMonthIcon /></IconButton>
-                  <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('timeGridWeek')} title="Semaine"><ViewWeekIcon /></IconButton>
-                  <IconButton size="small" onClick={()=> calendarRef.current?.getApi().changeView('timeGridDay')} title="Jour"><ViewDayIcon /></IconButton>
+                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('dayGridMonth')} title="Mois"><ViewMonthIcon /></IconButton>
+                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('timeGridWeek')} title="Semaine"><ViewWeekIcon /></IconButton>
+                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('timeGridDay')} title="Jour"><ViewDayIcon /></IconButton>
                 </Stack>
               </Box>
 
@@ -218,7 +294,7 @@ export default function OwnerAppointments(){
                 <Skeleton variant="rectangular" height={520} animation="wave" />
               )}
               <FullCalendar
-                plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin ]}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
                 initialView="dayGridMonth"
                 headerToolbar={false}
                 events={mergedEvents}
@@ -227,8 +303,8 @@ export default function OwnerAppointments(){
                 select={onDateSelect}
                 ref={calendarRef}
                 height={isMobile ? 520 : 720}
-                datesSet={(info)=> setCalendarTitle(info.view.title)}
-                eventContent={(arg)=>{
+                datesSet={(info) => setCalendarTitle(info.view.title)}
+                eventContent={(arg) => {
                   const ext = arg.event.extendedProps || {};
                   return (
                     <div style={{ padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -238,12 +314,12 @@ export default function OwnerAppointments(){
                   );
                 }}
                 eventDidMount={(info) => {
-                  info.el.setAttribute('title', info.event.title + ' — ' + (info.event.extendedProps.note||''));
+                  info.el.setAttribute('title', info.event.title + ' — ' + (info.event.extendedProps.note || ''));
                   const status = info.event.extendedProps.status;
-                  if(status === 'confirmed') info.el.style.background = '#d1fae5';
-                  if(status === 'cancelled') info.el.style.opacity = '0.5';
-                  if(info.event.extendedProps.blocked) { info.el.style.background = '#f5f5f5'; info.el.style.border = '1px solid #ddd'; }
-                  if(info.event.extendedProps.proposal) { info.el.style.background = '#fff8dc'; info.el.style.border = '1px solid #f0c36d'; }
+                  if (status === 'confirmed') info.el.style.background = '#d1fae5';
+                  if (status === 'cancelled') info.el.style.opacity = '0.5';
+                  if (info.event.extendedProps.blocked) { info.el.style.background = '#f5f5f5'; info.el.style.border = '1px solid #ddd'; }
+                  if (info.event.extendedProps.proposal) { info.el.style.background = '#fff8dc'; info.el.style.border = '1px solid #f0c36d'; }
                 }}
               />
             </Paper>
@@ -251,119 +327,81 @@ export default function OwnerAppointments(){
 
           <Grid item xs={12} md={4}>
             <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', width: '100%', bgcolor: theme.palette.background.paper }}>
-              <Tabs value={rightTab} onChange={(e,v)=> setRightTab(v)} variant="fullWidth" sx={{ width: '100%' }}>
-                {rightTabs.map((tab, i) => <Tab key={i} label={tab.label} sx={{ fontWeight: 700, fontSize: 16 }} />)}
+              <Tabs value={rightTab} onChange={(e, v) => setRightTab(v)} variant="fullWidth" sx={{ width: '100%' }}>
+                {rightTabs.map((tab, i) => <Tab key={i} label={tab.label} sx={{ fontWeight: 700, fontSize: 16, textTransform: 'none', letterSpacing: 0.5 }} />)}
               </Tabs>
               <Divider />
               <Box sx={{ p: 2, minHeight: 320, maxHeight: 640, overflowY: 'auto', width: '100%' }}>
-                {rightTab === 0 && (
-                  <Box>
-                    {loading && (
-                      <Stack spacing={1}>
-                        <Skeleton variant="rectangular" height={64} />
-                        <Skeleton variant="rectangular" height={64} />
-                      </Stack>
-                    )}
-
-                    {!loading && unconfirmed.length===0 && <Typography variant="body2" color="text.secondary">Aucun rendez-vous non confirmé</Typography>}
-
-                    {!loading && unconfirmed.length>0 && (
-                      isMobile ? (
-                        <Stack spacing={1}>
-                          {unconfirmed.map(a => (
-                            <Paper key={a.id} sx={{ p: 1.25, borderRadius: 2, bgcolor: theme.palette.grey[50], boxShadow: 1 }}>
-                              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                                <Box>
-                                  <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
-                                  <Typography variant="body2" color="text.secondary">{a.name} • {typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId}</Typography>
-                                </Box>
-                                <Stack direction="row" spacing={1} sx={{ minWidth: 80 }}>
-                                  <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={()=> confirm(a.id)}><CheckIcon /></IconButton>
-                                  <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
-                                </Stack>
-                              </Stack>
-                            </Paper>
-                          ))}
-                        </Stack>
-                      ) : (
-                        <List>
-                          {unconfirmed.map((a)=> (
-                            <ListItem key={a.id} secondaryAction={(
-                              <Stack direction="row" spacing={1}>
-                                <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={()=> confirm(a.id)}><CheckIcon /></IconButton>
-                                <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
-                              </Stack>
-                            )}>
-                              <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.18), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
-                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:800, color: theme.palette.primary.dark}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" sx={{ fontWeight: 700, bgcolor: theme.palette.primary.light, color: theme.palette.primary.contrastText }} /></Box>} secondary={<Typography sx={{ color: theme.palette.text.secondary }}>{a.guestName + (a.note? ' — '+a.note : '')}</Typography>} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      )
-                    )}
-                {rightTab === 1 && (
-                  <Box>
-                    {loading && (
-                      <Stack spacing={1}>
-                        <Skeleton variant="rectangular" height={64} />
-                        <Skeleton variant="rectangular" height={64} />
-                      </Stack>
-                    )}
-                    {!loading && confirmed.length===0 && <Typography variant="body2" color="text.secondary">Aucun rendez-vous confirmé</Typography>}
-                    {!loading && confirmed.length>0 && (
-                      isMobile ? (
-                        <Stack spacing={1}>
-                          {confirmed.map(a => (
-                            <Paper key={a.id} sx={{ p: 1.25, bgcolor: theme.palette.success.light, boxShadow: 1, width: '100%' }}>
-                              <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                                <Box>
-                                  <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
-                                  <Typography variant="body2" color="text.secondary">{a.name} • {typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId}</Typography>
-                                </Box>
-                                <Stack direction="row" spacing={1} sx={{ minWidth: 40 }}>
-                                  <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
-                                </Stack>
-                              </Stack>
-                            </Paper>
-                          ))}
-                        </Stack>
-                      ) : (
-                        <List sx={{ width: '100%' }}>
-                          {confirmed.map((a)=> (
-                            <ListItem key={a.id} secondaryAction={(
-                              <Stack direction="row" spacing={1}>
-                                <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={()=> cancel(a.id)}><DeleteIcon /></IconButton>
-                              </Stack>
-                            )} sx={{ width: '100%' }}>
-                              <Avatar sx={{ bgcolor: alpha(theme.palette.success.main, 0.18), mr: 1 }}>{a.guestName? a.guestName[0] : 'U'}</Avatar>
-                              <ListItemText primary={<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><Typography sx={{fontWeight:800, color: theme.palette.success.dark}}>{a.date} {a.time}</Typography><Chip label={typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId} size="small" sx={{ fontWeight: 700, bgcolor: theme.palette.success.light, color: theme.palette.success.contrastText }} /></Box>} secondary={<Typography sx={{ color: theme.palette.text.secondary }}>{a.guestName + (a.note? ' — '+a.note : '')}</Typography>} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      )
-                    )}
-                  </Box>
-                )}
-                  </Box>
-                )}
-
-                {rightTab === 1 && (
-                  <Box>
-                    {blockedDates.length===0 && <Typography variant="body2" color="text.secondary">Aucun jour bloqué</Typography>}
-                    {blockedDates.map(b => (
-                      <Paper key={b.id} sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: theme.palette.warning.light, boxShadow: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.18) }}><BlockIcon /></Avatar>
-                          <Box>
-                            <Typography sx={{ fontWeight: 800, color: theme.palette.warning.dark }}>{b.date}{b.propertyId? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}`: ''}</Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{b.note}</Typography>
+                {/* Tableau filtré par statut, tous affichés */}
+                <Box>
+                  {loading && (
+                    <Stack spacing={1}>
+                      <Skeleton variant="rectangular" height={64} />
+                      <Skeleton variant="rectangular" height={64} />
+                    </Stack>
+                  )}
+                  { !loading && unconfirmed.length + confirmed.length + blockedDates.length === 0 && (
+                    <Typography variant="body2" color="text.secondary">Aucun rendez-vous à afficher</Typography>
+                  )}
+                  {/* Confirmés */}
+                  {rightTab===1 && !loading && confirmed.length > 0 && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.success.dark, mb: 1 }}>Confirmés</Typography>
+                      {confirmed.map(a => (
+                        <Paper key={a.id} sx={{ p: 1.25, mb: 1, borderRadius: 0, bgcolor: "#5a97ef", boxShadow: 1 }}>
+                          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                            <Box>
+                              <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
+                              <Typography variant="body2" color="text.secondary">{a.name} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                            </Box>
+                            <Stack direction="row" spacing={1} sx={{ minWidth: 40 }}>
+                              <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={() => cancel(a.id)}><DeleteIcon /></IconButton>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </>
+                  )}
+                  {/* En attente */}
+                  {rightTab===0 && !loading && unconfirmed.length > 0 && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.dark, mb: 1 }}>En attente</Typography>
+                      {unconfirmed.map(a => (
+                        <Paper key={a.id} sx={{ p: 1.25, mb: 1, borderRadius: 0, bgcolor: '#66adeac4', boxShadow: 1 }}>
+                          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                            <Box>
+                              <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
+                              <Typography variant="body2" color="text.secondary">{a.name} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                            </Box>
+                            <Stack direction="row" spacing={1} sx={{ minWidth: 80 }}>
+                              <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={() => confirm(a.id)}><CheckIcon /></IconButton>
+                              <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={() => cancel(a.id)}><DeleteIcon /></IconButton>
+                            </Stack>
+                          </Stack>
+                        </Paper>
+                      ))}
+                    </>
+                  )}
+                  {/* Bloqués */}
+                  {rightTab===2 && blockedDates.length > 0 && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.main, mb: 1 }}>Jours bloqués</Typography>
+                      {blockedDates.map(b => (
+                        <Paper key={b.id} sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: theme.palette.warning.light, boxShadow: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.18) }}><BlockIcon /></Avatar>
+                            <Box>
+                              <Typography sx={{ fontWeight: 800, color: theme.palette.warning.dark }}>{b.date}{b.propertyId ? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}` : ''}</Typography>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{b.note}</Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                        <IconButton size="small" sx={{ color: theme.palette.error.main }} onClick={()=> setBlockedDates(s => s.filter(x=> x.id !== b.id))}><DeleteIcon /></IconButton>
-                      </Paper>
-                    ))}
-                  </Box>
-                )}
+                          <IconButton size="small" sx={{ color: theme.palette.error.main }} onClick={() => setBlockedDates(s => s.filter(x => x.id !== b.id))}><DeleteIcon /></IconButton>
+                        </Paper>
+                      ))}
+                    </>
+                  )}
+                </Box>
+                
               </Box>
             </Paper>
           </Grid>
@@ -377,9 +415,13 @@ export default function OwnerAppointments(){
               <Stack spacing={1} sx={{ mt: 1 }}>
                 <TextField label="Date" size="small" value={bookingDraft.date} InputProps={{ readOnly: true }} />
                 <TextField label="Heure" size="small" value={bookingDraft.time} InputProps={{ readOnly: true }} />
-                <TextField label="Propriété" size="small" value={typeof bookingDraft.propertyId === 'object' ? bookingDraft.propertyId.titre || bookingDraft.propertyId._id || '—' : bookingDraft.propertyId || 'Toutes'} InputProps={{ readOnly: true }} />
-                {!blockMode && <TextField label="Nom du visiteur / motif" size="small" value={bookingDraft.guestName || ''} onChange={e => setBookingDraft(d => ({ ...d, guestName: e.target.value }))} />}
-                {blockMode && <TextField label="Note (optionnel)" size="small" value={bookingDraft.note || ''} onChange={e => setBookingDraft(d => ({ ...d, note: e.target.value }))} />}
+                <TextField label="Propriété" size="small" value={bookingDraft.propertyId && typeof bookingDraft.propertyId === 'object' ? bookingDraft.propertyId.titre || bookingDraft.propertyId._id || '—' : bookingDraft.propertyId || 'Toutes'} InputProps={{ readOnly: true }} />
+                {!blockMode && <TextField label="Nom du visiteur / motif" size="small" value={bookingDraft.guestName || ''} onChange={e => {
+                  if (!bookingDraft.guestName || bookingDraft.guestName !== e.target.value) setBookingDraft(d => ({ ...d, guestName: e.target.value }));
+                }} />}
+                {blockMode && <TextField label="Note (optionnel)" size="small" value={bookingDraft.note || ''} onChange={e => {
+                  if (!bookingDraft.note || bookingDraft.note !== e.target.value) setBookingDraft(d => ({ ...d, note: e.target.value }));
+                }} />}
               </Stack>
             )}
           </DialogContent>
@@ -399,7 +441,7 @@ export default function OwnerAppointments(){
               if (!bookingDraft.guestName) { window.alert('Veuillez saisir le nom du visiteur.'); return; }
               const id = 'a' + Math.random().toString(36).slice(2, 9);
               const appt = { id, ownerId, date, time, guestName: bookingDraft.guestName, propertyId: pid || 'p1', note: bookingDraft.note || 'Ajouté via calendrier', status: 'pending' };
-              await saveAppointment(ownerId, appt).catch(()=>{});
+              await saveAppointment(ownerId, appt).catch(() => { });
               setAppts(s => [...s, appt]);
               setBookingDialogOpen(false); setBookingDraft(null);
             }} variant="contained" sx={{ borderRadius: 1 }}>{blockMode ? 'Marquer' : 'Ajouter'}</Button>
@@ -415,18 +457,18 @@ export default function OwnerAppointments(){
                 <TextField label="Proposition par" size="small" value={proposalDialog.guestName} InputProps={{ readOnly: true }} />
                 <TextField label="Date" size="small" value={proposalDialog.date} InputProps={{ readOnly: true }} />
                 <TextField label="Heure" size="small" value={proposalDialog.time} InputProps={{ readOnly: true }} />
-                <TextField label="Propriété" size="small" value={typeof proposalDialog.propertyId === 'object' ? proposalDialog.propertyId.titre || proposalDialog.propertyId._id || '—' : proposalDialog.propertyId || '—'} InputProps={{ readOnly: true }} />
+                <TextField label="Propriété" size="small" value={proposalDialog.propertyId && typeof proposalDialog.propertyId === 'object' ? proposalDialog.propertyId.titre || proposalDialog.propertyId._id || '—' : proposalDialog.propertyId || '—'} InputProps={{ readOnly: true }} />
                 <TextField label="Détail" size="small" value={proposalDialog.note || ''} InputProps={{ readOnly: true }} multiline minRows={2} />
               </Stack>
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => { if(proposalDialog) setNotifications(s => s.filter(x => x.id !== proposalDialog.id)); setProposalDialog(null); }} sx={{ borderRadius: 1 }}>Refuser</Button>
+            <Button onClick={() => { if (proposalDialog) setNotifications(s => s.filter(x => x.id !== proposalDialog.id)); setProposalDialog(null); }} sx={{ borderRadius: 1 }}>Refuser</Button>
             <Button onClick={async () => {
               if (!proposalDialog) return;
               const n = proposalDialog;
               const appt = { id: 'a' + Math.random().toString(36).slice(2, 9), ownerId, date: n.date, time: n.time, guestName: n.guestName, propertyId: n.propertyId || 'p1', note: n.note || 'Accepté', status: 'confirmed' };
-              await saveAppointment(ownerId, appt).catch(()=>{});
+              await saveAppointment(ownerId, appt).catch(() => { });
               setAppts(s => [...s, appt]);
               setNotifications(s => s.filter(x => x.id !== n.id));
               setProposalDialog(null);

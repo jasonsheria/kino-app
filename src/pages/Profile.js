@@ -247,7 +247,7 @@ export default function Profile() {
             ) : (
               <Stack spacing={3}>
                 {/* Carte des rôles */}
-                <Card>
+                <Card sx={{width : '100%'}}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
                       Rôles et Accès
@@ -280,6 +280,16 @@ export default function Profile() {
                           onClick={() => navigate('/agent/dashboard')}
                         />
                       )}
+                      <Grid item xs={12} sm={6}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/reservations"
+                          >
+                            Voir les réservations
+                          </Button>
+                        </Grid>
                     </Stack>
 
                     {/* Actions rapides */}
@@ -312,7 +322,7 @@ export default function Profile() {
 
                 {/* Section Propriétaire */}
                 {ownerAccount?.hasAccount && (
-                  <Card>
+                  <Card sx={{width : '100%'}}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Espace Propriétaire
@@ -328,16 +338,7 @@ export default function Profile() {
                             Gérer mes biens
                           </Button>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Button
-                            fullWidth
-                            variant="outlined"
-                            component={RouterLink}
-                            to="/reservations"
-                          >
-                            Voir les réservations
-                          </Button>
-                        </Grid>
+                        
                       </Grid>
                     </CardContent>
                   </Card>
@@ -345,7 +346,7 @@ export default function Profile() {
 
                 {/* Section Agence */}
                 {agencySession && (
-                  <Card>
+                  <Card sx={{width : '100%'}}>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
                         Espace Agence

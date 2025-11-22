@@ -462,9 +462,11 @@ const Home = () => {
                         </div>
 
                         <div className="hero-stats" aria-hidden>
-                            <StatCard label="Biens listés" value={properties.length} />
-                            <StatCard label="Agents certifiés" value={agents.length} />
-                            <StatCard label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} />
+                            <div className="stat-cards-pro-row">
+                                <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
+                                <StatCardPro icon={<FaUserTie />} label="Agents certifiés" value={agents.length} accent="#764ba2" />
+                                <StatCardPro icon={<FaHandshake />} label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} accent="#d7263d" />
+                            </div>
                         </div>
                     </div>
 
@@ -1288,9 +1290,85 @@ function useCountUp(end, { duration = 900 } = {}) {
 function StatCard({ label, value }) {
     const animated = useCountUp(value, { duration: 1100 });
     return (
-        <div className="stat-card" role="status" aria-live="polite">
-            <div className="stat-value">{animated}</div>
-            <div className="stat-label">{label}</div>
+        <div className="stat-card animate-card" style={{
+            background: '#f5f5f5',
+            borderRadius: 12,
+            minWidth: 0,
+            flex: 1,
+            margin: '0 0.7rem',
+            padding: '1.2rem 1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+        }}>
+            <div className="stat-value" style={{
+                fontWeight: 700,
+                fontSize: '1.8rem',
+                color: '#333',
+                marginBottom: 6,
+            }}>{animated}</div>
+            <div className="stat-label" style={{
+                fontWeight: 600,
+                fontSize: '1rem',
+                color: '#666',
+                textAlign: 'center',
+            }}>{label}</div>
+        </div>
+    );
+}
+
+// Nouveau StatCardPro : design glassmorphism, icône, animation, premium
+function StatCardPro({ icon, label, value, accent }) {
+    const animated = useCountUp(value, { duration: 1100 });
+    return (
+        <div className="stat-card-pro animate-card" style={{
+            background: 'rgba(255,255,255,0.18)',
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
+            borderRadius: 18,
+            border: `1.5px solid ${accent || '#e0e0e0'}`,
+            minWidth: 0,
+            flex: 1,
+            margin: '0 0.7rem',
+            padding: '1.5rem 1.2rem 1.1rem 1.2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            transition: 'box-shadow 0.18s, transform 0.18s',
+            cursor: 'pointer',
+            overflow: 'hidden',
+        }}>
+            <div className="stat-pro-icon" style={{
+                background: accent,
+                color: '#fff',
+                borderRadius: '50%',
+                width: 54,
+                height: 54,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 28,
+                marginBottom: 18,
+                boxShadow: `0 2px 12px ${accent}33`,
+            }}>{icon}</div>
+            <div className="stat-pro-value" style={{
+                fontWeight: 900,
+                fontSize: '2.2rem',
+                color: accent,
+                letterSpacing: '-1px',
+                marginBottom: 6,
+                textShadow: '0 2px 8px #0001',
+            }}>{animated}</div>
+            <div className="stat-pro-label" style={{
+                fontWeight: 600,
+                fontSize: '1.08rem',
+                color: '#222',
+                opacity: 0.85,
+                textAlign: 'center',
+                letterSpacing: '-0.2px',
+            }}>{label}</div>
         </div>
     );
 }
@@ -1305,7 +1383,7 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
         <div className="d-flex gap-2 align-items-center mb-2">
             {replyingTo && (
                 <span className="badge bg-info text-dark me-2">Réponse à {replyingTo.author}
-                   <Button type="Buttons" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</Button>
+                   <Button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</Button>
                 </span>
             )}
             <input
@@ -1324,103 +1402,3 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
         </div>
     );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

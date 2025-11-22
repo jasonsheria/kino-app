@@ -235,7 +235,7 @@ export default function OwnerAgents(){
         {/* Header + actions */}
         <Stack spacing={2} sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
-            <Box>²
+            <Box>
               <Typography variant="h6" fontWeight={600} sx={{ mb: 0.5 }}>Agents associés</Typography>
               <Typography variant="body2" color="text.secondary">Gérez vos agents et favoris</Typography>
             </Box>
@@ -378,6 +378,7 @@ export default function OwnerAgents(){
               <TextField
                 label="Téléphone"
                 size="small"
+                placeholder="e.g. +243 81 234 5678"
                 value={edit?.telephone||edit?.phone||''}
                 onChange={e=> setEdit({...edit, telephone:e.target.value, phone:e.target.value})}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}
@@ -437,16 +438,21 @@ export default function OwnerAgents(){
                       id="agent-photo-input"
                       type="file"
                       style={{ display: 'none' }}
-                      onChange={async e=>{
+                      onChange={async e => {
                         const f = e.target.files && e.target.files[0];
-                        if(!f) return;
-                        try{
+                        if (!f) return;
+                        // Show local preview immediately
+                        const localUrl = URL.createObjectURL(f);
+                        setEdit(prev => ({ ...prev, photo: localUrl }));
+                        try {
                           const res = await agentAPI.upload(f);
-                          setEdit({...edit, photo: res.data.url});
-                        }catch(err){
+                          // Optionally revokeObjectURL here if you want to clean up
+                          setEdit(prev => ({ ...prev, photo: res.data.url }));
+                        } catch (err) {
                           console.error('Upload failed', err);
+                          // fallback to FileReader if needed
                           const reader = new FileReader();
-                          reader.onload = (ev)=> setEdit({...edit, photo: ev.target.result});
+                          reader.onload = (ev) => setEdit(prev => ({ ...prev, photo: ev.target.result }));
                           reader.readAsDataURL(f);
                         }
                       }}

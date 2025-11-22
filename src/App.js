@@ -74,7 +74,7 @@ function App() {
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 17,
+                        bottom: 12,
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
@@ -84,6 +84,12 @@ function App() {
                         height: 48,
                         boxShadow: '0 2px 8px var(--ndaku-primary-22)',
                         transition: 'background 0.3s, color 0.3s',
+                      }}
+                      sx={{'&:hover': {
+                        background: theme.palette.background.paper,
+                        color: "white",
+                      },
+                      bottom : 10
                       }}
                       aria-label="Changer le mode de couleur"
                     >
