@@ -1,0 +1,407 @@
+/* ============================================
+   PROPERTY DETAILS - Modern Minimal Design
+   ============================================ */
+
+:root {
+  --primary-accent: #00cdf2;
+  --primary-dark: #0a223a;
+  --primary-light: #f8f9fa;
+  --border-color: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --success: #10b981;
+  --danger: #ef4444;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   IMAGE CAROUSEL - Modern Style
+   ============================================ */
+
+.image-carousel {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: white;
+  box-shadow: var(--shadow-md);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.carousel-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.carousel-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease-out;
+}
+
+.carousel-main:hover img {
+  transform: scale(1.02);
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: #d1d5db;
+  transition: all 0.3s ease;
+}
+
+.dot.active,
+.dot.btn-success {
+  background: var(--primary-accent);
+  width: 28px;
+  border-radius: 6px;
+}
+
+.dot:hover {
+  background: var(--primary-accent);
+  transform: scale(1.1);
+}
+
+/* Thumbnail strip */
+.carousel-thumbnails {
+  display: flex;
+  gap: 8px;
+  padding: 1.2rem;
+  overflow-x: auto;
+  background: var(--primary-light);
+  border-top: 1px solid var(--border-color);
+}
+
+.thumb {
+  flex: 0 0 100px;
+  height: 70px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb.active,
+.thumb.border-success {
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(0, 205, 242, 0.2);
+}
+
+.thumb:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   VIRTUAL TOUR MODAL - Modern Style
+   ============================================ */
+
+.virtual-tour-modal {
+  border-radius: 20px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tour-controls {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
+  padding: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tour-controls button {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tour-controls button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   RESERVATION SECTION - Modern Style
+   ============================================ */
+
+.reservation-section {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 249, 250, 0.8) 100%);
+  border-radius: 18px;
+  padding: 2rem;
+  border: 1px solid rgba(0, 205, 242, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s ease-out 0.2s both;
+  margin-bottom: 2rem;
+}
+
+.reservation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(0, 205, 242, 0.15);
+}
+
+.reservation-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.reservation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--success);
+  color: white;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.reservation-status.reserved {
+  background: var(--danger);
+}
+
+.reservation-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.btn-modern {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.btn-primary-modern {
+  background: linear-gradient(135deg, var(--primary-accent) 0%, #0095d4 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 205, 242, 0.3);
+}
+
+.btn-primary-modern:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 205, 242, 0.4);
+}
+
+.btn-secondary-modern {
+  background: white;
+  color: var(--primary-accent);
+  border: 2px solid var(--primary-accent);
+  box-shadow: var(--shadow-soft);
+}
+
+.btn-secondary-modern:hover {
+  background: var(--primary-light);
+  transform: translateY(-3px);
+}
+
+.btn-disabled-modern {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-disabled-modern:hover {
+  transform: none;
+}
+
+/* ============================================
+   DIALOG BOXES - Modern Style
+   ============================================ */
+
+.dialog-modern {
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-header {
+  padding: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgba(0, 205, 242, 0.05) 0%, transparent 100%);
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.dialog-body {
+  padding: 2rem;
+}
+
+.dialog-body-text {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-footer {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: var(--primary-light);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .image-carousel {
+    border-radius: 12px;
+  }
+
+  .carousel-main {
+    aspect-ratio: 16 / 12;
+  }
+
+  .reservation-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reservation-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb {
+    flex: 0 0 80px;
+    height: 60px;
+  }
+
+  .carousel-thumbnails {
+    padding: 1rem;
+  }
+
+  .btn-modern {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .dialog-header,
+  .dialog-body,
+  .dialog-footer {
+    padding: 1.2rem;
+  }
+
+  .dialog-header h2 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-main {
+    aspect-ratio: 1 / 1;
+  }
+
+  .thumb {
+    flex: 0 0 70px;
+    height: 50px;
+  }
+
+  .reservation-section {
+    padding: 1.2rem;
+  }
+
+  .reservation-buttons {
+    gap: 0.8rem;
+  }
+
+  .btn-modern {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+}

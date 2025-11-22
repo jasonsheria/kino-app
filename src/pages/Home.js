@@ -1,7 +1,7 @@
 import React from 'react';
 import MessengerWidget from '../components/common/Messenger';
 import { useTheme } from '@mui/material/styles';
-import { FaUserTie,FaFilter,FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools } from 'react-icons/fa';
+import { FaUserTie, FaFilter, FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,8 +29,8 @@ import { useSnackbar } from 'notistack';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, Button } from '@mui/material';
 import authService from '../services/authService';
-import  HomeLayout from '../components/homeComponent/HomeLayout'
-
+import HomeLayout from '../components/homeComponent/HomeLayout'
+import img6 from '../assets/images/quelle-agence-immobiliere-choisir-pour-vendre-1.jpg'
 const Home = () => {
     const { enqueueSnackbar } = useSnackbar();
     const [contactOpen, setContactOpen] = React.useState(false);
@@ -100,7 +100,7 @@ const Home = () => {
 
             const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
             setRecommendedVehicles(recs);
-            
+
         }
     }, []);
 
@@ -141,7 +141,7 @@ const Home = () => {
     // Fonction de filtrage principale
     const applyFilters = React.useCallback((props, activeFilter, activeCommune) => {
         let results = [...props];
-        
+
         // Appliquer le filtre de catégorie
         if (activeFilter !== 'Tous') {
             const categoryFilter = propertyConfig.categories[activeFilter]?.filter;
@@ -149,7 +149,7 @@ const Home = () => {
                 results = results.filter(categoryFilter);
             }
         }
-        
+
         // Appliquer le filtre de commune
         if (activeCommune !== 'Toutes') {
             results = results.filter(p => {
@@ -157,7 +157,7 @@ const Home = () => {
                 return parts.some(part => part === activeCommune);
             });
         }
-        
+
         return results;
     }, [propertyConfig]);
 
@@ -373,7 +373,7 @@ const Home = () => {
     };
 
     // Show notification if a navigation state message was passed (e.g. after successful payment)
-            React.useEffect(() => {
+    React.useEffect(() => {
         try {
             const msg = location?.state?.message;
             if (msg) {
@@ -436,7 +436,7 @@ const Home = () => {
                 {/* small indicators */}
                 <div className="hero-indicators">
                     {slides.map((s, i) => (
-                        <button key={i} className={`indicator ${i === index ? 'active' : ''}`} onClick={() => setIndex(i)} aria-label={`Slide ${i+1}`}></button>
+                        <button key={i} className={`indicator ${i === index ? 'active' : ''}`} onClick={() => setIndex(i)} aria-label={`Slide ${i + 1}`}></button>
                     ))}
                 </div>
             </div>
@@ -452,15 +452,20 @@ const Home = () => {
             {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
             <section className="landing-hero">
                 <div className="container hero-inner">
-                    <div className="hero-left hero-fade-up">
+                    <div className="hero-left hero-fade-up text-center">
                         <h1 className="hero-title">Ndaku — La plateforme immobilière de Kinshasa</h1>
-                        <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
+                        <p className="hero-sub text-center">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
-                        <div className="hero-ctas">
-                            <Button onClick={() => scrollToId('biens')} variant="" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px', border : "1px solid" }}> Voir les biens </Button>
-                            <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom : '10px', border : "1px solid" }}> Voir agents </Button>
+
+                        {/* ajouter une image visible uniquemen tpour le mobile */}
+                        <div className='banniere-mobile mb-4'>
+                            <img src={img6} alt="bannier"  style={{ marginBotton: '2vh', width : '100%', height : '400px' }} />
+
                         </div>
-
+                        <div className="hero-ctas" style={{ justifyContent: 'center' }}>
+                            <Button onClick={() => scrollToId('biens')} variant="" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
+                            <Button variant="" onClick={() => scrollToId('agents')} startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
+                        </div>
                         <div className="hero-stats" aria-hidden>
                             <div className="stat-cards-pro-row">
                                 <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
@@ -470,9 +475,7 @@ const Home = () => {
                         </div>
                     </div>
 
-                    <div className="hero-right hero-fade-up">
-                        <HeroSlider />
-                    </div>
+
                 </div>
             </section>
 
@@ -489,12 +492,13 @@ const Home = () => {
 
                     <div className="d-flex gap-2 mt-3 mt-md-0">
                         <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                           <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence </MuiButton>
+                            <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence </MuiButton>
                         </Link>
                         <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                           <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'> Propriétaire </Button>
+                            <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'> Propriétaire </Button>
                         </Link>
                     </div>
+
                 </div>
             </section>
 
@@ -545,7 +549,9 @@ const Home = () => {
                     </div>
                 </div>
             </section>
-
+            <div className="hero-right hero-fade-up">
+                <HeroSlider />
+            </div>
 
             {/* Section Biens moderne (6 biens, 3 par ligne) */}
             <div className="container py-5" id="biens">
@@ -594,10 +600,10 @@ const Home = () => {
                                     <div className="filter-card-title">{cat.name}</div>
                                     <div className="filter-card-count">{categoryCounts[cat.name]} biens</div>
                                 </Button>
-                            </div>  
+                            </div>
                         ))}
                     </div>
-                    
+
                     {/* Debug info - à supprimer en production */}
                     <div className="filter-stats-container mt-4 mb-3">
                         <div className="filter-stats-grid">
@@ -810,7 +816,7 @@ const Home = () => {
                 </div>
                 <div className="d-flex justify-content-center mt-3">
                     <Link to="/appartement" style={{ textDecoration: 'none' }}>
-                       <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
+                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
                     </Link>
                 </div>
                 {/* Publicité pour appartements/bureaux récemment construits */}
@@ -843,7 +849,7 @@ const Home = () => {
                 <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0, 6) : vehicles.slice(0, 6))} />
                 <div className="d-flex justify-content-center mt-3">
                     <Link to="/voitures" style={{ textDecoration: 'none' }}>
-                       <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
+                        <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
                     </Link>
                 </div>
 
@@ -914,7 +920,7 @@ const Home = () => {
                         <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
-                    <div className="row justify-content-center" style={{gap: '70px'}}>
+                    <div className="row justify-content-center" style={{ gap: '70px' }}>
                         {(() => {
                             // make agent list deterministic and surface best matches first
                             const sorted = [...agents].sort((a, b) => {
@@ -953,7 +959,7 @@ const Home = () => {
                     </div>
                     <div className="d-flex justify-content-center mt-3">
                         <Link to="/agents" style={{ textDecoration: 'none' }}>
-                           <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
+                            <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
                         </Link>
                     </div>
                 </div>
@@ -977,8 +983,8 @@ const Home = () => {
                 <div className="d-flex align-items-center justify-content-between mb-3">
                     <h3 className="fw-bold mb-0" style={{ fontSize: '1.4rem' }}>Avis des utilisateurs</h3>
                     <div>
-                       <Button className="btns btn-sm btn-outline-secondary me-2" onClick={prevTestimonials} aria-label="Précédent">‹</Button>
-                       <Button className="btns btn-sm btn-outline-secondary" onClick={nextTestimonials} aria-label="Suivant">›</Button>
+                        <Button className="btns btn-sm btn-outline-secondary me-2" onClick={prevTestimonials} aria-label="Précédent">‹</Button>
+                        <Button className="btns btn-sm btn-outline-secondary" onClick={nextTestimonials} aria-label="Suivant">›</Button>
                     </div>
                 </div>
                 <div className="row g-3">
@@ -1166,10 +1172,10 @@ const Home = () => {
                 </div>
                 {/* Load more button */}
                 <div className="d-flex justify-content-center mt-5">
-                   <Button 
-                       className="btn btn-lg btn-success fw-bold px-5"
-                       variant='outlined'
-                       onClick={() => {
+                    <Button
+                        className="btn btn-lg btn-success fw-bold px-5"
+                        variant='outlined'
+                        onClick={() => {
                             setPromotions(prev => {
                                 const already = prev.__shownCount || prev.length || 0;
                                 const next = promoData.slice(already, already + 10).map(item => {
@@ -1187,29 +1193,29 @@ const Home = () => {
                                 return newList;
                             });
                         }}
-                       style={{
-                           
-                           border: 'none',
-                           borderRadius: '12px',
-                           padding: '14px 40px',
-                           fontSize: '1.05rem',
-                           color : 'white',
-                           fontWeight: 700,
-                           letterSpacing: '0.5px',
-                           boxShadow: '0 6px 20px rgba(15, 81, 50, 0.3)',
-                           transition: 'all 0.3s ease'
-                       }}
-                       onMouseEnter={(e) => {
-                           e.target.style.transform = 'translateY(-3px)';
-                           e.target.style.boxShadow = '0 8px 28px rgba(15, 81, 50, 0.4)';
-                       }}
-                       onMouseLeave={(e) => {
-                           e.target.style.transform = 'translateY(0)';
-                           e.target.style.boxShadow = '0 6px 20px rgba(15, 81, 50, 0.3)';
-                       }}
-                   >
-                       ⬇️ Voir plus d'offres
-                   </Button>
+                        style={{
+
+                            border: 'none',
+                            borderRadius: '12px',
+                            padding: '14px 40px',
+                            fontSize: '1.05rem',
+                            color: 'white',
+                            fontWeight: 700,
+                            letterSpacing: '0.5px',
+                            boxShadow: '0 6px 20px rgba(15, 81, 50, 0.3)',
+                            transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-3px)';
+                            e.target.style.boxShadow = '0 8px 28px rgba(15, 81, 50, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 6px 20px rgba(15, 81, 50, 0.3)';
+                        }}
+                    >
+                        ⬇️ Voir plus d'offres
+                    </Button>
                 </div>
             </section>
 
@@ -1228,16 +1234,16 @@ const Home = () => {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                background : 'var(--ndaku-primary)',
+                background: 'var(--ndaku-primary)',
             }}>
                 <div className="container">
                     <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
                     <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-                   <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
+                    <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
             </div >
 
-          
+
 
             <FooterPro />
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
@@ -1383,7 +1389,7 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
         <div className="d-flex gap-2 align-items-center mb-2">
             {replyingTo && (
                 <span className="badge bg-info text-dark me-2">Réponse à {replyingTo.author}
-                   <Button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</Button>
+                    <Button type="button" className="btn btn-link btn-sm p-0 ms-2" onClick={onCancelReply}>Annuler</Button>
                 </span>
             )}
             <input
@@ -1398,7 +1404,7 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
                     }
                 }}
             />
-           <Button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</Button>
+            <Button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</Button>
         </div>
     );
 }

@@ -154,7 +154,7 @@ export default function OwnerDashboard() {
             <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, md: 4 }, mt: 4, mb: 4, width: '100%' }}>
                 <Grid container>
                     {/* Dashboard Header (mobile/financial) */}
-                    <Grid item xs={12} md={6} sx={{ width : "100%" }}>
+                    <Grid item xs={12} md={6} sx={{ width: "100%" }}>
                         <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff', boxShadow: 2 }}>
                             <CardContent sx={{ width: '100%' }}>
                                 <Box display="flex" alignItems="center" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }} sx={{ width: '100%' }}>
@@ -174,7 +174,7 @@ export default function OwnerDashboard() {
                                     <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>4.5</Typography><Typography variant="caption">Note</Typography></Box></Grid>
                                 </Grid>
                                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                                    <Box sx={{ flex: 1, width : '100%' }}>
+                                    <Box sx={{ flex: 1, width: '100%' }}>
                                         <Typography variant="subtitle2" color="inherit">Revenu - dernière semaine</Typography>
                                         <Box sx={{ height: 88, mt: 1 }}>
                                             <Box sx={{ height: '100%', px: 0.5 }}>
@@ -183,14 +183,14 @@ export default function OwnerDashboard() {
                                         </Box>
                                     </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', gap: 1, width : '100%', marginBottom : '10px' }}>
+                                <Box sx={{ display: 'flex', gap: 1, width: '100%', marginBottom: '10px' }}>
                                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/properties')}><Typography variant="caption">Mes biens</Typography></Box>
                                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/messages')}><Typography variant="caption">Messages</Typography></Box>
                                 </Box>
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={12} md={6} sx={{ width : "100%" }}>
+                    <Grid item xs={12} md={6} sx={{ width: "100%" }}>
                         <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#34D399 0%, #60A5FA 100%)', color: '#fff', boxShadow: 2 }}>
                             <CardContent sx={{ width: '100%' }}>
                                 <Box display="flex" flexDirection="column" alignItems="flex-start" sx={{ width: '100%' }}>
@@ -205,7 +205,7 @@ export default function OwnerDashboard() {
                         </Card>
                     </Grid>
                     {/* Calendar Section */}
-                    <Grid item xs={12} md={12} style={{ width : '100%' }}>
+                    <Grid item xs={12} md={12} style={{ width: '100%' }}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
@@ -216,9 +216,7 @@ export default function OwnerDashboard() {
                         </Card>
                     </Grid>
                     {/* Activity Section */}
-                    <Grid item xs={12} md
-                    
-                    ={4} style={{ width : '100%' }}>
+                    <Grid item xs={12} md={4} style={{ width: '100%', marginTop : '24px' }}>
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>

@@ -8,8 +8,9 @@
   margin: 1.5rem 0 0.5rem 0;
   width: 100%;
 }
+
 .stat-card-pro {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
   border-radius: 18px;
   border: 1.5px solid #e0e0e0;
@@ -26,10 +27,12 @@
   cursor: pointer;
   overflow: hidden;
 }
+
 .stat-card-pro:hover {
   box-shadow: 0 12px 36px 0 rgba(31, 38, 135, 0.16);
   transform: translateY(-3px) scale(1.03);
 }
+
 .stat-pro-icon {
   border-radius: 50%;
   width: 54px;
@@ -41,6 +44,7 @@
   margin-bottom: 18px;
   box-shadow: 0 2px 12px #00cdf233;
 }
+
 .stat-pro-value {
   font-weight: 900;
   font-size: 2.2rem;
@@ -49,6 +53,7 @@
   margin-bottom: 6px;
   text-shadow: 0 2px 8px #0001;
 }
+
 .stat-pro-label {
   font-weight: 600;
   font-size: 1.08rem;
@@ -57,12 +62,14 @@
   text-align: center;
   letter-spacing: -0.2px;
 }
+
 @media (max-width: 900px) {
   .stat-cards-pro-row {
     flex-direction: column;
     gap: 1.2rem;
     margin: 1.2rem 0 0.5rem 0;
   }
+
   .stat-card-pro {
     margin: 0;
     width: 100%;
@@ -70,6 +77,7 @@
     max-width: 100%;
   }
 }
+
 /* --- Promo salle de fête responsive & moderne --- */
 .promo-salle-card {
   display: flex;
@@ -83,6 +91,7 @@
   margin-bottom: 1.5rem;
   transition: box-shadow 0.18s, transform 0.18s;
 }
+
 .promo-salle-img-wrap {
   background: #fff8e1;
   display: flex;
@@ -93,6 +102,7 @@
   max-width: 380px;
   padding: 0.7rem 0.5rem;
 }
+
 .promo-salle-img {
   width: 100%;
   max-width: 340px;
@@ -101,6 +111,7 @@
   border-radius: 16px;
   box-shadow: 0 2px 16px #d7263d22;
 }
+
 .promo-salle-body {
   flex: 1;
   min-width: 0;
@@ -109,23 +120,27 @@
   justify-content: space-between;
   padding: 2rem 2.2rem 1.2rem 2.2rem;
 }
+
 .promo-salle-title {
   color: #d7263d;
   font-weight: 800;
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
 }
+
 .promo-salle-desc {
   font-size: 1.08rem;
   color: #333;
   font-weight: 500;
   margin-bottom: 1rem;
 }
+
 .promo-salle-oldprice {
   font-size: 1.1rem;
   color: #888;
   text-decoration: line-through;
 }
+
 .promo-salle-newprice {
   font-size: 2rem;
   color: var(--ndaku-primary);
@@ -138,15 +153,18 @@
     border-radius: 14px;
     min-height: 0;
   }
+
   .promo-salle-img-wrap {
     max-width: 100%;
     padding: 0.5rem 0.2rem;
   }
+
   .promo-salle-img {
     max-width: 100%;
     height: 160px;
     border-radius: 12px;
   }
+
   .promo-salle-body {
     padding: 1.2rem 1rem 0.8rem 1rem;
   }
@@ -160,31 +178,39 @@
     margin-bottom: 1rem;
     box-shadow: 0 1.5px 8px #d7263d11;
   }
+
   .promo-salle-img-wrap {
     max-width: 100%;
     padding: 0.3rem 0.1rem;
   }
+
   .promo-salle-img {
     max-width: 100%;
     height: 110px;
     border-radius: 8px;
   }
+
   .promo-salle-body {
     padding: 0.8rem 0.5rem 0.5rem 0.5rem;
   }
+
   .promo-salle-title {
     font-size: 1.08rem;
     text-align: center;
   }
+
   .promo-salle-desc {
     font-size: 0.98rem;
     text-align: center;
   }
-  .promo-salle-oldprice, .promo-salle-newprice {
+
+  .promo-salle-oldprice,
+  .promo-salle-newprice {
     font-size: 1.1rem;
     text-align: center;
   }
 }
+
 /* Promo card responsive for appartements & bureaux */
 .promo-card {
   border-radius: 14px;
@@ -193,6 +219,7 @@
   margin-bottom: 1.5rem;
   transition: box-shadow 0.18s, transform 0.18s;
 }
+
 .promo-card-img {
   width: 100%;
   /* max-width: 160px; */
@@ -201,31 +228,38 @@
   border-radius: 10px;
   box-shadow: 0 1.5px 8px var(--ndaku-primary-11);
 }
+
 @media (max-width: 767.98px) {
   .promo-card {
     border-radius: 10px;
     padding: 1rem 0.7rem;
   }
+
   .promo-card-img {
     max-width: 100%;
     height: 90px;
     border-radius: 8px;
   }
+
   .promo-card h5,
   .promo-card p {
     text-align: center !important;
   }
+
   .promo-card .btn {
     width: 100%;
     margin-bottom: 0.5rem;
   }
+
   .promo-card .d-flex.flex-sm-row {
     flex-direction: column !important;
     gap: 0.5rem !important;
   }
 }
+
 /* Responsive cards for property and vehicle */
-.property-card, .vehicle-card {
+.property-card,
+.vehicle-card {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -241,7 +275,7 @@
 .property-card .property-img,
 .vehicle-card .card-img-top {
   width: 100vw;
-  height: 100%; 
+  height: 100%;
   object-fit: cover;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
@@ -249,38 +283,46 @@
 }
 
 @media (max-width: 900px) {
+
   .property-card .card-img-top,
   .property-card .property-img,
   .vehicle-card .card-img-top {
     /* height: 160px; */
     object-fit: cover;
   }
-  .agent-banner-icon{
+
+  .agent-banner-icon {
     display: none;
   }
 }
 
 @media (max-width: 767.98px) {
-  .property-card, .vehicle-card {
+
+  .property-card,
+  .vehicle-card {
     border-radius: 12px;
     margin-bottom: 1.1rem;
     box-shadow: 0 1.5px 8px var(--ndaku-primary-11);
   }
+
   .property-card .card-img-top,
   .vehicle-card .card-img-top {
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     height: 120px;
   }
+
   .property-card .card-body,
   .vehicle-card .card-body {
     padding: 0.8rem 0.7rem 0.7rem 0.7rem;
   }
+
   .property-card .card-title,
   .vehicle-card .card-title {
     font-size: 1rem;
     margin-bottom: 0.5rem;
   }
+
   .property-card .btns,
   .vehicle-card .btns {
     font-size: 0.92rem;
@@ -290,33 +332,37 @@
 }
 
 /* Responsive grid for cards */
-.row.justify-content-center > .col-12.col-md-6.col-lg-4,
-.row.justify-content-center > .col-12.col-md-6 {
+.row.justify-content-center>.col-12.col-md-6.col-lg-4,
+.row.justify-content-center>.col-12.col-md-6 {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
+
 /* Global responsive rules */
-html, body {
+html,
+body {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
   margin: 0;
   padding: 0;
   position: relative;
-  background:white;
+  background: white;
 }
 
 * {
   box-sizing: border-box;
 }
 
-.container, .container-fluid {
+.container,
+.container-fluid {
   width: 100%;
   max-width: 100vw;
 }
 
 @media (max-width: 767.98px) {
+
   /* Optimisation mobile de la première section : titre, carousel, texte, bouton */
   .hero-section {
     min-height: auto;
@@ -402,7 +448,8 @@ html, body {
     outline: none;
   }
 
-  .hero-btn:hover, .hero-btn:focus {
+  .hero-btn:hover,
+  .hero-btn:focus {
     transform: translateY(-2px) scale(1.04);
     box-shadow: 0 10px 32px var(--ndaku-primary-44);
     background: linear-gradient(90deg, #0a223a 0%, var(--ndaku-primary) 100%);
@@ -414,18 +461,21 @@ html, body {
       flex-direction: row;
       align-items: center;
     }
+
     .hero-title {
       text-align: left;
       padding-left: 1.5rem;
       font-size: clamp(2.2rem, 5vw, 3.2rem);
       margin-bottom: 1.5rem;
     }
+
     .text-section {
       text-align: justify;
       padding: 1.5rem 2rem 1rem 1.5rem;
       font-size: 1.12rem;
       max-width: 700px;
     }
+
     .hero-btn {
       margin-left: 0;
       margin-right: 0;
@@ -450,10 +500,11 @@ html, body {
 
 /* Disable heavy hover effects on touch devices (avoid jumpy interactions) */
 @media (hover: none) {
+
   .animate-card:hover,
   .animate-card:focus-within {
     transform: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -466,6 +517,18 @@ html, body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+.banniere-mobile {
+  display: none;
+}
+
+@media (max-width: 970px) {
+  .banniere-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: 'center'
   }
 }
 
@@ -500,21 +563,41 @@ html, body {
   border: none;
   padding: 0.6rem 1.1rem;
   border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(10,34,58,0.12);
+  box-shadow: 0 6px 18px rgba(10, 34, 58, 0.12);
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.14s, box-shadow 0.14s, filter 0.14s;
 }
 
-.ndaku-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(10,34,58,0.14); filter: brightness(1.02); }
+.ndaku-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(10, 34, 58, 0.14);
+  filter: brightness(1.02);
+}
 
-.ndaku-btn:active { transform: translateY(0); box-shadow: 0 6px 18px rgba(10,34,58,0.10); }
+.ndaku-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(10, 34, 58, 0.10);
+}
 
-.ndaku-btn.ndaku-btn-outline { background: transparent; color: var(--ndaku-primary) !important; border: 1.5px solid rgba(10,34,58,0.08); box-shadow: 0 4px 12px rgba(10,34,58,0.04); }
+.ndaku-btn.ndaku-btn-outline {
+  background: transparent;
+  color: var(--ndaku-primary) !important;
+  border: 1.5px solid rgba(10, 34, 58, 0.08);
+  box-shadow: 0 4px 12px rgba(10, 34, 58, 0.04);
+}
 
 /* Suggestions card */
-.suggestion-card { background: #fff; border-radius: 10px; box-shadow: 0 6px 18px rgba(10,34,58,0.04); }
-.suggestion-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(10,34,58,0.06); }
+.suggestion-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(10, 34, 58, 0.04);
+}
+
+.suggestion-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(10, 34, 58, 0.06);
+}
 
 /* Titres de section premium */
 .section-title {
@@ -560,11 +643,13 @@ html, body {
     padding: 0 0.5rem;
     margin-bottom: 1.2rem;
   }
+
   /* hide decorative icon on very small screens to save space */
   .section-title .icon-circle,
   .icon-circle {
     display: none;
   }
+
   .section-title .fw-bold {
     font-size: 1.7rem;
     line-height: 1.1;
@@ -574,7 +659,9 @@ html, body {
 }
 
 @media (min-width: 768px) and (max-width: 1199.98px) {
-  .section-title .fw-bold { font-size: clamp(1.25rem, 2.4vw, 1.6rem); }
+  .section-title .fw-bold {
+    font-size: clamp(1.25rem, 2.4vw, 1.6rem);
+  }
 }
 
 /* HomeSection.css - styles personnalisés pour la section hero et le responsive */
@@ -807,7 +894,7 @@ html, body {
   }
 
   .carousel-box .carousel-indicators .active {
-  background-color: var(--ndaku-primary);
+    background-color: var(--ndaku-primary);
   }
 }
 
@@ -824,7 +911,7 @@ img {
 
 @media (min-width: 768px) {
   .hero-title {
-  font-size: clamp(2rem, 4.2vw, 3rem);
+    font-size: clamp(2rem, 4.2vw, 3rem);
   }
 
   .hero-section {
@@ -843,6 +930,7 @@ img {
 }
 
 @media (max-width: 767.98px) {
+
   /* Smaller hero section for mobile */
   .hero-section {
     min-height: auto;
@@ -911,7 +999,7 @@ img {
 
   .promotion-price {
     font-size: 1.5rem;
-  color: var(--ndaku-primary);
+    color: var(--ndaku-primary);
     font-weight: 900;
     text-align: center;
   }
@@ -936,14 +1024,15 @@ img {
     font-weight: 700;
     background: linear-gradient(90deg, #7be2c2 0%, #b2d6f6 100%);
     color: #f0f5ff !important;
-  box-shadow: 0 2px 10px 0 #b2d6f655, 0 1.5px 8px var(--ndaku-primary-11);
+    box-shadow: 0 2px 10px 0 #b2d6f655, 0 1.5px 8px var(--ndaku-primary-11);
     border: none;
     letter-spacing: 0.18px;
     transition: transform 0.16s, box-shadow 0.16s, background 0.16s, color 0.16s;
     outline: none;
   }
 
-  .btn:hover, .btn:focus {
+  .btn:hover,
+  .btn:focus {
     transform: translateY(-2px) scale(1.03);
     box-shadow: 0 6px 20px #7be2c288, 0 2px 10px #b2d6f655;
     background: linear-gradient(90deg, #b2d6f6 0%, #7be2c2 100%);
@@ -973,7 +1062,7 @@ img {
   }
 
   /* Better touch targets */
-  .nav-link, 
+  .nav-link,
   .btn,
   .dropdown-item {
     min-height: 44px;
@@ -1039,12 +1128,21 @@ img {
 
 /* small screens - tighten sections and spacing */
 @media (max-width: 576px) {
-  .container, .container-fluid {
+
+  .container,
+  .container-fluid {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
   }
-  .section-title { margin-bottom: 1rem; }
-  .btn { font-size: 0.92rem; padding: .5rem .9rem; }
+
+  .section-title {
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    font-size: 0.92rem;
+    padding: .5rem .9rem;
+  }
 }
 
 /* Promotions cards responsiveness: ensure images stack and text flows */
@@ -1055,17 +1153,19 @@ img {
 }
 
 @media (max-width: 900px) {
+
   /* Optimized promotions for mobile */
   section[aria-label="Promotions"] {
     padding: 1rem 0;
   }
-  .card img {
-  /* width: 58%; */
-  height: 230px;
-  object-fit: cover;
-}
 
-  section[aria-label="Promotions"] .row > div[class*="col-"] {
+  .card img {
+    /* width: 58%; */
+    height: 230px;
+    object-fit: cover;
+  }
+
+  section[aria-label="Promotions"] .row>div[class*="col-"] {
     flex: 0 0 100%;
     max-width: 100%;
     padding: 0.5rem;
@@ -1112,7 +1212,7 @@ img {
   }
 
   /* General mobile adjustments */
-  p { 
+  p {
     font-size: 0.95rem;
     line-height: 1.4;
   }
@@ -1128,7 +1228,7 @@ img {
   }
 
   /* Image optimizations */
-  .col-auto { 
+  .col-auto {
     max-width: 100%;
   }
 
@@ -1138,7 +1238,7 @@ img {
   }
 
   /* Better touch targets */
-  button, 
+  button,
   .btn,
   .nav-link {
     min-height: 10px;
@@ -1152,6 +1252,7 @@ img {
   padding: 2.5rem 0 1.2rem 0;
   font-size: 1.05rem;
 }
+
 .footer-pro .row {
   display: flex;
   flex-wrap: wrap;
@@ -1160,11 +1261,14 @@ img {
   gap: 2rem;
   text-align: left;
 }
+
 .footer-pro .col-12.col-md-4 {
   align-items: flex-start;
   text-align: left;
 }
-.footer-pro .btn-outline-light, .footer-pro .btn {
+
+.footer-pro .btn-outline-light,
+.footer-pro .btn {
   margin: 0.5rem auto 0.5rem auto;
   display: block;
   background: #fff;
@@ -1174,23 +1278,29 @@ img {
   border-radius: 999px;
   transition: background 0.18s, color 0.18s, border 0.18s;
 }
-.footer-pro .btn-outline-light:hover, .footer-pro .btn:hover {
+
+.footer-pro .btn-outline-light:hover,
+.footer-pro .btn:hover {
   background: var(--ndaku-primary);
   color: #fff !important;
   border: 2px solid #fff;
 }
+
 .footer-pro ul {
   padding-left: 0;
   list-style: none;
   margin-bottom: 0.5rem;
 }
+
 .footer-pro li {
   margin-bottom: 0.4rem;
   text-align: left;
 }
-.card-vehicule{
-  flex-direction :row;
+
+.card-vehicule {
+  flex-direction: row;
 }
+
 @media (max-width: 767.98px) {
   .footer-pro .row {
     flex-direction: column;
@@ -1198,26 +1308,33 @@ img {
     text-align: center;
     gap: 1.2rem;
   }
+
   .footer-pro .col-12.col-md-4 {
     align-items: center;
     text-align: center;
   }
-  .footer-pro .btn-outline-light, .footer-pro .btn {
+
+  .footer-pro .btn-outline-light,
+  .footer-pro .btn {
     margin: 0.7rem auto;
     width: 90%;
     font-size: 1.08rem;
   }
+
   .footer-pro ul {
     padding-left: 0;
     text-align: center;
   }
+
   .footer-pro li {
     text-align: center;
   }
-  .me-2 svg{
-    display:none;
+
+  .me-2 svg {
+    display: none;
   }
-  .card-vehicule{
+
+  .card-vehicule {
     width: 100%;
     flex-direction: column;
     max-width: 350px;
@@ -1225,5 +1342,5 @@ img {
     object-fit: cover;
     border-radius: 8px;
   }
-  
+
 }

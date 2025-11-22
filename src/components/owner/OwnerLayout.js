@@ -422,28 +422,46 @@ export default function OwnerLayout({ children }) {
           </Typography>
         </Box>
         <Divider />
-        <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
-          <MenuItem sx={{ py: 1.5 }}>
-            <Box>
-              <Typography variant="body2">
-                Nouvelle demande de visite
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Il y a 30 minutes
-              </Typography>
-            </Box>
-          </MenuItem>
-          <MenuItem sx={{ py: 1.5 }}>
-            <Box>
-              <Typography variant="body2">
-                Message reçu — Marie
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Il y a 1 heure
-              </Typography>
-            </Box>
-          </MenuItem>
-        </Box>
+         <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
+                  {/* Render notifications from NotificationContext (socket-driven) */}
+                  {
+                    notifications.map((notif) => {
+                      const id = notif.id || notif._id || notif.name || JSON.stringify(notif);
+                      const title = notif.title || notif.name || notif.sender || 'Notification';
+                      const body = notif.message || notif.description || notif.details || '';
+                      const timestamp = notif.timestamp || notif.date || notif.createdAt || new Date().toISOString();
+                      const isUnread = notif.isRead === undefined ? !!notif.unread : !notif.isRead ? true : false;
+                      return (
+                        <MenuItem
+                          key={id}
+                          className="kn-menu-text"
+                          sx={{ py: 1.5 }}
+                          onClick={() => {
+                            try {
+                              // mark as read in NotificationContext if available
+                              if (markRead) markRead(id);
+                            } catch (e) { /* ignore */ }
+                            setAnchorNotif(null);
+                          }}
+                        >
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 400 }}>
+                              {title}
+                            </Typography>
+                            {body && (
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                {body}
+                              </Typography>
+                            )}
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(timestamp).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      );
+                    })
+                  }
+                </Box>
       </Menu>
 
       <Menu
