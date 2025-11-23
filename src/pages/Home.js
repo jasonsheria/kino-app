@@ -16,7 +16,7 @@ import recService from '../services/recommendationService';
 import { promotions as promoData } from '../data/fakedataPromotions';
 import VehicleList from '../components/vehicle/VehicleList';
 import './HomeSection.css';
-import './styles/services-modern.css';
+import '../styles/services-modern.css';
 // import './auth.css';
 import Preloader from '../components/common/Preloader';
 import PropertyCard from '../components/property/PropertyCard';
@@ -460,7 +460,7 @@ const Home = () => {
 
                         {/* ajouter une image visible uniquemen tpour le mobile */}
                         <div className='banniere-mobile mb-4'>
-                            <img src={img6} alt="bannier"  style={{ marginBotton: '2vh', width : '100%', height : '400px' }} />
+                            <img src={img6} alt="bannier" style={{ marginBotton: '2vh', width: '100%', height: '400px' }} />
 
                         </div>
                         <div className="hero-ctas" style={{ justifyContent: 'center' }}>
@@ -476,7 +476,9 @@ const Home = () => {
                         </div>
                     </div>
 
-
+                    <div className="hero-right hero-fade-up">
+                        <HeroSlider />
+                    </div>
                 </div>
             </section>
 
@@ -517,10 +519,7 @@ const Home = () => {
 
                     {/* Right Side - Services */}
                     <div className="services-right">
-                        <h3 id="agence-heading" className="fw-bold" style={{ fontSize: '1.8rem', color: 'var(--primary-dark)', marginBottom: '1rem' }}>Nos services clés</h3>
-                        
-                        <p className="services-lead">Des services clairs et efficaces pour vendre ou louer: mise en valeur du bien, diffusion ciblée et accompagnement jusqu’à la signature.</p>
-
+                        <h3 id="agence-heading" className="fw-bold" style={{ fontSize: '2.8rem', color: 'var(--primary-dark)', marginBottom: '1rem' }}>Nos services clés</h3>
                         <div className="services-cards-grid">
                             <div className="service-card-modern">
                                 <div className="service-card-icon"><FaCertificate /></div>
@@ -564,9 +563,7 @@ const Home = () => {
                     </div>
                 </div>
             </section>
-            <div className="hero-right hero-fade-up">
-                <HeroSlider />
-            </div>
+
 
             {/* Section Biens moderne (6 biens, 3 par ligne) */}
             <div className="container py-5" id="biens">
@@ -1263,7 +1260,6 @@ const Home = () => {
             <FooterPro />
             <InfoModal open={infoOpen} title={'Information'} message={infoMsg} onClose={() => setInfoOpen(false)} />
             {/* ChatWidget MongoDB-style, always present */}
-            <MessengerWidget />
         </HomeLayout>
     );
 };

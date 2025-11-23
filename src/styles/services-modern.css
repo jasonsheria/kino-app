@@ -27,14 +27,18 @@
 
 .services-wrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+    grid-template-columns: 0.4fr 1fr;
+    gap: 3rem;
+    padding: 35px;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* ============================================
@@ -44,6 +48,7 @@
 .services-hero-left {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
   animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }

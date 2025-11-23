@@ -8,7 +8,8 @@ const style = {
   transform: 'translate(-50%, -50%)',
   p: 4,
   borderRadius: 0,
-  width: '100vw',
+  background : 'white',
+  width: '96vw',
 };
 
 const Modal = ({ open, onClose, children }) => (

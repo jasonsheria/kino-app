@@ -19,7 +19,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   const remoteVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const pcRef = useRef(null);
-  
+
   // Swipe to close handler
   const onTouchStart = (e) => {
     setTouchEnd(null);
@@ -68,8 +68,8 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   };
 
   const formatTime = (s) => {
-    const mm = String(Math.floor(s/60)).padStart(2,'0');
-    const ss = String(s%60).padStart(2,'0');
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
     return `${mm}:${ss}`;
   };
 
@@ -92,10 +92,10 @@ const AgentContactModal = ({ agent, open, onClose }) => {
       // Check permissions first
       const hasPermissions = await requestPermissions();
       if (!hasPermissions) return;
-      
+
       setIsCalling(true);
       setCallStatus('connecting');
-      
+
       // get local media
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       localStreamRef.current = stream;
@@ -137,7 +137,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
     setIsCalling(false);
     setCallTime(0);
     if (pcRef.current) {
-      try { pcRef.current.close(); } catch(e){}
+      try { pcRef.current.close(); } catch (e) { }
       pcRef.current = null;
     }
     if (localStreamRef.current) {
@@ -157,25 +157,30 @@ const AgentContactModal = ({ agent, open, onClose }) => {
   };
 
   const modal = (
-    
-    <div className="agent-contact-modal-bg" 
+
+    <div className="agent-contact-modal-bg"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
       <div className="agent-contact-modal" aria-modal="true" role="dialog">
-        <button 
-          className="close-btn" 
-          onClick={() => { stopCall(); onClose(); }} 
-          aria-label="Fermer"
-        >&times;</button>
-        <div className="agent-contact-header">
-          <img src={agentImageUrl} alt={agentName} className="agent-avatar" />
-          <div>
-            <div className="fw-bold text-success" style={{fontSize:'1.1rem'}}>{agentName}</div>
-            <div className="small text-muted">Agent immobilier</div>
+        <div style={{display : 'flex', flexDirection : 'row', justifyContent : 'space-between', alignItems : 'center', marginBottom : '1rem'}}>
+          
+          <div className="agent-contact-header">
+            <img src={agentImageUrl} alt={agentName} className="agent-avatar" />
+            <div>
+              <div className="fw-bold text-success" style={{ fontSize: '1.1rem' }}>{agentName}</div>
+              <div className="small text-muted">Agent immobilier</div>
+            </div>
           </div>
+          <button
+            className="close-btn"
+            onClick={() => { stopCall(); onClose(); }}
+            aria-label="Fermer"
+          >&times;</button>
+
         </div>
+
 
         <div className="agent-contact-actions">
           {whatsappNumber ? (
@@ -192,20 +197,20 @@ const AgentContactModal = ({ agent, open, onClose }) => {
 
           <div className="webrtc-controls mb-2">
             {!isCalling ? (
-              <button 
-                className="btn btn-outline-success w-100" 
-                onClick={() => { 
+              <button
+                className="btn btn-outline-success w-100"
+                onClick={() => {
                   startCall(); onClose();
-                  window.dispatchEvent(new CustomEvent('ndaku-call', { 
-                    detail: { to: 'support', meta: { agentId: agent.id } } 
-                  })); 
+                  window.dispatchEvent(new CustomEvent('ndaku-call', {
+                    detail: { to: 'support', meta: { agentId: agent.id } }
+                  }));
                 }}
                 disabled={permissionDenied}
               >
                 {permissionDenied ? (
                   <>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Autoriser le microphone
                   </>
@@ -226,7 +231,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
                 ) : (
                   <>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+                      <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" />
                     </svg>
                     Démarrer l'appel
                   </>
@@ -236,14 +241,14 @@ const AgentContactModal = ({ agent, open, onClose }) => {
               <div className="call-panel">
                 <div className="call-info-left">
                   <div className="fw-bold">En appel</div>
-                    <div className="small text-muted">
+                  <div className="small text-muted">
                     <span>Avec {agentName}</span>
                     <span className="mx-2">•</span>
                     <span>{formatTime(callTime)}</span>
                   </div>
                 </div>
                 <div className="call-controls">
-                  <button 
+                  <button
                     className={`btn ${micEnabled ? 'btn-warning' : 'btn-secondary'}`}
                     onClick={toggleMic}
                     aria-label={micEnabled ? 'Désactiver le micro' : 'Activer le micro'}
@@ -251,29 +256,29 @@ const AgentContactModal = ({ agent, open, onClose }) => {
                     {micEnabled ? (
                       <>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                          <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+                          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
                         </svg>
                         Micro ON
                       </>
                     ) : (
                       <>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
-                          <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2M12 19v4M8 23h8"/>
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                          <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2M12 19v4M8 23h8" />
                         </svg>
                         Micro OFF
                       </>
                     )}
                   </button>
-                  <button 
+                  <button
                     className="btn btn-danger"
                     onClick={stopCall}
                     aria-label="Raccrocher"
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 2v4M8 2v4M3 9.5h18m-18 0c0 5.52 4.48 10 10 10s10-4.48 10-10"/>
+                      <path d="M16 2v4M8 2v4M3 9.5h18m-18 0c0 5.52 4.48 10 10 10s10-4.48 10-10" />
                     </svg>
                     Raccrocher
                   </button>
@@ -284,7 +289,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
 
           <button className="btn btn-outline-primary w-100" onClick={() => {
             // close this modal to give full viewport to the messenger
-            try { stopCall(); } catch(e){}
+            try { stopCall(); } catch (e) { }
             if (onClose) onClose();
             // open global messenger and request a conversation with this agent
             window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId: agent?.id || agent?._id || agent?.agentId } }));
@@ -294,7 +299,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
         </div>
 
         <div className="call-videos">
-          <video ref={localVideoRef} autoPlay playsInline muted style={{display:'none'}} />
+          <video ref={localVideoRef} autoPlay playsInline muted style={{ display: 'none' }} />
           <audio ref={remoteVideoRef} autoPlay playsInline />
         </div>
 

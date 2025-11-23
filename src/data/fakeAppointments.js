@@ -99,7 +99,8 @@ const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL).replace(/\/$/, '');
         createdAt: p.createdAt || p.created_at || null,
         ownerId: p.owner || null,
         note: p.note || p.notes || 'demande de visite',
-        name: p.name || (p.user && (p.user.prenom || p.user.name)) || 'Visiteur'
+        name: p.name || (p.user && (p.user.prenom || p.user.name)) || 'Visiteur',
+        title : 'visite de propriété'
       }));
       // inplace replace
       fakeAppointments.splice(0, fakeAppointments.length, ...mapped);

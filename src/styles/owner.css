@@ -227,7 +227,6 @@
   .owner-doors-wrapper {
     flex-direction: column;
     gap: 16px;
-    padding: 16px;
   }
   
   .owner-door {

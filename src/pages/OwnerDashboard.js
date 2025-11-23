@@ -157,9 +157,9 @@ export default function OwnerDashboard() {
                     <Grid item xs={12} md={6} sx={{ width: "100%" }}>
                         <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff', boxShadow: 2 }}>
                             <CardContent sx={{ width: '100%' }}>
-                                <Box display="flex" alignItems="center" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }} sx={{ width: '100%' }}>
+                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} sx={{ width: '100%' }}>
                                     <Box>
-                                        <Typography variant="h6">Bonjour, {ownerProfile?.prenom?.split(' ')[0] || 'Propriétaire'}</Typography>
+                                        <Typography variant="h6">Bonjour {ownerProfile?.username?.split(' ')[0] || 'Propriétaire'}</Typography>
                                         <Typography variant="body2" sx={{ opacity: 0.9 }}>Voici le tableau de bord de votre activité</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', gap: 1, mt: { xs: 2, sm: 0 } }}>
@@ -183,7 +183,7 @@ export default function OwnerDashboard() {
                                         </Box>
                                     </Box>
                                 </Box>
-                                <Box sx={{ display: 'flex', gap: 1, width: '100%', marginBottom: '10px' }}>
+                                <Box sx={{ display: 'flex', gap: 1, width: '100%', marginBottom: '10px' , marginTop: '10px' }}>
                                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/properties')}><Typography variant="caption">Mes biens</Typography></Box>
                                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/messages')}><Typography variant="caption">Messages</Typography></Box>
                                 </Box>
@@ -195,7 +195,7 @@ export default function OwnerDashboard() {
                             <CardContent sx={{ width: '100%' }}>
                                 <Box display="flex" flexDirection="column" alignItems="flex-start" sx={{ width: '100%' }}>
                                     <Typography variant="h6" sx={{ mb: 1 }}>Financier</Typography>
-                                    <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>${metrics.revenue}</Typography>
+                                    <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 , color : 'white'}}>${metrics.revenue}</Typography>
                                     <Typography variant="body2" sx={{ opacity: 0.9 }}>Solde actuel et historique des revenus</Typography>
                                 </Box>
                                 <Box sx={{ width: '100%', mt: 2 }}>

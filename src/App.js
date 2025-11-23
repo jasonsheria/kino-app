@@ -15,6 +15,7 @@ import GoogleAuthPromptInternal from '../src/auth/GoogleAuthPrompt'; // Renommé
 import { SnackbarProvider, useSnackbar } from 'notistack';
 import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
+import MessengerWidget from './components/common/Messenger';
 
 function App() {
   // Force le mode à 'light' ou 'dark' uniquement
@@ -74,14 +75,14 @@ function App() {
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 12,
+                        bottom: 10,
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
                         color: "white",
                         borderRadius: '50%',
-                        width: 48,
-                        height: 48,
+                        width: 45,
+                        height: 45,
                         boxShadow: '0 2px 8px var(--ndaku-primary-22)',
                         transition: 'background 0.3s, color 0.3s',
                       }}
@@ -95,6 +96,8 @@ function App() {
                     >
                       {mode === 'dark' ? <FaSun size={22} /> : <FaMoon size={22} />}
                     </IconButton>
+                    <MessengerWidget/>
+                    
                   </Tooltip>
                   <HashRouter>
                     <AppRoutes />

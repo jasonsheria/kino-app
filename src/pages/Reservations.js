@@ -316,7 +316,7 @@ export default function Reservations() {
                             <Button 
                               variant="outlined" 
                               sx={{ mr: 1 }}
-                              href={`/properties/${reservation.property?._id}`}
+                              href={`login#/properties/${reservation.property?._id}`}
                             >
                               Détails
                             </Button>

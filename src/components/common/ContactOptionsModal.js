@@ -33,7 +33,6 @@ const ContactOptionsModal = ({ agent, open, onClose, onCall, onWhatsApp, onMessa
         onClick={e => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h3>Contacter {agent.name}</h3>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 

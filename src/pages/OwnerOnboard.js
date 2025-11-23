@@ -100,8 +100,7 @@ export default function OwnerOnboard(){
           {!loading && !error && ownerAccount?.hasAccount && (
             <>
               {ownerAccount.owner.isActive ? (
-                <div className="status-alert success" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <FaCheckCircle style={{ fontSize: '1.5rem', marginTop: '4px', flexShrink: 0 }} />
+                <div className="status-alert success">
                   <div style={{ flex: 1 }}>
                     <h4 style={{ margin: '0 0 0.5rem 0' }}>Compte propriétaire existant</h4>
                     <p style={{ margin: '0 0 1.5rem 0' }}>Votre compte est actif et vous pouvez y accéder immédiatement pour gérer vos annonces et suivre vos réservations.</p>
@@ -114,8 +113,7 @@ export default function OwnerOnboard(){
                   </div>
                 </div>
               ) : (
-                <div className="status-alert warning" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <FaExclamationCircle style={{ fontSize: '1.5rem', marginTop: '4px', flexShrink: 0 }} />
+                <div className="status-alert warning" style={{ display: 'flex', gap: '1rem', alignItems: 'center', textAlign : 'center' }}>
                   <div style={{ flex: 1 }}>
                     <h4 style={{ margin: '0 0 0.5rem 0' }}>Activation requise</h4>
                     <p style={{ margin: '0 0 1.5rem 0' }}>Votre compte propriétaire a été créé avec succès. Pour commencer à publier vos annonces, veuillez choisir un abonnement qui correspond à vos besoins.</p>
@@ -147,8 +145,7 @@ export default function OwnerOnboard(){
                       <div style={{ fontSize: '2.5rem', color: '#00cdf2', marginBottom: '0.5rem' }}>
                         📝
                       </div>
-                      <h4>Faire ma demande</h4>
-                      <p>Demandez à devenir partenaire et publiez vos biens en quelques étapes guidées et sécurisées.</p>
+                      <h4>Devenir Administrateur</h4>
                       <button className="door-cta">
                         Commencer <FaArrowRight style={{ marginLeft: '8px' }} />
                       </button>

@@ -358,7 +358,7 @@ export default function OwnerRequest() {
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>
                   Quel(s) type(s) de bien possédez-vous ?
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 , gap: ' 10px'}}>
                   {['Voiture', 'Terrain', 'Appartement', 'Salle de fête','Magazin', 'Studio'].map(t => (
                     <Button
                       key={t}
@@ -369,9 +369,9 @@ export default function OwnerRequest() {
                         margin : '10px',
                         bgcolor: types.includes(t) ? 'var(--ndaku-primary)' : 'transparent',
                         color: types.includes(t) ? 'white' : 'text.primary',
-                        '&:hover': {
-                          bgcolor: types.includes(t) ? 'var(--ndaku-primary-dark)' : 'var(--ndaku-primary-11)'
-                        }
+                        // '&:hover': {
+                        //   bgcolor: types.includes(t) ? 'var(--ndaku-primary-dark)' : 'var(--ndaku-primary-11)'
+                        // }
                       }}
                     >
                       {t}
@@ -435,46 +435,46 @@ export default function OwnerRequest() {
                   Vos informations
                 </Typography>
 
-                <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={4}>
+                <Grid container spacing={2} sx={{ mb: 3, width : '100%'}}>
+                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
                     <TextField
                       fullWidth
-                      label="Nom"
+                      label="Nom, e.g : Foster"
                       required
                       value={form.nom}
                       onChange={e => setForm({ ...form, nom: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
                     <TextField
                       fullWidth
-                      label="Post-nom"
+                      label="Post-Nom, e.g : Jhon"
                       value={form.postnom}
                       onChange={e => setForm({ ...form, postnom: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
                     <TextField
                       fullWidth
-                      label="Prénom"
+                      label="Prénom, e.g : Michael"
                       required
                       value={form.prenom}
                       onChange={e => setForm({ ...form, prenom: e.target.value })}
                     />
                   </Grid>
                  
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={6} sx={{width :'100%'}}>
                     <TextField
                       fullWidth
-                      label="Téléphone"
+                      label="Téléphone, e.g : 243 8915345"
                       value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} sx={{width :'100%'}}>
                     <TextField
                       fullWidth
-                      label="Adresse complète"
+                      label="Adresse, e.g : Kinshasa, Ngaliema av: 2 janvier N°1 "
                       value={form.address}
                       onChange={e => setForm({ ...form, address: e.target.value })}
                     />

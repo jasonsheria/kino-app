@@ -39,7 +39,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
-        <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100" style={{ objectFit: 'cover', cursor: 'zoom-in' }} onClick={() => onOpen(current)} />
+        <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100" style={{ objectFit: 'cover', cursor: 'zoom-in', height : '420px' }} onClick={() => onOpen(current)} />
         <div className="carousel-dots position-absolute bottom-0 w-100 d-flex justify-content-center gap-1 mb-2">
           {images.map((_, i) => (
             <button key={i} className={`dot btn btn-sm ${i === current ? 'btn-success' : 'btn-light'}`} onClick={() => setCurrent(i)} style={{ width: 10, height: 10, padding: 0, borderRadius: 20 }} />
@@ -112,12 +112,12 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
   const next = () => { const nextIdx = (index + 1) % videos.length; setIndex(nextIdx); onSelect(nextIdx); };
   const prev = () => { const prevIdx = (index - 1 + videos.length) % videos.length; setIndex(prevIdx); onSelect(prevIdx); };
   const goFull = () => { if (!videoRef.current) return; if (videoRef.current.requestFullscreen) videoRef.current.requestFullscreen(); else if (videoRef.current.webkitRequestFullscreen) videoRef.current.webkitRequestFullscreen(); };
-  
+
   // update progress for HTML5 video
   useEffect(() => {
     const el = videoRef.current;
     if (!el) { setProgress(0); return; }
-    const onTime = () => { try { setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0); } catch (e) {} };
+    const onTime = () => { try { setProgress(el.duration ? (el.currentTime / el.duration) * 100 : 0); } catch (e) { } };
     el.addEventListener('timeupdate', onTime);
     el.addEventListener('ended', () => { setPlaying(false); setProgress(100); });
     return () => {
@@ -168,20 +168,20 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
       // reset and play HTML5 video
       setVideoKey(k => k + 1);
       setTimeout(() => {
-        if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} }
+        if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) { } }
       }, 150);
     }
   };
-  
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 12000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} onClick={onClose} />
-      <motion.div 
+      <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        style={{ 
+        style={{
           position: 'fixed',
           bottom: 0,
           left: 0,
@@ -198,11 +198,11 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
           boxShadow: '0 -4px 60px rgba(0,0,0,0.2)'
         }}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 16, 
+            gap: 16,
             padding: '16px',
             background: 'linear-gradient(rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
             position: 'absolute',
@@ -219,21 +219,21 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
             <IconButton onClick={onClose} aria-label="Fermer la visite" size="small" style={{ color: '#fff', background: 'rgba(0,0,0,0.5)', width: 36, height: 36 }}>
               <FaTimes />
             </IconButton>
-            <div style={{ 
+            <div style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
               gap: 4,
               color: '#fff'
             }}>
-              <div style={{ 
+              <div style={{
                 fontWeight: 600,
                 fontSize: '0.9rem',
                 opacity: 0.7
               }}>
                 Visite virtuelle
               </div>
-              <div style={{ 
+              <div style={{
                 fontWeight: 700,
                 fontSize: '1.1rem'
               }}>
@@ -246,73 +246,73 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                 <Button variant="outlined" color="inherit" size="small" onClick={next} startIcon={<FaStepForward />}>Suiv.</Button>
                 <Button variant="outlined" color="inherit" size="small" onClick={toggleMute} startIcon={muted ? <FaVolumeMute /> : <FaVolumeUp />}>{muted ? 'Activer son' : 'Couper'}</Button>
                 <Button variant="outlined" color="inherit" size="small" onClick={goFull} startIcon={<FaExpand />}>Plein écran</Button>
-                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
+                <Button variant="outlined" style={{ color: '#00a8a7', border: '1px solid #00a8a7' }} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
+                <Button variant="outlined" style={{ color: '#00a8a7', border: '1px solid #00a8a7' }} color="error" size="small" onClick={onClose} startIcon={<FaTimes />}>Fermer</Button>
               </div>
             )}
           </div>
 
           <div style={{ padding: 12, display: 'flex', gap: 12, flex: 1, overflow: 'hidden', flexDirection: isMobile ? 'column' : 'row', alignItems: 'stretch' }}>
-          <div 
-            style={{ 
-              flex: 1,
-              minHeight: isMobile ? '60vh' : 420,
-              display: 'flex',
-              flexDirection: 'column',
-              background: '#000',
-              position: 'relative',
-              cursor: 'pointer',
-              overflow: 'hidden'
-            }}
-            onClick={() => isMobile && setShowControls(prev => !prev)}>
+            <div
+              style={{
+                flex: 1,
+                minHeight: isMobile ? '60vh' : 420,
+                display: 'flex',
+                flexDirection: 'column',
+                background: '#000',
+                position: 'relative',
+                cursor: 'pointer',
+                overflow: 'hidden'
+              }}
+              onClick={() => isMobile && setShowControls(prev => !prev)}>
               {current && isYoutube(current) ? (
                 <iframe key={youtubeKey} src={getYoutubeEmbedWithAutoplay(current, playing)} title={`video-${index}`} style={{ width: '100%', height: '100%', border: 0 }} allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
               ) : (
                 // If there is no current video or the browser cannot play it, show a friendly message
                 current ? (
                   videoError ? (
-                      <div style={{ color: '#fff', textAlign: 'center' }}>
-                        <div style={{ fontWeight: 700, marginBottom: 8 }}>Impossible de lire la vidéo</div>
-                        <div className="small">Le navigateur ne prend pas en charge ce format ou la source est invalide.</div>
-                        <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'center' }}>
-                          <button className="btn btn-sm btn-light" onClick={() => { setVideoError(false); setVideoKey(k => k + 1); }}>Réessayer</button>
-                          <a className="btn btn-sm btn-outline-light" href={process.env.REACT_APP_BACKEND_APP_URL+current} target="_blank" rel="noopener noreferrer">Télécharger</a>
-                        </div>
+                    <div style={{ color: '#fff', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 700, marginBottom: 8 }}>Impossible de lire la vidéo</div>
+                      <div className="small">Le navigateur ne prend pas en charge ce format ou la source est invalide.</div>
+                      <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'center' }}>
+                        <button className="btn btn-sm btn-light" onClick={() => { setVideoError(false); setVideoKey(k => k + 1); }}>Réessayer</button>
+                        <a className="btn btn-sm btn-outline-light" href={process.env.REACT_APP_BACKEND_APP_URL + current} target="_blank" rel="noopener noreferrer">Télécharger</a>
                       </div>
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                        <video
-                          key={videoKey}
-                          ref={videoRef}
-                          controls
-                          playsInline
-                          webkitPlaysInline
-                          preload="metadata"
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          muted={muted}
-                          onPlay={() => setPlaying(true)}
-                          onPause={() => setPlaying(false)}
-                          onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
-                        >
-                          <source src={process.env.REACT_APP_BACKEND_APP_URL+current} type={getVideoType(current)} />
-                          {/* Fallback text for very old browsers */}
-                          Votre navigateur ne prend pas en charge la lecture de vidéos.
-                        </video>
-                        {/* simple progress bar */}
-                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 6, background: 'rgba(255,255,255,0.12)' }}>
-                          <div style={{ width: `${progress}%`, height: '100%', background: 'var(--ndaku-primary)' }} />
-                        </div>
-                        {/* Mobile central play overlay */}
-                        {isMobile && current && !isYoutube(current) && !videoError && !playing && (
-                          <Button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) {} } }} variant="outlined"  color="primary" startIcon={<FaPlay />} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.7)', borderRadius: 10, padding: '8px 12px', color: '#fff', color : '#00a8a7', border : '1px solid #00a8a7' }}>
-                            Lire
-                          </Button>
-                        )}
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                      <video
+                        key={videoKey}
+                        ref={videoRef}
+                        controls
+                        playsInline
+                        webkitPlaysInline
+                        preload="metadata"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        muted={muted}
+                        onPlay={() => setPlaying(true)}
+                        onPause={() => setPlaying(false)}
+                        onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
+                      >
+                        <source src={process.env.REACT_APP_BACKEND_APP_URL + current} type={getVideoType(current)} />
+                        {/* Fallback text for very old browsers */}
+                        Votre navigateur ne prend pas en charge la lecture de vidéos.
+                      </video>
+                      {/* simple progress bar */}
+                      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 6, background: 'rgba(255,255,255,0.12)' }}>
+                        <div style={{ width: `${progress}%`, height: '100%', background: 'var(--ndaku-primary)' }} />
                       </div>
-                    )
+                      {/* Mobile central play overlay */}
+                      {isMobile && current && !isYoutube(current) && !videoError && !playing && (
+                        <Button onClick={() => { if (videoRef.current) { try { videoRef.current.play(); setPlaying(true); } catch (e) { } } }} variant="outlined" color="primary" startIcon={<FaPlay />} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', background: 'rgba(0,0,0,0.7)', borderRadius: 10, padding: '8px 12px', color: '#fff', color: '#00a8a7', border: '1px solid #00a8a7' }}>
+                          Lire
+                        </Button>
+                      )}
+                    </div>
+                  )
                 ) : (
                   <div style={{ color: '#fff', textAlign: 'center' }}>
                     <div style={{ fontWeight: 700, marginBottom: 8 }}>Aucune vidéo disponible</div>
@@ -321,10 +321,10 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                 )
               )}
               {isMobile && (
-                <div style={{ 
-                  position: 'absolute', 
-                  left: 0, 
-                  right: 0, 
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
                   bottom: 0,
                   background: 'linear-gradient(transparent 0%, rgba(0,0,0,0.9) 100%)',
                   padding: '60px 20px 24px',
@@ -338,7 +338,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                   WebkitBackdropFilter: 'blur(20px)'
                 }}>
                   {/* Progress bar */}
-                  <div style={{ 
+                  <div style={{
                     position: 'relative',
                     width: '100%',
                     height: 4,
@@ -347,7 +347,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                     overflow: 'hidden',
                     cursor: 'pointer'
                   }}>
-                    <div style={{ 
+                    <div style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
@@ -379,14 +379,14 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                   </div>
 
                   {/* Controls */}
-                  <div style={{ 
+                  <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     gap: 20
                   }}>
                     {/* Main controls */}
-                    <div style={{ 
+                    <div style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 24
@@ -394,7 +394,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                       <IconButton onClick={prev} aria-label="Précédent" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
                         <FaStepBackward />
                       </IconButton>
-                      <Button onClick={togglePlay} variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}} color="secondary" aria-label={playing ? 'Pause' : 'Lire'} sx={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.25)' }} startIcon={playing ? <FaPause /> : <FaPlay />}>
+                      <Button onClick={togglePlay} variant="outlined" style={{ color: '#00a8a7', border: '1px solid #00a8a7' }} color="secondary" aria-label={playing ? 'Pause' : 'Lire'} sx={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.25)' }} startIcon={playing ? <FaPause /> : <FaPlay />}>
                         {/* icon only, label provided via aria */}
                       </Button>
                       <IconButton onClick={next} aria-label="Suivant" size="large" sx={{ width: 44, height: 44, color: '#fff' }}>
@@ -403,7 +403,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                     </div>
 
                     {/* Secondary controls */}
-                    <div style={{ 
+                    <div style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 16
@@ -453,6 +453,8 @@ const PropertyDetails = () => {
   // local state for the property so we can refresh when global `properties` array is updated
   const [property, setProperty] = useState(() => properties.find(p => String(p.id || p._id) === String(id)));
   // Evaluation modal state
+  const [showContact, setShowContact] = useState(false);
+
   const [showEvaluation, setShowEvaluation] = useState(false);
   const [answers, setAnswers] = useState({});
   const [evaluationResult, setEvaluationResult] = useState(null);
@@ -563,7 +565,7 @@ const PropertyDetails = () => {
         setIsReserved(true);
       }
     };
-    
+
     window.addEventListener('property-reserved', handlePropertyReserved);
     return () => window.removeEventListener('property-reserved', handlePropertyReserved);
   }, [property]);
@@ -698,227 +700,229 @@ const PropertyDetails = () => {
     shadowSize: [41, 41]
   });
   const mainPos = resolvedAgent?.geoloc || { lat: -4.325, lng: 15.322 };
-  const defaultPosition = {lat: -4.325, lng: 15.322};
-const propertyPosition = property.geoloc?.lat && property.geoloc?.lng ? property.geoloc : defaultPosition;
-const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition;
+  const defaultPosition = { lat: -4.325, lng: 15.322 };
+  const propertyPosition = property.geoloc?.lat && property.geoloc?.lng ? property.geoloc : defaultPosition;
+  const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition;
 
 
-return (
-  <div>
-    <HomeLayout/>
-    <div className="container" style={{ "marginTop": "25px" }}>
-      {/* Page header */}
-      <div className="mb-4">
+  return (
+    <div>
+      <HomeLayout />
+      <div className="container" style={{ "marginTop": "25px" }}>
+        {/* Page header */}
+        <div className="mb-4">
           <div className="promo-breadcrumb">
-                <Link to="/">Accueil</Link>
-                <span className="breadcrumb-sep">/</span>
-                <Link to="/appartement">Annonce</Link>
-                <span className="breadcrumb-sep">/</span>
-                <span>{property.type}</span>
-              </div>
-        <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
-        <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
-      </div>
-      
-      {/* Layout principal - 3 colonnes (main content + right sidebar) */}
-      <div className="row">
-        {/* COLONNE GAUCHE - Images et détails principaux (70%) */}
-        <div className="col-12 col-lg-7 mb-4 mb-lg-0">
-          <div className="card border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
-            <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
-            <div className="card-body">
-              <div className="d-flex align-items-start justify-content-between">
-                <div>
-                  <h3 className="fw-bold text-primary mb-2">{property.name}</h3>
-                  <div className="mb-2">
-                    <span className="badge bg-info text-dark me-2">{property.type}</span>
-                    {property.status && <span className="badge bg-secondary">{property.status}</span>}
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className="price-display">
-                    <FaRegMoneyBillAlt />
-                    <span className="price-value">{property.price.toLocaleString()}</span>
-                    <span className="price-currency">$</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-2 text-muted"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
-              <p className="text-secondary small">{property.description}</p>
-
-              {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
-                <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
-                  <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary" /> {property.chambres}</span>
-                  <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info" /> {property.douches}</span>
-                  <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning" /> {property.salon}</span>
-                  <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success" /> {property.cuisine}</span>
-                  <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger" /> {property.sdb}</span>
-                </div>
-              )}
-
-              <div className="d-flex justify-content-end gap-2 mb-3 mt-3">
-                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}}
-                  color="primary"
-                  onClick={() => navigate(-1)}>Retour</Button>
-                <Button variant="outlined" style={{color : '#00a8a7', border : '1px solid #00a8a7'}}
-                  color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
-              </div>
-
-              {/* Neighborhood indices */}
-              <div className="card p-3 shadow-sm border-0 mb-3">
-                <h6 className="fw-bold">Indice du quartier</h6>
-                <p className="small text-muted">Évaluation des services et de la sécurité aux alentours (échelle 0-100).</p>
-                <div className="d-flex flex-column gap-2">
-                  {[{ key: 'eau', label: 'Eau' }, { key: 'electricite', label: 'Électricité' }, { key: 'securite', label: 'Sécurité' }, { key: 'route', label: 'Routes' }].map(item => (
-                    <div key={item.key}>
-                      <div className="d-flex justify-content-between small mb-1"><div>{item.label}</div><div className="text-muted">{neighborhood[item.key]}%</div></div>
-                      <div className="progress" style={{ height: 8 }}>
-                        <div className="progress-bar" role="progressbar" style={{ width: `${neighborhood[item.key]}%`, background: 'var(--ndaku-primary)' }} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {showEvaluation && (
-                <div className="mt-3">
-                  {evaluationError && <div className="alert alert-danger small">{evaluationError}</div>}
-                  <div className="d-flex gap-2">
-                    <button className="btn btn-primary btn-sm" onClick={submitEvaluation}>Soumettre l'évaluation</button>
-                    <button className="btn btn-outline-secondary btn-sm" onClick={() => setShowEvaluation(false)}>Annuler</button>
-                  </div>
-                </div>
-              )}
-
-              {/* Amenities Section */}
-              <AmenitiesSection property={property} />
-            </div>
+            <Link to="/">Accueil</Link>
+            <span className="breadcrumb-sep">/</span>
+            <Link to="/appartement">Annonce</Link>
+            <span className="breadcrumb-sep">/</span>
+            <span>{property.type}</span>
           </div>
+          <h1 className="display-6 fw-bold" style={{ marginTop: 6 }}>{property.name}</h1>
+          <p className="text-muted small">{property.description || 'Découvrez les détails du bien, ses équipements, et contactez l\'agent pour plus d\'informations.'}</p>
         </div>
 
-        {/* COLONNE DROITE - Profil agent et suggestions (30%) */}
-        <div className="col-12 col-lg-5 mt-4 mt-lg-0">
-          {/* Profil Agent enrichi */}
-          {resolvedAgent && (
-            <div className="mb-4">
-              <AgentProfileCard 
-                agent={resolvedAgent} 
-                property={property}
-                isReserved={isReserved}
-                onContactClick={(type) => {
-                  if (type === 'whatsapp' && resolvedAgent.whatsapp) {
-                    window.open(`https://wa.me/${resolvedAgent.whatsapp.replace(/[^0-9]/g, '')}`, '_blank');
-                  } else if (type === 'phone' && resolvedAgent.phone) {
-                    window.location.href = `tel:${resolvedAgent.phone}`;
-                  } else if (type === 'email' && resolvedAgent.email) {
-                    window.location.href = `mailto:${resolvedAgent.email}`;
-                  } else if (type === 'reservation') {
-                    setShowBooking(true);
-                  }
-                }}
-                onViewMoreClick={() => {
-                  navigate(`/agents/${resolvedAgent.id || resolvedAgent._id}`);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Carte */}
-          <div className="rounded-4 overflow-hidden border mb-4" style={{ height: 320, position: 'relative' }}>
-            <MapContainer center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {/* Main property marker */}
-              <Marker position={[propertyPosition.lat, propertyPosition.lng]} icon={redIcon} eventHandlers={{ click: () => setSelectedMapProperty(property) }}>
-                <Popup>
-                  <div style={{ width: 220 }}>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700 }}>{property.titre || property.name}</div>
-                        <div style={{ fontSize: 12, color: '#666' }}>{property.adresse || property.address}</div>
-                        <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(property.prix || property.price || 0).toLocaleString()} $</div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                      <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${property._id || property.id}`)}>Voir</button>
-                      <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: property.agentId || property.agent } }))}>Contacter</button>
+        {/* Layout principal - 3 colonnes (main content + right sidebar) */}
+        <div className="row">
+          {/* COLONNE GAUCHE - Images et détails principaux (70%) */}
+          <div className="col-12 col-lg-7 mb-4 mb-lg-0">
+            <div className="card border-0" style={{ borderRadius: 18, overflow: 'hidden' }}>
+              <ImageCarousel images={property.images} name={property.name} onOpen={(i) => { setLightboxIndex(i); setShowImageLightbox(true); }} />
+              <div className="card-body">
+                <div className="d-flex align-items-start justify-content-between">
+                  <div>
+                    <h3 className="fw-bold text-primary mb-2">{property.name}</h3>
+                    <div className="mb-2">
+                      <span className="badge bg-info text-dark me-2">{property.type}</span>
+                      {property.status && <span className="badge bg-secondary">{property.status}</span>}
                     </div>
                   </div>
-                </Popup>
-              </Marker>
-
-              {suggestions.map(sug => {
-                const sugAgent = agents.find(a => String(a.id) === String(sug.agentId) || String(a._id) === String(sug.agentId));
-                let markerPosition;
-
-                // Try to get position from property first
-                if (sug.geoloc?.lat && sug.geoloc?.lng) {
-                  markerPosition = { lat: sug.geoloc.lat, lng: sug.geoloc.lng };
-                }
-                // If property has separate lat/lng fields
-                else if (sug.lat && sug.lng) {
-                  markerPosition = { lat: sug.lat, lng: sug.lng };
-                }
-                // Try agent's position
-                else if (sugAgent?.geoloc?.lat && sugAgent?.geoloc?.lng) {
-                  markerPosition = sugAgent.geoloc;
-                }
-                // Default to central Kinshasa if no valid position found
-                else {
-                  markerPosition = defaultPosition;
-                }
-
-                return (
-                  <Marker key={sug._id || sug.id} position={[markerPosition.lat, markerPosition.lng]} icon={blueIcon} eventHandlers={{ click: () => setSelectedMapProperty(sug) }}>
-                    <Popup>
-                      <div style={{ width: 200 }}>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700 }}>{sug.titre || sug.name}</div>
-                            <div style={{ fontSize: 12, color: '#666' }}>{sug.adresse || sug.address}</div>
-                            <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(sug.prix || sug.price || 0).toLocaleString()} $</div>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                          <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${sug._id || sug.id}`)}>Voir</button>
-                          <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: sug.agentId || sug.agent } }))}>Contacter</button>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
-            </MapContainer>
-
-            {/* Floating detail panel when a marker is selected */}
-            {selectedMapProperty && (
-              <div style={{ position: 'absolute', right: 12, top: 12, width: 300, zIndex: 9999 }}>
-                <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex' }}>
-                    <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 100, height: 80, objectFit: 'cover' }} />
-                    <div style={{ padding: 12, flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
-                      <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
-                      <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132', fontSize: '0.9rem' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
-                      <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
-                        <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
-                        <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
-                      </div>
+                  <div className="text-end">
+                    <div className="price-display">
+                      <FaRegMoneyBillAlt />
+                      <span className="price-value">{property.price.toLocaleString()}</span>
+                      <span className="price-currency">$</span>
                     </div>
                   </div>
                 </div>
+
+                <div className="mb-2 text-muted"><i className="bi bi-geo-alt me-1"></i> {property.address}</div>
+                <p className="text-secondary small">{property.description}</p>
+
+                {(property.type === 'Appartement' || property.type === 'Studio' || property.type === 'Maison') && (
+                  <div className="mb-2 d-flex flex-wrap gap-3 align-items-center justify-content-start">
+                    <span title="Chambres" className="badge bg-light text-dark border me-1"><FaBed className="me-1 text-primary" /> {property.chambres}</span>
+                    <span title="Douches" className="badge bg-light text-dark border me-1"><FaShower className="me-1 text-info" /> {property.douches}</span>
+                    <span title="Salon" className="badge bg-light text-dark border me-1"><FaCouch className="me-1 text-warning" /> {property.salon}</span>
+                    <span title="Cuisine" className="badge bg-light text-dark border me-1"><FaUtensils className="me-1 text-success" /> {property.cuisine}</span>
+                    <span title="Salle de bain" className="badge bg-light text-dark border"><FaBath className="me-1 text-danger" /> {property.sdb}</span>
+                  </div>
+                )}
+
+                <div className="d-flex justify-content-end gap-2 mb-3 mt-3">
+                  <Button variant="outlined" style={{ color: '#00a8a7', border: '1px solid #00a8a7' }}
+                    color="primary"
+                    onClick={() => navigate(-1)}>Retour</Button>
+                  <Button variant="outlined" style={{ color: '#00a8a7', border: '1px solid #00a8a7' }}
+                    color="primary" onClick={() => setShowVirtual(true)}>Visite virtuelle</Button>
+                </div>
+
+                {/* Neighborhood indices */}
+                <div className="card p-3 shadow-sm border-0 mb-3">
+                  <h6 className="fw-bold">Indice du quartier</h6>
+                  <p className="small text-muted">Évaluation des services et de la sécurité aux alentours (échelle 0-100).</p>
+                  <div className="d-flex flex-column gap-2">
+                    {[{ key: 'eau', label: 'Eau' }, { key: 'electricite', label: 'Électricité' }, { key: 'securite', label: 'Sécurité' }, { key: 'route', label: 'Routes' }].map(item => (
+                      <div key={item.key}>
+                        <div className="d-flex justify-content-between small mb-1"><div>{item.label}</div><div className="text-muted">{neighborhood[item.key]}%</div></div>
+                        <div className="progress" style={{ height: 8 }}>
+                          <div className="progress-bar" role="progressbar" style={{ width: `${neighborhood[item.key]}%`, background: 'var(--ndaku-primary)' }} aria-valuenow={neighborhood[item.key]} aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {showEvaluation && (
+                  <div className="mt-3">
+                    {evaluationError && <div className="alert alert-danger small">{evaluationError}</div>}
+                    <div className="d-flex gap-2">
+                      <button className="btn btn-primary btn-sm" onClick={submitEvaluation}>Soumettre l'évaluation</button>
+                      <button className="btn btn-outline-secondary btn-sm" onClick={() => setShowEvaluation(false)}>Annuler</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Amenities Section */}
+                <AmenitiesSection property={property} />
+              </div>
+            </div>
+          </div>
+
+          {/* COLONNE DROITE - Profil agent et suggestions (30%) */}
+          <div className="col-12 col-lg-5 mt-4 mt-lg-0">
+            {/* Profil Agent enrichi */}
+            {resolvedAgent && (
+              <div className="mb-4">
+                <AgentProfileCard
+                  agent={resolvedAgent}
+                  property={property}
+                  isReserved={isReserved}
+                  onContactClick={(type) => {
+                    if (type === 'whatsapp' && resolvedAgent.whatsapp) {
+                      setShowContact(true);
+                      {showContact && <AgentContactModal agent={resolvedAgent} open={showContact} onClose={() => setShowContact(false)} />}
+                    } else if (type === 'phone' && resolvedAgent.phone) {
+                      window.dispatchEvent(new CustomEvent('ndaku-call', { detail: { to: 'support', meta: { agentId: resolvedAgent.id || resolvedAgent._id, propertyId: property.id } } }));
+                    } else if (type === 'email' && resolvedAgent.email) {
+                      window.location.href = `mailto:${resolvedAgent.email}`;
+                    } else if (type === 'reservation') {
+                      setShowBooking(true);
+                    }
+                  }}
+                  onViewMoreClick={() => {
+                    navigate(`/agents/${resolvedAgent.id || resolvedAgent._id}`);
+                  }}
+                />
+
               </div>
             )}
+            
+            {/* Carte */}
+            <div className="rounded-4 overflow-hidden border mb-4" style={{ height: 320, position: 'relative' }}>
+              <MapContainer center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                {/* Main property marker */}
+                <Marker position={[propertyPosition.lat, propertyPosition.lng]} icon={redIcon} eventHandlers={{ click: () => setSelectedMapProperty(property) }}>
+                  <Popup>
+                    <div style={{ width: 220 }}>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700 }}>{property.titre || property?.name}</div>
+                          <div style={{ fontSize: 12, color: '#666' }}>{property.adresse || property.address}</div>
+                          <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(property.prix || property.price || 0).toLocaleString()} $</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${property._id || property.id}`)}>Voir</button>
+                        <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: property.agentId || property.agent } }))}>Contacter</button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+
+                {suggestions.map(sug => {
+                  const sugAgent = agents.find(a => String(a.id) === String(sug.agentId) || String(a._id) === String(sug.agentId));
+                  let markerPosition;
+
+                  // Try to get position from property first
+                  if (sug.geoloc?.lat && sug.geoloc?.lng) {
+                    markerPosition = { lat: sug.geoloc.lat, lng: sug.geoloc.lng };
+                  }
+                  // If property has separate lat/lng fields
+                  else if (sug.lat && sug.lng) {
+                    markerPosition = { lat: sug.lat, lng: sug.lng };
+                  }
+                  // Try agent's position
+                  else if (sugAgent?.geoloc?.lat && sugAgent?.geoloc?.lng) {
+                    markerPosition = sugAgent.geoloc;
+                  }
+                  // Default to central Kinshasa if no valid position found
+                  else {
+                    markerPosition = defaultPosition;
+                  }
+
+                  return (
+                    <Marker key={sug._id || sug.id} position={[markerPosition.lat, markerPosition.lng]} icon={blueIcon} eventHandlers={{ click: () => setSelectedMapProperty(sug) }}>
+                      <Popup>
+                        <div style={{ width: 200 }}>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 700 }}>{sug.titre || sug.name}</div>
+                              <div style={{ fontSize: 12, color: '#666' }}>{sug.adresse || sug.address}</div>
+                              <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132' }}>{(sug.prix || sug.price || 0).toLocaleString()} $</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+                            <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/properties/${sug._id || sug.id}`)}>Voir</button>
+                            <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: sug.agentId || sug.agent } }))}>Contacter</button>
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })}
+              </MapContainer>
+
+              {/* Floating detail panel when a marker is selected */}
+              {selectedMapProperty && (
+                <div style={{ position: 'absolute', right: 12, top: 12, width: 300, zIndex: 9999 }}>
+                  <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex' }}>
+                      <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 100, height: 80, objectFit: 'cover' }} />
+                      <div style={{ padding: 12, flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
+                        <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
+                        <div style={{ marginTop: 6, fontWeight: 700, color: '#0f5132', fontSize: '0.9rem' }}>{(selectedMapProperty.prix || selectedMapProperty.price || 0).toLocaleString()} $</div>
+                        <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
+                          <button className="btn btn-sm btn-outline-primary" onClick={() => { navigate(`/properties/${selectedMapProperty._id || selectedMapProperty.id}`); }}>Voir</button>
+                          <button className="btn btn-sm btn-success" onClick={() => window.dispatchEvent(new CustomEvent('ndaku-contact-agent', { detail: { agentId: selectedMapProperty.agentId || selectedMapProperty.agent } }))}>Contacter</button>
+                          <button className="btn btn-sm btn-secondary" onClick={() => setSelectedMapProperty(null)}>Fermer</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Suggestions enrichies */}
           </div>
-
-          {/* Suggestions enrichies */}
         </div>
-      </div>
 
-      {/* Virtual tour video gallery (bottom of page) */}
-      {/* {videos && videos.length > 0 && (
+        {/* Virtual tour video gallery (bottom of page) */}
+        {/* {videos && videos.length > 0 && (
         <div className="mt-5">
           <h4 className="mb-3">Visite virtuelle & vidéos</h4>
           <div className="card p-3 mb-3">
@@ -945,76 +949,76 @@ return (
           </div>
         </div>
       )} */}
-      {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
-      <AnimatePresence>
-        {showVirtual && (
-          <VirtualTourModal
-            videos={videos && videos.length ? videos : []}
-            selectedIndex={selectedVideo}
-            onClose={() => setShowVirtual(false)}
-            onSelect={(i) => setSelectedVideo(i)}
-          />
-        )}
-      </AnimatePresence>
+        {/* Animated Virtual Tour Modal (also used when clicking Visite virtuelle button) */}
+        <AnimatePresence>
+          {showVirtual && (
+            <VirtualTourModal
+              videos={videos && videos.length ? videos : []}
+              selectedIndex={selectedVideo}
+              onClose={() => setShowVirtual(false)}
+              onSelect={(i) => setSelectedVideo(i)}
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Image Lightbox for large image viewing */}
-      <AnimatePresence>
-        {showImageLightbox && property.images && property.images.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 13000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)' }} onClick={() => setShowImageLightbox(false)} />
-            <motion.div initial={{ y: 30, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', zIndex: 13001 }}>
-              <div style={{ position: 'relative' }}>
-                <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', right: 12, top: 12, zIndex: 2 }}>×</button>
-                <img src={process.env.REACT_APP_BACKEND_APP_URL + property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
-                <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + property.images.length) % property.images.length); }}>&lsaquo;</button>
-                <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }}>&rsaquo;</button>
-              </div>
+        {/* Image Lightbox for large image viewing */}
+        <AnimatePresence>
+          {showImageLightbox && property.images && property.images.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, zIndex: 13000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)' }} onClick={() => setShowImageLightbox(false)} />
+              <motion.div initial={{ y: 30, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', zIndex: 13001 }}>
+                <div style={{ position: 'relative' }}>
+                  <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', right: 12, top: 12, zIndex: 2 }}>×</button>
+                  <img src={process.env.REACT_APP_BACKEND_APP_URL + property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
+                  <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + property.images.length) % property.images.length); }}>&lsaquo;</button>
+                  <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }}>&rsaquo;</button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
+      <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
+      {/* Call to action */}
+      {/* Call to action */}
+      <div className=" text-white text-center py-5" style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        background: 'var(--ndaku-primary)',
+      }}>
+        <div className="container">
+          <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
+          <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
+          <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} >Devenir agent</Button>
+        </div>
+      </div >
+
+
+      {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
+
+      {/* Modal de réservation visite */}
+      {showBooking && (
+        <VisitBookingModal
+          open={showBooking}
+          property={property}
+          agent={resolvedAgent}
+          onClose={() => setShowBooking(false)}
+          onSubmit={(bookingData) => {
+            console.log('Booking submitted:', bookingData);
+            setShowBooking(false);
+          }}
+          onSuccess={(bookingData) => {
+            console.log('Booking success:', bookingData);
+            setShowBooking(false);
+          }}
+        />
+      )}
+
+      <FooterPro />
     </div>
-    <ChatWidget serverUrl={process.env.REACT_APP_WS_URL || 'ws://localhost:8081'} />
-    {/* Call to action */}
-    {/* Call to action */}
-               <div className=" text-white text-center py-5" style={{
-                   display: "flex",
-                   flexDirection: "column",
-                   justifyContent: "center",
-                   alignItems: "center",
-                   background : 'var(--ndaku-primary)',
-               }}>
-                   <div className="container">
-                       <h5 className="fw-bold mb-3 fs-3 text-white">Vous êtes agent ou propriétaire ?</h5>
-                       <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
-                      <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} >Devenir agent</Button>
-                   </div>
-               </div >
 
-
-    {/* Dev-only debug controls (visible on localhost or with ?ndaku_debug=1) */}
-
-    {/* Modal de réservation visite */}
-    {showBooking && (
-      <VisitBookingModal 
-        open={showBooking}
-        property={property}
-        agent={resolvedAgent}
-        onClose={() => setShowBooking(false)}
-        onSubmit={(bookingData) => {
-          console.log('Booking submitted:', bookingData);
-          setShowBooking(false);
-        }}
-        onSuccess={(bookingData) => {
-          console.log('Booking success:', bookingData);
-          setShowBooking(false);
-        }}
-      />
-    )}
-
-    <FooterPro />
-  </div>
-
-);
+  );
 };
 export default PropertyDetails;

@@ -8,12 +8,14 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { getAppointmentsForOwner as getLocalAppts } from '../data/fakeAppointments';
+import MessengerWidget from '../components/common/Messenger';
 import {
   Box, Grid, Paper, Stack, Typography, TextField, Button, useTheme, useMediaQuery,
   IconButton, Grow, Switch, FormControlLabel, List, ListItem, ListItemText,
-  Dialog, DialogTitle, DialogContent, DialogActions, Avatar, Chip, Divider, Tabs, Tab, Badge
+  Dialog, DialogTitle, DialogContent, DialogActions, Avatar, Chip, Divider, Tabs, Tab, Badge, Tooltip
 } from '@mui/material';
-import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIcon, Delete as DeleteIcon, Add as AddIcon, ChevronLeft, ChevronRight, Today as TodayIcon, ViewModule as ViewMonthIcon, ViewWeek as ViewWeekIcon, ViewDay as ViewDayIcon, Add as AddFabIcon, Check as CheckIcon } from '@mui/icons-material';
+import { Print as PrintIcon, FileDownload as FileDownloadIcon, Block as BlockIcon, Delete as DeleteIcon, Add as AddIcon, ChevronLeft, ChevronRight, Today as TodayIcon, ViewModule as ViewMonthIcon, ViewWeek as ViewWeekIcon, ViewDay as ViewDayIcon, Add as AddFabIcon, Check as CheckIcon, Phone as PhoneIcon, Message as MessageIcon } from '@mui/icons-material';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Fab, Skeleton } from '@mui/material';
 import { useNotifications } from '../contexts/NotificationContext';
 import { alpha } from '@mui/material/styles';
@@ -45,16 +47,12 @@ export default function OwnerAppointments() {
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [bookingDraft, setBookingDraft] = useState(null);
   const [proposalDialog, setProposalDialog] = useState(null);
+  const [messengerOpen, setMessengerOpen] = useState(false);
+  const [selectedContactForMessenger, setSelectedContactForMessenger] = useState(null);
+  const [webrtcModalOpen, setWebrtcModalOpen] = useState(false);
+  const [selectedContactForCall, setSelectedContactForCall] = useState(null);
 
   const calendarRef = useRef(null);
-
-  useEffect(() => {
-    setLoading(true);
-    const local = getLocalAppts(ownerId) || [];
-    setAppts(local.map(a => ({ ...a, status: a.status })));
-    setLoading(false);
-    setBlockedDates(local.filter(a => a.status === "cancelled"));
-  }, [ownerId, setAppts]);
 
   useEffect(() => { try { localStorage.setItem(`owner_blocked_${ownerId}`, JSON.stringify(blockedDates)); } catch (e) { } }, [blockedDates, ownerId]);
   // Keep notifications in sync with NotificationContext
@@ -70,32 +68,33 @@ export default function OwnerAppointments() {
     setTimeout(() => el.forEach((n) => { n.style.transform = 'translateY(0)'; }), 80);
   }, [appts.length]);
 
-  const events = useMemo(() => appts.map(a => ({ id: a.id, title: `${a.time} • ${a.guestName}`, start: `${a.date}T${a.time}:00`, extendedProps: a })), [appts]);
+  // Calculer les rendez-vous filtrés AVANT leur utilisation
+  const filtered = appts.filter(a => (filterProperty === 'all' || a.propertyId === filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
+  const unconfirmed = filtered.filter(a => a.status == 'pending' && a.status !== 'cancelled');
+  const confirmed = filtered.filter(a => a.status === 'confirmed');
+
+  const events = useMemo(() => filtered.map(a => ({ id: a.id, title: `${a.time} • ${a.name || a.guestName || 'Visiteur'}`, start: `${a.date}T${a.time}:00`, extendedProps: a })), [filtered]);
   const blockedEvents = useMemo(() => blockedDates.map(b => ({ id: `b-${b.id}`, title: 'Occupé', start: `${b.date}T00:00:00`, allDay: true, extendedProps: { blocked: true, ...b } })), [blockedDates]);
-  const proposalEvents = useMemo(() => notifications.filter(n => n.type === 'proposal').map(n => ({ id: `p-${n.id}`, title: `${n.time} • Proposition • ${n.guestName}`, start: `${n.date}T${n.time}:00`, extendedProps: { proposal: true, ...n } })), [notifications]);
+  const proposalEvents = useMemo(() => notifications.filter(n => n.type === 'proposal').map(n => ({ id: `p-${n.id}`, title: `${n.time} • Proposition • ${n.name || n.guestName || 'Visiteur'}`, start: `${n.date}T${n.time}:00`, extendedProps: { proposal: true, ...n } })), [notifications]);
 
   const mergedEvents = useMemo(() => [...blockedEvents, ...proposalEvents, ...events], [blockedEvents, proposalEvents, events]);
 
   const [calendarTitle, setCalendarTitle] = useState('');
 
   const handleEventClick = async (clickInfo) => {
-    const ext = clickInfo.event.extendedProps || {};
-    if (ext.proposal) {
-      const nid = ext.id || ext.notificationId || null;
-      const notif = notifications.find(n => String(n.id) === String(nid) || String(n.id) === String(ext.id));
-      if (notif) setProposalDialog(notif);
-      return;
-    }
-    const existing = appts.find(x => String(x.id) === String(clickInfo.event.id));
-    if (!existing) return;
-    const nextStatus = existing.status === 'confirmed' ? 'pending' : 'confirmed';
-    await updateAppointment(ownerId, existing.id, { status: nextStatus }).catch(() => { });
-    setAppts(s => s.map(x => x.id === existing.id ? { ...x, status: nextStatus } : x));
+    // const ext = clickInfo.event.extendedProps || {};
+    // if (ext.proposal) {
+    //   const nid = ext.id || ext.notificationId || null;
+    //   const notif = notifications.find(n => String(n.id) === String(nid) || String(n.id) === String(ext.id));
+    //   if (notif) setProposalDialog(notif);
+    //   return;
+    // }
+    // const existing = appts.find(x => String(x.id) === String(clickInfo.event.id));
+    // if (!existing) return;
+    // const nextStatus = existing.status === 'confirmed' ? 'pending' : 'confirmed';
+    // await updateAppointment(ownerId, existing.id, { status: nextStatus }).catch(() => { });
+    // setAppts(s => s.map(x => x.id === existing.id ? { ...x, status: nextStatus } : x));
   };
-
-  const filtered = appts.filter(a => (filterProperty === 'all' || a.propertyId === filterProperty) && (!range.from || a.date >= range.from) && (!range.to || a.date <= range.to));
-  const unconfirmed = filtered.filter(a => a.status == 'pending' && a.status !== 'cancelled');
-  const confirmed = filtered.filter(a => a.status === 'confirmed');
 
   const confirm = async (id) => {
     try {
@@ -128,6 +127,25 @@ export default function OwnerAppointments() {
     { label: <Badge color="success" badgeContent={confirmed.length}>Confirmés</Badge> },
     { label: `Bloqués (${blockedDates.length})` }
   ];
+
+  // Fonction pour actualiser les rendez-vous
+  const refreshAppointments = React.useCallback(() => {
+    setLoading(true);
+    try {
+      const local = getLocalAppts(ownerId) || [];
+      setAppts(local.map(a => ({ ...a, status: a.status })));
+      setBlockedDates(local.filter(a => a.status === "cancelled"));
+    } catch (e) {
+      console.error('Erreur lors du rafraîchissement des rendez-vous:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [ownerId]);
+
+  // Actualiser les rendez-vous au chargement de la page
+  useEffect(() => {
+    refreshAppointments();
+  }, [ownerId, refreshAppointments]);
 
   const stats = useMemo(() => ({
     total: appts.length,
@@ -281,7 +299,7 @@ export default function OwnerAppointments() {
                   <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={() => calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
                 </Stack>
 
-                <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.dark }}>{calendarTitle}</Typography>
+                {/* <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.dark }}>{calendarTitle}</Typography> */}
 
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
                   <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('dayGridMonth')} title="Mois"><ViewMonthIcon /></IconButton>
@@ -348,14 +366,107 @@ export default function OwnerAppointments() {
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.success.dark, mb: 1 }}>Confirmés</Typography>
                       {confirmed.map(a => (
-                        <Paper key={a.id} sx={{ p: 1.25, mb: 1, borderRadius: 0, bgcolor: "#5a97ef", boxShadow: 1 }}>
-                          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                            <Box>
-                              <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
-                              <Typography variant="body2" color="text.secondary">{a.name} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
-                            </Box>
-                            <Stack direction="row" spacing={1} sx={{ minWidth: 40 }}>
-                              <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={() => cancel(a.id)}><DeleteIcon /></IconButton>
+                        <Paper key={a.id} sx={{ p: 1.5, mb: 1.5, borderRadius: 1.5, bgcolor: "linear-gradient(135deg, #5a97ef 0%, #3d7fd5 100%)", boxShadow: '0 4px 12px rgba(90, 151, 239, 0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <Stack direction="column" spacing={1}>
+                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                              <Box>
+                                <Typography sx={{ fontWeight: 700, color: '#4a4d4c' }}>{a.date} {a.time}</Typography>
+                                <Typography variant="body2" sx={{ color: '#4a4d4c' }}>{a.name || a.guestName || 'Visiteur'} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                              </Box>
+                              <Stack direction="row" spacing={0.5} sx={{ minWidth: 40 }}>
+                                <Tooltip title="Annuler" arrow>
+                                  <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
+                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </Stack>
+                            {/* Contact Buttons - Premium Style */}
+                            <Stack direction="row" spacing={0.75} sx={{ width: '100%', pt: 0.5 }}>
+                              <Tooltip title="Appel vidéo (WebRTC)" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: 'rgba(255,255,255,0.25)',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    setSelectedContactForCall(a);
+                                    setWebrtcModalOpen(true);
+                                  }}
+                                >
+                                  <PhoneIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Envoyer un message" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: 'rgba(255,255,255,0.25)',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    setSelectedContactForMessenger(a);
+                                    setMessengerOpen(true);
+                                  }}
+                                >
+                                  <MessageIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="WhatsApp" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: '#25D366',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: '#20BA58',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    const phoneNumber = a.phone || '250788000000';
+                                    window.open(`https://wa.me/${phoneNumber}?text=Bonjour ${a.name}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`, '_blank');
+                                  }}
+                                >
+                                  <FaWhatsapp style={{ fontSize: 14 }} />
+                                </IconButton>
+                              </Tooltip>
                             </Stack>
                           </Stack>
                         </Paper>
@@ -367,15 +478,112 @@ export default function OwnerAppointments() {
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.dark, mb: 1 }}>En attente</Typography>
                       {unconfirmed.map(a => (
-                        <Paper key={a.id} sx={{ p: 1.25, mb: 1, borderRadius: 0, bgcolor: '#66adeac4', boxShadow: 1 }}>
-                          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-                            <Box>
-                              <Typography sx={{ fontWeight: 700 }}>{a.date} {a.time}</Typography>
-                              <Typography variant="body2" color="text.secondary">{a.name} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
-                            </Box>
-                            <Stack direction="row" spacing={1} sx={{ minWidth: 80 }}>
-                              <IconButton size="small" color="success" sx={{ bgcolor: theme.palette.success.light }} onClick={() => confirm(a.id)}><CheckIcon /></IconButton>
-                              <IconButton size="small" color="error" sx={{ bgcolor: theme.palette.error.light }} onClick={() => cancel(a.id)}><DeleteIcon /></IconButton>
+                        <Paper key={a.id} sx={{ p: 1.5, mb: 1.5, borderRadius: 1.5, bgcolor: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)", boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <Stack direction="column" spacing={1}>
+                            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+                              <Box>
+                                <Typography sx={{ fontWeight: 700, color: '#fff' }}>{a.date} {a.time}</Typography>
+                                <Typography variant="body2" sx={{ color: '#4a4d4c' }}>{a.name || a.guestName || 'Visiteur'} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                              </Box>
+                              <Stack direction="row" spacing={0.5} sx={{ minWidth: 90 }}>
+                                <Tooltip title="Confirmer" arrow>
+                                  <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => confirm(a.id)}>
+                                    <CheckIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Annuler" arrow>
+                                  <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
+                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Stack>
+                            </Stack>
+                            {/* Contact Buttons - Premium Style */}
+                            <Stack direction="row" spacing={0.75} sx={{ width: '100%', pt: 0.5 }}>
+                              <Tooltip title="Appel vidéo (WebRTC)" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: 'rgba(255,255,255,0.25)',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    setSelectedContactForCall(a);
+                                    setWebrtcModalOpen(true);
+                                  }}
+                                >
+                                  <PhoneIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Envoyer un message" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: 'rgba(255,255,255,0.15)',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: 'rgba(255,255,255,0.25)',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    setSelectedContactForMessenger(a);
+                                    setMessengerOpen(true);
+                                  }}
+                                >
+                                  <MessageIcon sx={{ fontSize: 16 }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="WhatsApp" arrow placement="top">
+                                <IconButton 
+                                  size="small" 
+                                  sx={{ 
+                                    flex: 1,
+                                    bgcolor: '#25D366',
+                                    color: '#fff',
+                                    borderRadius: 1.2,
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    gap: 0.5,
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    '&:hover': { 
+                                      bgcolor: '#20BA58',
+                                      transform: 'translateY(-2px)',
+                                      boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                                    },
+                                    '&:active': { transform: 'translateY(0)' }
+                                  }} 
+                                  onClick={() => {
+                                    const phoneNumber = a.phone || '250788000000';
+                                    window.open(`https://wa.me/${phoneNumber}?text=Bonjour ${a.name}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`, '_blank');
+                                  }}
+                                >
+                                  <FaWhatsapp style={{ fontSize: 14 }} />
+                                </IconButton>
+                              </Tooltip>
                             </Stack>
                           </Stack>
                         </Paper>
@@ -473,6 +681,85 @@ export default function OwnerAppointments() {
               setNotifications(s => s.filter(x => x.id !== n.id));
               setProposalDialog(null);
             }} variant="contained" sx={{ borderRadius: 1 }}>Accepter</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Messenger Modal */}
+        {messengerOpen && selectedContactForMessenger && (
+          <MessengerWidget 
+            open={messengerOpen}
+            onClose={() => {
+              setMessengerOpen(false);
+              setSelectedContactForMessenger(null);
+            }}
+            userId={ownerId}
+            initialAgentId={selectedContactForMessenger.id}
+          />
+        )}
+
+        {/* WebRTC Call Modal - Placeholder */}
+        <Dialog 
+          open={webrtcModalOpen} 
+          onClose={() => {
+            setWebrtcModalOpen(false);
+            setSelectedContactForCall(null);
+          }} 
+          fullWidth 
+          maxWidth="md"
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              backdropFilter: 'blur(8px)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+            Appel vidéo avec {selectedContactForCall?.name}
+          </DialogTitle>
+          <DialogContent sx={{ pt: 3, pb: 3, minHeight: 400, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+            <Box sx={{ mb: 3 }}>
+              <Avatar sx={{ width: 120, height: 120, mx: 'auto', mb: 2, bgcolor: theme.palette.primary.main }}>
+                <PhoneIcon sx={{ fontSize: 60 }} />
+              </Avatar>
+              <Typography variant="h6" sx={{ mb: 1 }}>Prêt pour l'appel vidéo</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Appel avec <strong>{selectedContactForCall?.name}</strong> le <strong>{selectedContactForCall?.date} à {selectedContactForCall?.time}</strong>
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 2, color: theme.palette.warning.main }}>
+                ℹ️ Vérifiez que votre caméra et microphone sont activés avant de commencer l'appel.
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button 
+              onClick={() => {
+                setWebrtcModalOpen(false);
+                setSelectedContactForCall(null);
+              }} 
+              sx={{ borderRadius: 1 }}
+            >
+              Annuler
+            </Button>
+            <Button 
+              variant="contained" 
+              color="success"
+              sx={{ borderRadius: 1, fontWeight: 700 }}
+              onClick={() => {
+                // Déclencher l'événement pour ouvrir le vrai modal WebRTC
+                window.dispatchEvent(new CustomEvent('startWebRTCCall', { 
+                  detail: { 
+                    contactId: selectedContactForCall?.id, 
+                    contactName: selectedContactForCall?.name,
+                    appointmentDate: selectedContactForCall?.date,
+                    appointmentTime: selectedContactForCall?.time
+                  } 
+                }));
+                setWebrtcModalOpen(false);
+                setSelectedContactForCall(null);
+              }}
+            >
+              Démarrer l'appel
+            </Button>
           </DialogActions>
         </Dialog>
 
