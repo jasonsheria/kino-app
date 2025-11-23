@@ -16,6 +16,7 @@ import recService from '../services/recommendationService';
 import { promotions as promoData } from '../data/fakedataPromotions';
 import VehicleList from '../components/vehicle/VehicleList';
 import './HomeSection.css';
+import './styles/services-modern.css';
 // import './auth.css';
 import Preloader from '../components/common/Preloader';
 import PropertyCard from '../components/property/PropertyCard';
@@ -503,48 +504,62 @@ const Home = () => {
             </section>
 
             {/* Cleaned Agency section: concise, airy, professional */}
-            <section className="container agency-clean py-5" id="agence" aria-labelledby="agence-heading">
-                <div className="agency-clean-inner p-3">
-                    <div className="row align-items-center">
-                        <div className="col-12 col-md-5 text-center mb-3 mb-md-0">
-                            <div className="agency-hero-circle mb-3">
-                                <FaBuilding size={48} className="agency-hero-icon" />
+            <section className="services-section-modern" id="agence" aria-labelledby="agence-heading">
+                <div className="services-wrapper">
+                    {/* Left Side - Hero */}
+                    <div className="services-hero-left">
+                        <div className="services-hero-circle">
+                            <FaBuilding />
+                        </div>
+                        <h2 className="services-hero-title">Ndaku</h2>
+                        <p className="services-hero-subtitle">Visibilité, qualification et sécurité pour vos transactions immobilières — des solutions claires et efficaces pour vendre ou louer.</p>
+                    </div>
+
+                    {/* Right Side - Services */}
+                    <div className="services-right">
+                        <h3 id="agence-heading" className="fw-bold" style={{ fontSize: '1.8rem', color: 'var(--primary-dark)', marginBottom: '1rem' }}>Nos services clés</h3>
+                        
+                        <p className="services-lead">Des services clairs et efficaces pour vendre ou louer: mise en valeur du bien, diffusion ciblée et accompagnement jusqu’à la signature.</p>
+
+                        <div className="services-cards-grid">
+                            <div className="service-card-modern">
+                                <div className="service-card-icon"><FaCertificate /></div>
+                                <div className="service-card-content">
+                                    <div className="service-card-title">Agents certifiés</div>
+                                    <div className="service-card-desc">Sélection et accompagnement pro pour des transactions fiables.</div>
+                                </div>
                             </div>
-                            <div className="agency-short">Ndaku — visibilité, qualification et sécurité pour vos transactions immobilières.</div>
+
+                            <div className="service-card-modern">
+                                <div className="service-card-icon"><FaBullhorn /></div>
+                                <div className="service-card-content">
+                                    <div className="service-card-title">Marketing pro</div>
+                                    <div className="service-card-desc">Photos HD, rédaction professionnelle & diffusion multicanal.</div>
+                                </div>
+                            </div>
+
+                            <div className="service-card-modern">
+                                <div className="service-card-icon"><FaTools /></div>
+                                <div className="service-card-content">
+                                    <div className="service-card-title">Support légal</div>
+                                    <div className="service-card-desc">Vérification documentaire et assistance complète jusqu'à la signature.</div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="col-12 col-md-7">
-                            <h3 id="agence-heading" className="fw-bold text-success mb-3">Nos services clés</h3>
-                            <p className="agency-lead mb-4">Des services clairs et efficaces pour vendre ou louer: mise en valeur du bien, diffusion ciblée et accompagnement jusqu’à la signature.</p>
+                        <div className="services-cta-group">
+                            <button className="services-cta-btn services-cta-primary" onClick={() => scrollToId('biens')}>
+                                Voir les biens <FaArrowRight />
+                            </button>
+                            <button className="services-cta-btn services-cta-secondary" onClick={() => scrollToId('agents')}>
+                                Contact agent
+                            </button>
+                        </div>
 
-                            <div className="features-row mb-3">
-                                <div className="feature-card">
-                                    <div className="feature-icon"><FaCertificate /></div>
-                                    <div className="feature-body">
-                                        <div className="feature-title">Agents certifiés</div>
-                                        <div className="feature-desc">Sélection et accompagnement pro.</div>
-                                    </div>
-                                </div>
-                                <div className="feature-card">
-                                    <div className="feature-icon"><FaBullhorn /></div>
-                                    <div className="feature-body">
-                                        <div className="feature-title">Marketing pro</div>
-                                        <div className="feature-desc">Photos, rédaction & diffusion multicanal.</div>
-                                    </div>
-                                </div>
-                                <div className="feature-card">
-                                    <div className="feature-icon"><FaTools /></div>
-                                    <div className="feature-body">
-                                        <div className="feature-title">Support légal</div>
-                                        <div className="feature-desc">Vérification documentaire et assistance.</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="d-flex gap-3">
-                                <Button variant="contained" color="success" onClick={() => scrollToId('biens')} className="owner-btn-primary">Voir les biens</Button>
-                                <Button variant="contained" onClick={() => scrollToId('agents')} className="owner-btn-primary">Contact agent</Button>
-                            </div>
+                        <div className="services-features-badge">
+                            <div className="badge-feature">Vérification rapide</div>
+                            <div className="badge-feature">Documentation simple</div>
+                            <div className="badge-feature">Activation immédiate</div>
                         </div>
                     </div>
                 </div>
