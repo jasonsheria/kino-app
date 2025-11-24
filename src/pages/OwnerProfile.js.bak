@@ -243,7 +243,7 @@ export default function OwnerProfile() {
         <div className="profile-section profile-card" style={{marginTop:12}}>
           <div>
             <div className="profile-avatar">
-              <img src={preview || owner.avatar || '/logo192.png'} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              <img src={preview || owner.avatar || '/img/logo.svg'} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
             </div>
 
             <div style={{marginTop:12,display:'flex',gap:8}}>
@@ -251,7 +251,7 @@ export default function OwnerProfile() {
                 Changer
                 <input ref={fileRef} type="file" accept="image/*" onChange={onPick} style={{display:'none'}} />
               </label>
-              <button className="btn btn-outline-danger" onClick={()=>{ setPreview('/logo192.png'); fileRef.current.value=''; }}>Supprimer</button>
+              <button className="btn btn-outline-danger" onClick={()=>{ setPreview('/img/logo.svg'); fileRef.current.value=''; }}>Supprimer</button>
             </div>
 
             <div style={{marginTop:18}}>

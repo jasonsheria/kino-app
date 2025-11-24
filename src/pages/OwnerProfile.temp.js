@@ -277,7 +277,7 @@ export default function OwnerProfile() {
             <Grid item xs={12} md={3}>
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Avatar
-                  src={preview || owner.avatar || '/logo192.png'}
+                  src={preview || owner.avatar || '/img/logo.svg'}
                   sx={{
                     width: 120,
                     height: 120,
@@ -303,7 +303,7 @@ export default function OwnerProfile() {
                   <IconButton
                     color="error"
                     onClick={() => {
-                      setPreview('/logo192.png');
+                        setPreview('/img/logo.svg');
                       if (fileRef.current) fileRef.current.value = '';
                     }}
                   >

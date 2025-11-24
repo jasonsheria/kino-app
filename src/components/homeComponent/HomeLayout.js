@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { ReactComponent as Logo } from '../../assets/logo.svg';
 import { Link, useLocation } from 'react-router-dom';
 import { FaCar, FaTree, FaBuilding, FaGlassCheers, FaBars, FaTimes, FaChevronDown, FaUserCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -265,7 +266,8 @@ export default function HomeLayout({ children }) {
         <Toolbar>
           {/* Brand / logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12, marginTop:'-3px' }}>
-            <img src="/img/logo.svg" alt="Kino App" style={{ width: 34, height: 34, marginRight: 8 }} />
+            {/* Inline SVG component to ensure animation and cross-browser rendering */}
+            <Logo width={34} height={34} style={{ marginRight: 8 }} />
             <Typography variant="h6" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 400, fontSize: "1rem", color: "#138f6b" }}>K-App</Typography>
           </Link>
 

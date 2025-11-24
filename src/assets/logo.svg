@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
-  <!-- Responsive animated logo for Kino-App -->
+  <!-- Responsive animated logo for Kino-App (copied from public/img) -->
   <defs>
     <linearGradient id="g" x1="0%" x2="100%">
       <stop offset="0%" stop-color="#0ea5a4"/>

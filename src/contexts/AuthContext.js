@@ -145,12 +145,13 @@ export const AuthProvider = ({ children }) => {
     try {
       // Create FormData to handle file upload
       const formData = new FormData();
-      formData.append('name', name);
+      formData.append('username', name);
       formData.append('email', email);
       formData.append('password', password);
-      formData.append('phoneNumber', phoneNumber);
+      formData.append('telephone', phoneNumber);
+      formData.append('isGoogleAuth', false); // default role
       if (profileImage) {
-        formData.append('profileImage', profileImage);
+        formData.append('profileUrl', profileImage);
       }
 
       const response = await authService.register(formData);

@@ -452,7 +452,7 @@ const Home = () => {
             {/* Navbar Bootstrap custom réutilisée */}
             {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
             <section className="landing-hero">
-                <div className="container hero-inner">
+                <div className="container hero-inner d-grid">
                     <div className="hero-left hero-fade-up text-center">
                         <h1 className="hero-title">Ndaku — La plateforme immobilière de Kinshasa</h1>
                         <p className="hero-sub text-center">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
@@ -464,8 +464,8 @@ const Home = () => {
 
                         </div>
                         <div className="hero-ctas" style={{ justifyContent: 'center' }}>
-                            <Button onClick={() => scrollToId('biens')} variant="" startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
-                            <Button variant="" onClick={() => scrollToId('agents')} startIcon={<FaHome />} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
+                            <Button onClick={() => scrollToId('biens')} variant="" sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
+                            <Button variant="" onClick={() => scrollToId('agents')}  sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
                         </div>
                         <div className="hero-stats" aria-hidden>
                             <div className="stat-cards-pro-row">
@@ -1125,9 +1125,9 @@ const Home = () => {
 
             {/* Promotions section avec PromoCard - Design professionnel */}
             <section className="container py-4" aria-label="Promotions">
-                <div className="d-flex align-items-center justify-content-between mb-4">
+                <div className="d-flex align-items-center justify-content-center mb-4">
                     <div>
-                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d' }}>
+                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d', display : "center", justifyContent : 'center' }}>
                             🔥 Offres en promotion
                         </h3>
                         <p className="text-muted mt-2 mb-0">Les meilleures réductions du moment</p>
@@ -1137,7 +1137,7 @@ const Home = () => {
                     {promotions && promotions.length > 0 ? promotions.map((p, i) => {
                         const promoKey = ensurePromoKey(p, i);
                         return (
-                            <div key={promoKey} className="col-12 col-lg-6">
+                            <div key={promoKey} className="col-12 col-lg-6 d-flex align-items-center justify-content-center">
                                 <PromoCard
                                     id={p.id || promoKey}
                                     promoId={p._promoMeta?.promoId || promoKey}

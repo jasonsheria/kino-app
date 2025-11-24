@@ -264,7 +264,7 @@ const Login = () => {
           <div className="text-center mt-3 small text-muted">Pas encore de compte ? <Link to="/register">S'inscrire</Link></div>
         </div>
       </div>
-      <ChatWidget />
+     
     </div>
   );
 };

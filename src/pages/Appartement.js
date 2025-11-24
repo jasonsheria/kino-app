@@ -133,7 +133,6 @@ const Appartement = () => {
                  
       
                   <FooterPro />
-                  <MessengerWidget/>
     </>
   );
 };

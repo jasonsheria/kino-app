@@ -33,7 +33,7 @@ export async function registerAgency(payload){
         phone: json.agency.phone || payload.phone || '',
         created: json.agency.createdAt || new Date().toISOString(),
         subscription: json.agency.subscriptionType || 'freemium',
-        avatar: json.agency.pofile[0] || '/logo192.png'
+  avatar: json.agency.pofile[0] || '/img/logo.svg'
       };
       try{ 
         store[agency.id] = agency; localStorage.setItem('ndaku_agencies', JSON.stringify(store)); 
@@ -53,7 +53,7 @@ export async function registerAgency(payload){
   const exists = Object.values(store).find(a => a.email === payload.email || a.name === payload.name);
   if(exists) return { error: 'exists', agency: exists };
   const id = 'ag-'+Math.random().toString(36).slice(2,9);
-  const agency = { id, name: payload.name, email: payload.email, phone: payload.phone||'', created: new Date().toISOString(), subscription: 'free', wallet:0, products: [], ads: [], settings: {}, security:{}, avatar: '/logo192.png' };
+  const agency = { id, name: payload.name, email: payload.email, phone: payload.phone||'', created: new Date().toISOString(), subscription: 'free', wallet:0, products: [], ads: [], settings: {}, security:{}, avatar: '/img/logo.svg' };
   store[id] = agency; localStorage.setItem('ndaku_agencies', JSON.stringify(store));
   return { agency };
 }

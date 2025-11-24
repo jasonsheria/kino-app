@@ -261,7 +261,6 @@ const About = () => {
             </section>
 
             <FooterPro />
-            <MessengerWidget/>
         </>
     );
 };

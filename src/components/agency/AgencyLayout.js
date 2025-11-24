@@ -104,7 +104,7 @@ export default function AgencyLayout({ children }){
             mb: 3
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <img src="/logo192.png" alt="logo" style={{ width: 40, height: 40, borderRadius: 8 }} />
+              <img src="/img/logo.svg" alt="logo" style={{ width: 40, height: 40, borderRadius: 8 }} />
               {!collapsed && (
                 <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
                   NDAKU
@@ -185,7 +185,7 @@ export default function AgencyLayout({ children }){
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Avatar
-                  src={agency?.avatar || '/logo192.png'}
+                  src={agency?.avatar || '/img/logo.svg'}
                   alt="avatar"
                   sx={{ width: 36, height: 36, cursor: 'pointer' }}
                   onClick={handleClick}

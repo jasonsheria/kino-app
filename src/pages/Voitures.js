@@ -119,7 +119,6 @@ const Voitures = () => {
                  
       
                   <FooterPro />
-                  <MessengerWidget/>
     </>
   );
 };

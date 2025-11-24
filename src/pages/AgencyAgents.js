@@ -25,7 +25,7 @@ export default function AgencyAgents(){
 
   const filtered = useMemo(()=> agents.filter(x=> !filter || x.name.toLowerCase().includes(filter.toLowerCase())), [agents, filter]);
 
-  const openAdd = ()=>{ setEditing({ name:'', email:'', phone:'', address:'', photo:'/logo192.png', status:'Actif' }); setModalOpen(true); };
+  const openAdd = ()=>{ setEditing({ name:'', email:'', phone:'', address:'', photo:'/img/logo.svg', status:'Actif' }); setModalOpen(true); };
   const openEdit = (a)=>{ setEditing({ ...a }); setModalOpen(true); };
 
   const persist = (next)=>{
@@ -69,7 +69,7 @@ export default function AgencyAgents(){
           {filtered.map(a=> (
             <div key={a.id} className="col-12 col-md-6 col-lg-4">
               <div style={{padding:8}}>
-                <AgentCard agent={{ name: a.name, photo: a.photo||'/logo192.png', address: a.address||'', email: a.email||'', status: a.status||'Actif' }} />
+                <AgentCard agent={{ name: a.name, photo: a.photo||'/img/logo.svg', address: a.address||'', email: a.email||'', status: a.status||'Actif' }} />
                 <div className="d-flex justify-content-end gap-2 mt-2">
                   <button className="btn btn-sm btn-outline-secondary" onClick={()=> openEdit(a)}>Editer</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={()=> remove(a.id)}>Supprimer</button>

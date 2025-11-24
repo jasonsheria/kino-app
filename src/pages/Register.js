@@ -4,7 +4,6 @@ import ChatWidget from '../components/common/ChatWidget';
 import { FaUser, FaEnvelope, FaLock, FaGoogle, FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../pages/auth.css';
 import { useAuth } from '../contexts/AuthContext';
-
 const countries = [
   { code: '+243', name: 'DR Congo' },
   { code: '+221', name: 'Senegal' },
@@ -296,7 +295,6 @@ export default function Register() {
           </p>
         </div>
       </div>
-      <ChatWidget />
     </div>
   );
 }

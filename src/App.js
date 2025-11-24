@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './styles/ColorSystem.css';
 import './App.css';
 import { ThemeProvider, CssBaseline, IconButton, Tooltip } from '@mui/material';
@@ -16,6 +16,7 @@ import { SnackbarProvider, useSnackbar } from 'notistack';
 import { MessageProvider } from './contexts/MessageContext';
 import { SocketProvider } from './contexts/SocketContext';
 import MessengerWidget from './components/common/Messenger';
+import api from './services/api.service';
 
 function App() {
   // Force le mode à 'light' ou 'dark' uniquement
@@ -52,6 +53,32 @@ function App() {
     };
   }, []);
 
+
+
+  useEffect(() => {
+    function getToday() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    }
+    const siteId = process.env.REACT_APP_SITE_ID;
+    // Remplace par l'ID de ton site
+    const today = getToday();
+    const visitKey = `visit_${siteId}`;
+    const lastVisit = JSON.parse(localStorage.getItem(visitKey) || '{}');
+    if (lastVisit.date === today) return; // déjà compté aujourd'hui
+    // Récupérer l'IP publique
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        const ip = data.ip;
+        // Soumettre au serveur
+        api.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/track/visit`, { ip, site: siteId })
+          .then(() => {
+            localStorage.setItem(visitKey, JSON.stringify({ ip, date: today }));
+          })
+          .catch(() => { });
+      });
+  });
   // Listen for property load errors dispatched by fakedata module
   // We register the event handler inside a child component that has access to notistack's hook
 
@@ -86,18 +113,19 @@ function App() {
                         boxShadow: '0 2px 8px var(--ndaku-primary-22)',
                         transition: 'background 0.3s, color 0.3s',
                       }}
-                      sx={{'&:hover': {
-                        background: theme.palette.background.paper,
-                        color: "white",
-                      },
-                      bottom : 10
+                      sx={{
+                        '&:hover': {
+                          background: theme.palette.background.paper,
+                          color: "white",
+                        },
+                        bottom: 10
                       }}
                       aria-label="Changer le mode de couleur"
                     >
                       {mode === 'dark' ? <FaSun size={22} /> : <FaMoon size={22} />}
                     </IconButton>
-                    <MessengerWidget/>
-                    
+                    <MessengerWidget />
+
                   </Tooltip>
                   <HashRouter>
                     <AppRoutes />

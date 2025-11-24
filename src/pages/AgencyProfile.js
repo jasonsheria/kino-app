@@ -48,15 +48,15 @@ export default function AgencyProfile(){
         <div className="card p-3">
           <div style={{display:'flex',gap:24,alignItems:'flex-start'}}>
             <div style={{width:220}}>
-              <div style={{width:180,height:180,borderRadius:12,overflow:'hidden',boxShadow:'0 8px 20px rgba(2,6,23,0.06)'}}>
-                <img src={preview || agency.avatar || '/logo192.png'} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+                <div style={{width:180,height:180,borderRadius:12,overflow:'hidden',boxShadow:'0 8px 20px rgba(2,6,23,0.06)'}}>
+                <img src={preview || agency.avatar || '/img/logo.svg'} alt="avatar" style={{width:'100%',height:'100%',objectFit:'cover'}} />
               </div>
               <div style={{marginTop:12,display:'flex',gap:8}}>
                 <label className="btn btn-outline-secondary" style={{cursor:'pointer'}}>
                   Changer
                   <input ref={fileRef} type="file" accept="image/*" onChange={onPick} style={{display:'none'}} />
                 </label>
-                <button className="btn btn-outline-danger" onClick={()=>{ setPreview('/logo192.png'); fileRef.current.value=''; }}>Supprimer</button>
+                <button className="btn btn-outline-danger" onClick={()=>{ setPreview('/img/logo.svg'); fileRef.current.value=''; }}>Supprimer</button>
               </div>
             </div>
 

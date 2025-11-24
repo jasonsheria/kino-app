@@ -279,7 +279,7 @@ export default function OwnerProfile() {
           <Box
             sx={{
               height: { xs: 160, md: 240 },
-              backgroundImage: `url(${preview || owner.profileUrl || '/logo192.png'})`,
+              backgroundImage: `url(${preview || owner.profileUrl || '/img/logo.svg'})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               position: 'relative'

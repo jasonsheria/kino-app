@@ -150,7 +150,6 @@ const scrollToId = (id) => {
                  
       
                   <FooterPro />
-                  <MessengerWidget/>
     </>
   );
 };

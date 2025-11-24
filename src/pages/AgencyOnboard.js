@@ -149,7 +149,7 @@ export default function AgencyOnboard() {
       // navigate('login#/owner/subscribe'+`?ownerId=${result.ownerId || ''}`+`type=owner`);
 
       // attach extra details and selected subscription
-      const patch = { address: form.address || '', phone: form.phone || '', subscription: selectedPlan.id, avatar: avatar || '/logo192.png' };
+  const patch = { address: form.address || '', phone: form.phone || '', subscription: selectedPlan.id, avatar: avatar || '/img/logo.svg' };
       await updateAgency(agency.id, patch);
       // create session
       try { localStorage.setItem('ndaku_agency_session', JSON.stringify({ id: agency.id, email: agency.email })); } catch (e) { }

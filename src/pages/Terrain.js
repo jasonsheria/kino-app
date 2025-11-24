@@ -124,7 +124,6 @@ const Terrain = () => {
                  
       
                   <FooterPro />
-                  <MessengerWidget/>
     </>
   );
 };
