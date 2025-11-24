@@ -5,6 +5,8 @@ import {
   Box,
 
 } from '@mui/material';
+import { ReactComponent as Logo } from '../../assets/logo.svg';
+
 import { Button } from '@mui/material';
 import './Navbar.css'
 import { useOwnerProfile } from '../../hooks/useOwnerProfile';
@@ -21,7 +23,7 @@ export default function HomeSidebar({ collapsed, user, setMenuOpen }) {
       <div className="kn-drawer-header">
         <Link to="/" className="kn-brand" onClick={() => setMenuOpen(false)}>
           
-         <img src="/img/logo.svg" alt="Kino-App logo" className="kn-brand-logo" />
+         <Logo width={34} height={34} style={{ marginRight: 8 }} />
       
           <span className="kn-brand-text">Kino-App</span>
         </Link>

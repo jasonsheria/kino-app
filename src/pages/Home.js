@@ -465,9 +465,11 @@ const Home = () => {
                         </div>
                         <div className="hero-ctas" style={{ justifyContent: 'center' }}>
                             <Button onClick={() => scrollToId('biens')} variant="" sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
-                            <Button variant="" onClick={() => scrollToId('agents')}  sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
+                            <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
                         </div>
-                        <div className="hero-stats" aria-hidden>
+                        <div className="hero-stats section-title" aria-hidden>
+                        <span className="fw-bold" style={{ marginBottom: '1rem' }}> Statistiques des données disponibles</span>
+
                             <div className="stat-cards-pro-row">
                                 <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
                                 <StatCardPro icon={<FaUserTie />} label="Agents certifiés" value={agents.length} accent="#764ba2" />
@@ -509,21 +511,21 @@ const Home = () => {
             <section className="services-section-modern" id="agence" aria-labelledby="agence-heading">
                 <div className="services-wrapper">
                     {/* Left Side - Hero */}
-                    <div className="services-hero-left">
-                        <div className="services-hero-circle">
-                            <FaBuilding />
-                        </div>
-                        <h2 className="services-hero-title">Ndaku</h2>
-                        <p className="services-hero-subtitle">Visibilité, qualification et sécurité pour vos transactions immobilières — des solutions claires et efficaces pour vendre ou louer.</p>
-                    </div>
+
 
                     {/* Right Side - Services */}
-                    <div className="services-right">
-                        <h3 id="agence-heading" className="fw-bold" style={{ fontSize: '2.8rem', color: 'var(--primary-dark)', marginBottom: '1rem' }}>Nos services clés</h3>
+                    <div className="services-right section-title">
+                        <span className="fw-bold" style={{ marginBottom: '1rem' }}>Services clés gerés entierèment par la plateforme</span>
+                        <div className="services-hero-left">
+                            <div className="services-hero-circle">
+                                <FaBuilding />
+                            </div>
+                            <p className="services-hero-subtitle">Visibilité, qualification et sécurité pour vos transactions immobilières — des solutions claires et efficaces pour vendre ou louer.</p>
+                        </div>
                         <div className="services-cards-grid">
                             <div className="service-card-modern">
                                 <div className="service-card-icon"><FaCertificate /></div>
-                                <div className="service-card-content">
+                                <div className="service-card-content d-flex justify-content-lg-start align-items-start">
                                     <div className="service-card-title">Agents certifiés</div>
                                     <div className="service-card-desc">Sélection et accompagnement pro pour des transactions fiables.</div>
                                 </div>
@@ -531,7 +533,7 @@ const Home = () => {
 
                             <div className="service-card-modern">
                                 <div className="service-card-icon"><FaBullhorn /></div>
-                                <div className="service-card-content">
+                                <div className="service-card-content d-flex justify-content-lg-start align-items-start">
                                     <div className="service-card-title">Marketing pro</div>
                                     <div className="service-card-desc">Photos HD, rédaction professionnelle & diffusion multicanal.</div>
                                 </div>
@@ -539,7 +541,7 @@ const Home = () => {
 
                             <div className="service-card-modern">
                                 <div className="service-card-icon"><FaTools /></div>
-                                <div className="service-card-content">
+                                <div className="service-card-content d-flex justify-content-lg-start align-items-start">
                                     <div className="service-card-title">Support légal</div>
                                     <div className="service-card-desc">Vérification documentaire et assistance complète jusqu'à la signature.</div>
                                 </div>
@@ -548,7 +550,7 @@ const Home = () => {
 
                         <div className="services-cta-group">
                             <button className="services-cta-btn services-cta-primary" onClick={() => scrollToId('biens')}>
-                                Voir les biens <FaArrowRight />
+                                Voir les biens 
                             </button>
                             <button className="services-cta-btn services-cta-secondary" onClick={() => scrollToId('agents')}>
                                 Contact agent
@@ -557,7 +559,6 @@ const Home = () => {
 
                         <div className="services-features-badge">
                             <div className="badge-feature">Vérification rapide</div>
-                            <div className="badge-feature">Documentation simple</div>
                             <div className="badge-feature">Activation immédiate</div>
                         </div>
                     </div>
@@ -1127,7 +1128,7 @@ const Home = () => {
             <section className="container py-4" aria-label="Promotions">
                 <div className="d-flex align-items-center justify-content-center mb-4">
                     <div>
-                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d', display : "center", justifyContent : 'center' }}>
+                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d', display: "center", justifyContent: 'center' }}>
                             🔥 Offres en promotion
                         </h3>
                         <p className="text-muted mt-2 mb-0">Les meilleures réductions du moment</p>
@@ -1346,7 +1347,6 @@ function StatCardPro({ icon, label, value, accent }) {
             border: `1.5px solid ${accent || '#e0e0e0'}`,
             minWidth: 0,
             flex: 1,
-            margin: '0 0.7rem',
             padding: '1.5rem 1.2rem 1.1rem 1.2rem',
             display: 'flex',
             flexDirection: 'column',
