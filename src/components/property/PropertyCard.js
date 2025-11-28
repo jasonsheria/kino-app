@@ -293,7 +293,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   return (
     <div className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{borderRadius:14, overflow:'hidden', transition:'box-shadow .3s'}}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
-        <img src={process.env.REACT_APP_BACKEND_APP_URL+ imgs[0]} alt={displayName} className="property-img" />
+        <img src={imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay"/>
         <div className="badges">
           <div className="badge status-badge">{property.status || ''}</div>
@@ -332,7 +332,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
             <div className="property-agent-inner">
               <div className="agent-left">
                 <div className="agent-avatar-wrapper">
-                  <img src={(process.env.REACT_APP_BACKEND_APP_URL || '') + agentResolved.image} alt={agentResolved.prenom || agentResolved.name} className="agent-thumb" />
+                  <img src={agentResolved.image} alt={agentResolved.prenom || agentResolved.name} className="agent-thumb" />
                 </div>
                 <div className="agent-meta">
                   <div className="agent-name fw-semibold small">{agentResolved.name || agentResolved.prenom}</div>
@@ -398,7 +398,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         <div className="lightbox-full animate__animated animate__fadeIn" role="dialog" aria-modal="true" onClick={closeLightbox}>
           <button className="lightbox-close" onClick={closeLightbox} aria-label="Fermer la lightbox">×</button>
           <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); prevImg(); }} aria-label="Image précédente">‹</button>
-          <img src={process.env.REACT_APP_BACKEND_APP_URL+imgs[lightboxIndex % imgs.length]} alt={displayName} className="lightbox-img" onClick={(e) => e.stopPropagation()} />
+          <img src={imgs[lightboxIndex % imgs.length]} alt={displayName} className="lightbox-img" onClick={(e) => e.stopPropagation()} />
           <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); nextImg(); }} aria-label="Image suivante">›</button>
         </div>,
         document.body

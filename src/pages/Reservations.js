@@ -270,7 +270,7 @@ export default function Reservations() {
                       <Grid item xs={12} sm={4}>
                         <Box sx={{ position: 'relative' }}>
                           <img 
-                            src={process.env.REACT_APP_BACKEND_APP_URL+reservation.property.images[0] || '/default-property.jpg'} 
+                            src={reservation.property.images[0] || '/default-property.jpg'} 
                             alt={reservation.property.title}
                             style={{ 
                               width: '100%', 

@@ -39,7 +39,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
-        <img src={process.env.REACT_APP_BACKEND_APP_URL + images[current]} alt={`${name}-${current}`} className="w-100" style={{ objectFit: 'cover', cursor: 'zoom-in', height : '420px' }} onClick={() => onOpen(current)} />
+        <img src={images[current]} alt={`${name}-${current}`} className="w-100" style={{ objectFit: 'cover', cursor: 'zoom-in', height : '420px' }} onClick={() => onOpen(current)} />
         <div className="carousel-dots position-absolute bottom-0 w-100 d-flex justify-content-center gap-1 mb-2">
           {images.map((_, i) => (
             <button key={i} className={`dot btn btn-sm ${i === current ? 'btn-success' : 'btn-light'}`} onClick={() => setCurrent(i)} style={{ width: 10, height: 10, padding: 0, borderRadius: 20 }} />
@@ -50,7 +50,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
       <div className="d-flex gap-2 mt-2 overflow-auto py-2">
         {images.map((img, idx) => (
           <div key={idx} className={`thumb rounded overflow-hidden ${idx === current ? 'border-success' : 'border-0'}`} style={{ width: 120, flex: '0 0 auto', cursor: 'pointer' }} onClick={() => setCurrent(idx)}>
-            <img src={process.env.REACT_APP_BACKEND_APP_URL + img} alt={`${name}-thumb-${idx}`} style={{ width: '100%', height: 70, objectFit: 'cover' }} onClick={() => onOpen(idx)} />
+            <img src={img} alt={`${name}-thumb-${idx}`} style={{ width: '100%', height: 70, objectFit: 'cover' }} onClick={() => onOpen(idx)} />
           </div>
         ))}
       </div>
@@ -297,7 +297,7 @@ function VirtualTourModal({ videos = [], selectedIndex = 0, onClose = () => { },
                         onPause={() => setPlaying(false)}
                         onError={() => { console.error('Video playback error for', current); setVideoError(true); }}
                       >
-                        <source src={process.env.REACT_APP_BACKEND_APP_URL + current} type={getVideoType(current)} />
+                        <source src={current} type={getVideoType(current)} />
                         {/* Fallback text for very old browsers */}
                         Votre navigateur ne prend pas en charge la lecture de vidéos.
                       </video>
@@ -836,7 +836,7 @@ const PropertyDetails = () => {
                   <Popup>
                     <div style={{ width: 220 }}>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <img src={(property.images && property.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
+                        <img src={(property.images && property.images[0]) ? property.images[0] : require('../img/property-1.jpg')} alt={property.name} style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6 }} />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 700 }}>{property.titre || property?.name}</div>
                           <div style={{ fontSize: 12, color: '#666' }}>{property.adresse || property.address}</div>
@@ -877,7 +877,7 @@ const PropertyDetails = () => {
                       <Popup>
                         <div style={{ width: 200 }}>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <img src={(sug.images && sug.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
+                            <img src={(sug.images && sug.images[0]) ? sug.images[0] : require('../img/property-1.jpg')} alt={sug.name} style={{ width: 72, height: 56, objectFit: 'cover', borderRadius: 6 }} />
                             <div style={{ flex: 1 }}>
                               <div style={{ fontWeight: 700 }}>{sug.titre || sug.name}</div>
                               <div style={{ fontSize: 12, color: '#666' }}>{sug.adresse || sug.address}</div>
@@ -900,7 +900,7 @@ const PropertyDetails = () => {
                 <div style={{ position: 'absolute', right: 12, top: 12, width: 300, zIndex: 9999 }}>
                   <div className="card shadow-lg" style={{ borderRadius: 10, overflow: 'hidden' }}>
                     <div style={{ display: 'flex' }}>
-                      <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? process.env.REACT_APP_BACKEND_APP_URL + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 100, height: 80, objectFit: 'cover' }} />
+                      <img src={(selectedMapProperty.images && selectedMapProperty.images[0]) ? + selectedMapProperty.images[0] : require('../img/property-1.jpg')} alt={selectedMapProperty.titre || selectedMapProperty.name} style={{ width: 100, height: 80, objectFit: 'cover' }} />
                       <div style={{ padding: 12, flex: 1 }}>
                         <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{selectedMapProperty.titre || selectedMapProperty.name}</div>
                         <div style={{ fontSize: 12, color: '#666' }}>{selectedMapProperty.adresse || selectedMapProperty.address}</div>
@@ -969,7 +969,7 @@ const PropertyDetails = () => {
               <motion.div initial={{ y: 30, scale: 0.98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 20, scale: 0.98 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} style={{ width: 'min(1100px,96%)', maxHeight: '92vh', zIndex: 13001 }}>
                 <div style={{ position: 'relative' }}>
                   <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', right: 12, top: 12, zIndex: 2 }}>×</button>
-                  <img src={process.env.REACT_APP_BACKEND_APP_URL + property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
+                  <img src={property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ display: 'block', margin: '0 auto' }} />
                   <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + property.images.length) % property.images.length); }}>&lsaquo;</button>
                   <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }}>&rsaquo;</button>
                 </div>
