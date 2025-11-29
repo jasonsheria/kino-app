@@ -98,7 +98,7 @@ export default function OwnerProperties() {
     'BUREAU',
     'STUDIO',
     'GARAGE',
-    'VOITURE',
+    'VEHICULES',
     'MOTO',
     'AUTRE'
   ], []);
@@ -468,7 +468,7 @@ export default function OwnerProperties() {
   const getPropertyIcon = (type) => {
     switch(type) {
       case 'Appartement': return <ApartmentIcon />;
-      case 'Voiture': return <CarIcon />;
+      case 'vehicules': return <CarIcon />;
       case 'Terrain': return <TerrainIcon />;
       default: return <HomeIcon />;
     }
