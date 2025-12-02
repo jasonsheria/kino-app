@@ -9,9 +9,10 @@ import { FaCar, FaTachometerAlt, FaPalette, FaCalendarAlt, FaGasPump, FaCogs, Fa
 
 const VehicleCard = ({ vehicle }) => {
   const [imgIdx, setImgIdx] = useState(0);
-  const agent = agents.find(a => String(a.id) === String(vehicle.agentId));
-  const nextImg = () => setImgIdx((imgIdx + 1) % vehicle.images.length);
-  const prevImg = () => setImgIdx((imgIdx - 1 + vehicle.images.length) % vehicle.images.length);
+  const agent = agents.find(a => String(a.id) === String(vehicle?.agentId));
+  const imgs = Array.isArray(vehicle?.images) && vehicle.images.length ? vehicle.images : [''];
+  const nextImg = () => setImgIdx((imgIdx + 1) % imgs.length);
+  const prevImg = () => setImgIdx((imgIdx - 1 + imgs.length) % imgs.length);
   const [showContact, setShowContact] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [isReserved, setIsReserved] = useState(()=>{
@@ -45,20 +46,20 @@ const VehicleCard = ({ vehicle }) => {
   <div className="card shadow-lg border-0 mb-4 vehicle-card animate__animated animate__fadeInUp" style={{ borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(120deg, rgba(19,194,150,0.03) 40%, rgba(25,118,210,0.03) 100%)', minHeight: 160 }}>
       <div className="position-relative">
         <img
-          src={vehicle.images[imgIdx]}
-          alt={vehicle.name}
+          src={imgs[imgIdx]}
+          alt={vehicle?.name || vehicle?.title || ''}
           className="card-img-top animate__animated animate__zoomIn"
           style={{ height: 180, objectFit: 'cover', borderTopLeftRadius: 18, borderTopRightRadius: 18, cursor: 'pointer', transition: 'transform .4s' }}
           onClick={nextImg}
         />
-        {vehicle.images.length > 1 && (
+  {imgs.length > 1 && (
           <>
             <button className="btns btn-light position-absolute top-50 start-0 translate-middle-y ms-2 shadow" style={{zIndex:2}} onClick={prevImg}><i className="bi bi-chevron-left"></i></button>
             <button className="btns btn-light position-absolute top-50 end-0 translate-middle-y me-2 shadow" style={{zIndex:2}} onClick={nextImg}><i className="bi bi-chevron-right"></i></button>
           </>
         )}
-  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'var(--ndaku-primary)', color:'#fff'}}>{vehicle.type}</span>
-  <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{vehicle.status}</span>
+  <span className="badge position-absolute top-0 end-0 m-2 fs-6 shadow" style={{background:'var(--ndaku-primary)', color:'#fff'}}>{vehicle?.type}</span>
+  <span className="badge position-absolute top-0 start-0 m-2 fs-6 shadow" style={{background:'#1976d2', color:'#fff'}}>{vehicle?.status}</span>
       </div>
       <div className="card-body">
         <h6 className="card-title fw-bold text-primary mb-1">{vehicle.name}</h6>
@@ -66,17 +67,17 @@ const VehicleCard = ({ vehicle }) => {
         <div className="mb-2">
           <span className="d-block fs-6 text-dark mb-1" style={{ fontWeight: 500 }}>
             <FaCar className="me-2 text-success" style={{ fontSize: 22 }} />
-            <span className="fs-5 text-success fw-bold">{vehicle.price.toLocaleString()} $</span>
+            <span className="fs-5 text-success fw-bold">{(Number(vehicle?.price || vehicle?.prix || 0)).toLocaleString()} $</span>
           </span>
-          <span className="text-secondary small">{vehicle.description}</span>
+          <span className="text-secondary small">{vehicle?.description}</span>
         </div>
         <div className="mb-2 d-flex flex-wrap gap-2 align-items-center justify-content-start">
-          <span className="badge bg-light text-dark border me-1" title="Couleur"><FaPalette className="me-1 text-primary" /> {vehicle.couleur}</span>
-          <span className="badge bg-light text-dark border me-1" title="Kilométrage"><FaTachometerAlt className="me-1 text-info" /> {vehicle.kilometrage} km</span>
-          <span className="badge bg-light text-dark border me-1" title="Année"><FaCalendarAlt className="me-1 text-warning" /> {vehicle.annee}</span>
-          <span className="badge bg-light text-dark border me-1" title="Carburant"><FaGasPump className="me-1 text-success" /> {vehicle.carburant}</span>
-          <span className="badge bg-light text-dark border me-1" title="Transmission"><FaCogs className="me-1 text-danger" /> {vehicle.transmission}</span>
-          <span className="badge bg-light text-dark border me-1" title="Places"><FaUsers className="me-1 text-secondary" /> {vehicle.places}</span>
+          <span className="badge bg-light text-dark border me-1" title="Couleur"><FaPalette className="me-1 text-primary" /> {vehicle?.couleur}</span>
+          <span className="badge bg-light text-dark border me-1" title="Kilométrage"><FaTachometerAlt className="me-1 text-info" /> {vehicle?.kilometrage ?? ''} {vehicle?.kilometrage ? 'km' : ''}</span>
+          <span className="badge bg-light text-dark border me-1" title="Année"><FaCalendarAlt className="me-1 text-warning" /> {vehicle?.annee ?? ''}</span>
+          <span className="badge bg-light text-dark border me-1" title="Carburant"><FaGasPump className="me-1 text-success" /> {vehicle?.carburant}</span>
+          <span className="badge bg-light text-dark border me-1" title="Transmission"><FaCogs className="me-1 text-danger" /> {vehicle?.transmission}</span>
+          <span className="badge bg-light text-dark border me-1" title="Places"><FaUsers className="me-1 text-secondary" /> {vehicle?.places ?? ''}</span>
         </div>
           <div className="d-flex justify-content-end mt-3">
           <button className="btns btn-outline-primary btn-sm px-3 fw-bold" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>

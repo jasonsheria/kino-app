@@ -231,7 +231,7 @@ const AgentCard = ({ agent }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.35 }}
     >
-      <Card sx={{ maxWidth: 420, boxShadow: 4, borderRadius: 3, overflow: 'hidden', margin: 'auto' }}>
+  <Card sx={{ width: '100%', maxWidth: 420, boxShadow: 4, borderRadius: 3, overflow: 'hidden', margin: 'auto' }}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', padding: 2, background: 'linear-gradient(90deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4))' }}>
           <Box sx={{ position: 'relative' }}>
             <Avatar src={agent.image || agent.photo} alt={agent.name} sx={{ width: 64, height: 64, boxShadow: 2 }} />

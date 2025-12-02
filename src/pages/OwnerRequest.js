@@ -82,6 +82,7 @@ export default function OwnerRequest() {
   const [validationError, setValidationError] = useState('');
   const [completion, setCompletion] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,11 +111,11 @@ export default function OwnerRequest() {
 
   const submitApplication = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    
-    // Validation de base
-   
 
-   
+    // Validation de base
+
+
+
     // Validation téléphone
     if (!form.phone || form.phone.length < 8) {
       setValidationError('Veuillez entrer un numéro de téléphone valide');
@@ -133,7 +134,7 @@ export default function OwnerRequest() {
       return;
     }
 
-    
+
 
     setValidationError('');
     setConfirmOpen(true);
@@ -146,10 +147,10 @@ export default function OwnerRequest() {
     }
     sessionStorage.setItem('owner_submission_lock', '1');
     setConfirmOpen(false);
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
     try {
-     
+
       // Créer le FormData avec tous les fichiers et données
       const formData = new FormData();
 
@@ -158,7 +159,7 @@ export default function OwnerRequest() {
         types,
         form,
         propTitleFiles: propTitleFiles?.map(file => file.name),
-        subscriptionEndDate : new Date(Date.now() + 7*24*60*60*1000) //7 jours d'essai gratuit
+        subscriptionEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) //7 jours d'essai gratuit
       };
       formData.append('meta', JSON.stringify(metaData));
 
@@ -175,7 +176,7 @@ export default function OwnerRequest() {
         formData.append('userToken', token);
       }
 
-      
+
       // Envoyer la requête à l'API avec le token dans les headers
       const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/create`, {
         method: 'POST',
@@ -185,14 +186,31 @@ export default function OwnerRequest() {
         body: formData
       });
 
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        throw new Error(responseText);
+      // Try to parse JSON body, fallback to text
+      let body;
+      try {
+        body = await response.json();
+      } catch (e) {
+        body = await response.text();
       }
 
-      // Convertir le texte en JSON si c'est un JSON valide
-      const result = responseText ? JSON.parse(responseText) : {};
+      if (!response.ok) {
+        // Extract a useful error message from various possible shapes
+        let errMsg = 'Erreur lors de la requête';
+        if (body) {
+          if (typeof body === 'object') {
+            errMsg = body?.message?.message || body?.message || body?.error || JSON.stringify(body);
+          } else {
+            errMsg = String(body);
+          }
+        }
+        setMessage(errMsg);
+        setValidationError(errMsg);
+        // Do not open the info modal on error (it navigates away on close)
+        throw new Error(errMsg);
+      }
+
+      const result = body || {};
 
       // Afficher le succès
       setInfoTitle('Demande envoyée avec succès');
@@ -200,11 +218,13 @@ export default function OwnerRequest() {
       setInfoOpen(true);
 
       // Redirection après 2 secondes
-     
-        // navigate('login#/owner/subscribe'+`?ownerId=${result.ownerId || ''}`+`type=owner`);
+
+      // navigate('login#/owner/subscribe'+`?ownerId=${result.ownerId || ''}`+`type=owner`);
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      setValidationError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.');
+        const errMsg = error?.message || 'Erreur inconnue lors de la soumission';
+        setValidationError(errMsg);
+        setMessage(errMsg);
     } finally {
       sessionStorage.removeItem('owner_submission_lock');
       setIsSubmitting(false);
@@ -267,7 +287,7 @@ export default function OwnerRequest() {
                   </Box>
                 ))}
               </Stack>
-             
+
             </Paper>
             {/* Status card */}
             <Paper elevation={0} sx={{
@@ -358,15 +378,15 @@ export default function OwnerRequest() {
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>
                   Quel(s) type(s) de bien possédez-vous ?
                 </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 , gap: ' 10px'}}>
-                  {['Voiture', 'Terrain', 'Appartement', 'Salle de fête','Magazin', 'Studio'].map(t => (
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3, gap: ' 10px' }}>
+                  {['Voiture', 'Terrain', 'Appartement', 'Salle de fête', 'Magazin', 'Studio'].map(t => (
                     <Button
                       key={t}
                       variant={types.includes(t) ? "contained" : "outlined"}
                       onClick={() => toggleType(t)}
                       sx={{
                         mb: 1,
-                        margin : '10px',
+                        margin: '10px',
                         bgcolor: types.includes(t) ? 'var(--ndaku-primary)' : 'transparent',
                         color: types.includes(t) ? 'white' : 'text.primary',
                         // '&:hover': {
@@ -435,8 +455,8 @@ export default function OwnerRequest() {
                   Vos informations
                 </Typography>
 
-                <Grid container spacing={2} sx={{ mb: 3, width : '100%'}}>
-                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
+                <Grid container spacing={2} sx={{ mb: 3, width: '100%' }}>
+                  <Grid item xs={12} md={4} sx={{ width: '100%' }}>
                     <TextField
                       fullWidth
                       label="Nom, e.g : Foster"
@@ -445,7 +465,7 @@ export default function OwnerRequest() {
                       onChange={e => setForm({ ...form, nom: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
+                  <Grid item xs={12} md={4} sx={{ width: '100%' }}>
                     <TextField
                       fullWidth
                       label="Post-Nom, e.g : Jhon"
@@ -453,7 +473,7 @@ export default function OwnerRequest() {
                       onChange={e => setForm({ ...form, postnom: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} md={4} sx={{width :'100%'}}>
+                  <Grid item xs={12} md={4} sx={{ width: '100%' }}>
                     <TextField
                       fullWidth
                       label="Prénom, e.g : Michael"
@@ -462,8 +482,8 @@ export default function OwnerRequest() {
                       onChange={e => setForm({ ...form, prenom: e.target.value })}
                     />
                   </Grid>
-                 
-                  <Grid item xs={12} md={6} sx={{width :'100%'}}>
+
+                  <Grid item xs={12} md={6} sx={{ width: '100%' }}>
                     <TextField
                       fullWidth
                       label="Téléphone, e.g : 243 8915345"
@@ -471,7 +491,7 @@ export default function OwnerRequest() {
                       onChange={e => setForm({ ...form, phone: e.target.value })}
                     />
                   </Grid>
-                  <Grid item xs={12} sx={{width :'100%'}}>
+                  <Grid item xs={12} sx={{ width: '100%' }}>
                     <TextField
                       fullWidth
                       label="Adresse, e.g : Kinshasa, Ngaliema av: 2 janvier N°1 "
@@ -572,7 +592,7 @@ export default function OwnerRequest() {
                       mb: 2,
                       p: 1,
                       bgcolor: 'error.light',
-                      color: 'error.dark',
+                      color: '#fffcfc',
                       borderRadius: 1
                     }}
                   >

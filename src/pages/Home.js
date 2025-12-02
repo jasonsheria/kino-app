@@ -12,6 +12,7 @@ import CustomButton from '../components/common/Button';
 import { Button as MuiButton } from '@mui/material';
 import { properties, agents } from '../data/fakedata';
 import { vehicles } from '../data/fakedataVehicles';
+import axios from 'axios';
 import recService from '../services/recommendationService';
 import { promotions as promoData } from '../data/fakedataPromotions';
 import VehicleList from '../components/vehicle/VehicleList';
@@ -91,6 +92,7 @@ const Home = () => {
     // fetch recommendations on mount and when filters change
     const [recommendedProperties, setRecommendedProperties] = React.useState([]);
     const [recommendedVehicles, setRecommendedVehicles] = React.useState([]);
+    const [serverVehicles, setServerVehicles] = React.useState([]);
     const loadRecommendations = React.useCallback(async (kind) => {
         if (kind === 'properties') {
 
@@ -99,8 +101,26 @@ const Home = () => {
 
         } else {
 
-            const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
-            setRecommendedVehicles(recs);
+            // Try to fetch vehicles from backend first. If unavailable, fall back to fake data + recommender
+            try {
+                const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/+$/, '');
+                const token = localStorage.getItem('ndaku_auth_token');
+                const res = await axios.get(`${base}/api/vehicules?limit=50`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+                const items = res.data?.data || res.data || [];
+                if (Array.isArray(items) && items.length) {
+                    setServerVehicles(items);
+                    // Use recommender over server items if desired; for now feed recommender with server items
+                    const recs = await recService.getRecommendations(items.slice(0, 50), { kind: 'vehicles', limit: 12 });
+                    setRecommendedVehicles(recs);
+                } else {
+                    const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
+                    setRecommendedVehicles(recs);
+                }
+            } catch (e) {
+                // network or backend failure - fall back to local fake vehicles
+                const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
+                setRecommendedVehicles(recs);
+            }
 
         }
     }, []);
@@ -467,19 +487,26 @@ const Home = () => {
                             <Button onClick={() => scrollToId('biens')} variant="" sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
                             <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
                         </div>
-                        <div className="hero-stats section-title" aria-hidden>
-                        <span className="fw-bold" style={{ marginBottom: '1rem' }}> Statistiques des données disponibles</span>
-
-                            <div className="stat-cards-pro-row">
-                                <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
-                                <StatCardPro icon={<FaUserTie />} label="Agents certifiés" value={agents.length} accent="#764ba2" />
-                                <StatCardPro icon={<FaHandshake />} label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} accent="#d7263d" />
-                            </div>
-                        </div>
+                        {/* stats removed from hero - moved to standalone section below for clearer UX */}
                     </div>
 
                     <div className="hero-right hero-fade-up">
                         <HeroSlider />
+                    </div>
+                </div>
+            </section>
+
+            {/* Detached statistics section - separate from hero with scroll-triggered counters */}
+            <section id="stats" className="stats-section" aria-labelledby="stats-heading" style={{ padding: '48px 0', background: 'linear-gradient(180deg, rgba(250,250,252,1) 0%, rgba(243,247,250,1) 100%)' }}>
+                <div className="container">
+                    <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                        <h3 id="stats-heading" style={{ margin: 0, fontWeight: 700 }}>Statistiques des données disponibles</h3>
+                        <p style={{ color: '#666', marginTop: 8 }}>Un aperçu rapide des biens, agents et activité — les chiffres se lancent quand vous arrivez sur cette section.</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', justifyContent: 'space-between', maxWidth: 980, margin: '0 auto', flexWrap: 'wrap' }}>
+                        <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
+                        <StatCardPro icon={<FaUserTie />} label="Agents certifiés" value={agents.length} accent="#764ba2" />
+                        <StatCardPro icon={<FaHandshake />} label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} accent="#d7263d" />
                     </div>
                 </div>
             </section>
@@ -859,7 +886,13 @@ const Home = () => {
                     <span >Véhicules à louer ou à vendre</span>
                 </div>
                 <p className="text-center text-muted mb-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span>Location ou achat, tout est possible sur Ndaku !</span></p>
-                <VehicleList vehicles={(recommendedVehicles && recommendedVehicles.length ? recommendedVehicles.slice(0, 6) : vehicles.slice(0, 6))} />
+                <VehicleList vehicles={
+                    (recommendedVehicles && recommendedVehicles.length)
+                        ? recommendedVehicles.slice(0, 6)
+                        : (serverVehicles && serverVehicles.length)
+                            ? serverVehicles.slice(0, 6)
+                            : vehicles.slice(0, 6)
+                } />
                 <div className="d-flex justify-content-center mt-3">
                     <Link to="/voitures" style={{ textDecoration: 'none' }}>
                         <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de véhicules</Button>
@@ -933,7 +966,7 @@ const Home = () => {
                         <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
-                    <div className="row justify-content-center" style={{ gap: '70px' }}>
+                    <div className="row gx-4 gy-4 justify-content-center">
                         {(() => {
                             // make agent list deterministic and surface best matches first
                             const sorted = [...agents].sort((a, b) => {
@@ -1277,14 +1310,15 @@ function getCurrentUser() {
 }
 
 // ----------------- Small utilities for the hero stats -----------------
-function useCountUp(end, { duration = 900 } = {}) {
+function useCountUp(end, { duration = 900, start = true } = {}) {
     const [value, setValue] = React.useState(0);
     const rafRef = React.useRef(null);
     const startRef = React.useRef(null);
 
+    // start when `start` flips true; allow controlling from outside
     React.useEffect(() => {
         let mounted = true;
-        const start = () => {
+        const startAnim = () => {
             startRef.current = performance.now();
             const loop = (now) => {
                 if (!mounted) return;
@@ -1298,11 +1332,32 @@ function useCountUp(end, { duration = 900 } = {}) {
         };
         // if end is zero, show 0 immediately
         if (!end) { setValue(0); return () => { mounted = false; if (rafRef.current) cancelAnimationFrame(rafRef.current); }; }
-        start();
+        if (start) startAnim();
         return () => { mounted = false; if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-    }, [end, duration]);
+    }, [end, duration, start]);
 
     return value;
+}
+
+// Hook to detect when element becomes visible in viewport
+function useInView({ threshold = 0.35, root = null } = {}) {
+    const ref = React.useRef(null);
+    const [inView, setInView] = React.useState(false);
+    React.useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    setInView(true);
+                    obs.disconnect();
+                }
+            });
+        }, { threshold, root });
+        obs.observe(el);
+        return () => { try { obs.disconnect(); } catch (e) { } };
+    }, [ref.current, threshold, root]);
+    return [ref, inView];
 }
 
 function StatCard({ label, value }) {
@@ -1338,9 +1393,10 @@ function StatCard({ label, value }) {
 
 // Nouveau StatCardPro : design glassmorphism, icône, animation, premium
 function StatCardPro({ icon, label, value, accent }) {
-    const animated = useCountUp(value, { duration: 1100 });
+    const [ref, inView] = useInView({ threshold: 0.35 });
+    const animated = useCountUp(value, { duration: 1100, start: inView });
     return (
-        <div className="stat-card-pro animate-card" style={{
+        <div ref={ref} className="stat-card-pro animate-card" style={{
             background: 'rgba(255,255,255,0.18)',
             boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
             borderRadius: 18,

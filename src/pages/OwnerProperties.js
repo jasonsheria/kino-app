@@ -136,16 +136,46 @@ export default function OwnerProperties() {
       console.log('Owner ID:', ownerId);
       
       console.log('Fetching properties for owner:', ownerId);
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
+      // Fetch mobilier and vehicules and merge so frontend shows all goods together
+      const [mobRes, vehRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${process.env.REACT_APP_BACKEND_APP_URL}/api/vehicules/owner/${ownerId}`, { headers: { Authorization: `Bearer ${token}` } }).catch(e => ({ data: { data: [] } })),
+      ]);
+      const mobiliers = mobRes.data?.data || [];
+      let vehicules = vehRes.data?.data || [];
+
+      // If owner-specific vehicules endpoint returned empty, try fetching all vehicules and filter by owner
+      if ((!vehicules || vehicules.length === 0)) {
+        try {
+          console.log('OwnerProperties: no owner-vehicules found, fetching /api/vehicules as fallback');
+          const allResp = await axios.get(`${process.env.REACT_APP_BACKEND_APP_URL}/api/vehicules`, { headers: { Authorization: `Bearer ${token}` } });
+          const allItems = allResp.data?.data || allResp.data || [];
+          if (Array.isArray(allItems) && allItems.length) {
+            // Filter by ownerId using common field names
+            const filtered = allItems.filter(item => {
+              const ownerFields = [item.proprietaire, item.owner, item.ownerId, item.proprietaireId, item.proprietaire || item.proprietaireId || item.proprietaire_id];
+              // direct match
+              if (String(item.proprietaire) === String(ownerId) || String(item.ownerId) === String(ownerId) || String(item.owner) === String(ownerId)) return true;
+              // check nested or different key names
+              if (item.proprietaire && (String(item.proprietaire) === String(ownerId))) return true;
+              // fallback: check any id-like field
+              if (String(item.user) === String(ownerId) || String(item.userId) === String(ownerId)) return true;
+              return false;
+            });
+            if (filtered.length) {
+              console.log('OwnerProperties: fallback found', filtered.length, 'vehicules for owner');
+              vehicules = filtered;
+            }
+          }
+        } catch (e) {
+          console.warn('OwnerProperties: fallback /api/vehicules failed', e?.message || e);
         }
-      );
-      
-      console.log('API Response:', response);
-      console.log('Response data:', response.data);
-      const propertiesData = response.data?.data || [];
+      }
+      // Tag source so we know which endpoint to call for updates/deletes
+      const propertiesData = [
+        ...mobiliers.map(p => ({ ...p, __source: 'mobilier' })),
+        ...vehicules.map(p => ({ ...p, __source: 'vehicules' })),
+      ];
       console.log('Properties data:', propertiesData);
       setProperties(propertiesData);
       
@@ -197,9 +227,12 @@ export default function OwnerProperties() {
     try {
       setDeleteLoading(true);
       const token = localStorage.getItem('ndaku_auth_token');
+      const target = properties[deleteTargetIndex];
+      const source = target.__source || 'mobilier';
+      const endpoint = source === 'vehicules' ? 'vehicules' : 'mobilier';
       await axios.delete(
-        `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[deleteTargetIndex]._id}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}/${target._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setDeleteDialogOpen(false);
       setDeleteTargetIndex(null);
@@ -221,29 +254,53 @@ export default function OwnerProperties() {
       const token = localStorage.getItem('ndaku_auth_token');
       
       // Créer un objet avec toutes les données
-      const propertyData = {
+      // Build payload depending on type: if vehicle, include vehicle-specific fields only
+      let propertyData = {
         titre: p.title,
         type: p.type,
-        prix: Number(p.price),
+        prix: Number(p.price) || 0,
         description: p.description,
         adresse: p.address,
-        commune: p.commune,
-        quartier: p.quartier,
         categorie: p.type,
-        agent : p?.agentId,
-        statut: p.status || 'vente',
-        chambres: Number(p.chambres) || 0,
-        douches: Number(p.douches) || 0,
-        salon: Number(p.salon) || 1,
-        cuisine: Number(p.cuisine) || 1,
-        sdb: Number(p.sdb) || 0,
-        superficie: Number(p.superficie) || 0,
-        status: p.status || 'vente',
         proprietaireType: 'Owner',
         proprietaire: user?.id || user?._id,
-        geoloc: p.geoloc,
-        features: p.features || []
       };
+
+      const isVehicle = (p.type || '').toUpperCase() === 'VEHICULES' || (p.type || '').toUpperCase() === 'MOTO';
+      if (!isVehicle) {
+        propertyData = {
+          ...propertyData,
+          commune: p.commune,
+          quartier: p.quartier,
+          agent: p?.agentId,
+          statut: p.status || 'vente',
+          chambres: Number(p.chambres) || 0,
+          douches: Number(p.douches) || 0,
+          salon: Number(p.salon) || 1,
+          cuisine: Number(p.cuisine) || 1,
+          sdb: Number(p.sdb) || 0,
+          superficie: Number(p.superficie) || 0,
+          status: p.status || 'vente',
+          geoloc: p.geoloc,
+          features: p.features || []
+        };
+      } else {
+        // Vehicle-specific properties
+        propertyData = {
+          ...propertyData,
+          // Some backend schemas expect `nom` (French) or `name` — populate from the form title
+          nom: p.title || p.nom || p.name || propertyData.titre || '',
+          // Keep agentId and vehicle-specific fields
+          agentId: p.agentId || p.agent,
+          fraisVisite: Number(p.visitFee) || 0,
+          couleur: p.couleur || '',
+          kilometrage: Number(p.kilometrage) || 0,
+          annee: Number(p.annee) || null,
+          carburant: p.carburant || '',
+          transmission: p.transmission || '',
+          places: Number(p.places) || 0,
+        };
+      }
 
       // Créer FormData
       const formData = new FormData();
@@ -315,14 +372,27 @@ export default function OwnerProperties() {
         videoFiles.forEach(file => { if (file) formData.append('videos', file); });
       }
       
-      // Ajouter les détails spécifiques
-      formData.append('chambres', p.chambres || '');
-      formData.append('douches', p.douches || '');
-      formData.append('salon', p.salon || '1');
-      formData.append('cuisine', p.cuisine || '');
-      formData.append('sdb', p.sdb || '');
-      formData.append('superficie', p.superficie || '');
-      formData.append('status', p.status || 'vente');
+      // Ajouter les détails spécifiques selon le type (logement vs véhicule)
+      if (!isVehicle) {
+        formData.append('chambres', p.chambres || '');
+        formData.append('douches', p.douches || '');
+        formData.append('salon', p.salon || '1');
+        formData.append('cuisine', p.cuisine || '');
+        formData.append('sdb', p.sdb || '');
+        formData.append('superficie', p.superficie || '');
+        formData.append('status', p.status || 'vente');
+      } else {
+        // Vehicle-specific
+        formData.append('agentId', p.agentId || '');
+        formData.append('visitFee', p.visitFee || '');
+        formData.append('couleur', p.couleur || '');
+        formData.append('kilometrage', p.kilometrage || '');
+        formData.append('annee', p.annee || '');
+        formData.append('carburant', p.carburant || '');
+        formData.append('transmission', p.transmission || '');
+        formData.append('places', p.places || '');
+        formData.append('status', p.status || 'vente');
+      }
       
       // Convertir les objets en JSON
       if (p.features) {
@@ -358,19 +428,15 @@ export default function OwnerProperties() {
         'Authorization': `Bearer ${token}`,
       };
 
+      // Determine endpoint depending on type and whether editing
+      const isVehicleCreate = isVehicle;
       if (editIndex != null) {
-        await axios.put(
-          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/${properties[editIndex]._id}`,
-          formData,
-          { headers }
-        );
+        const source = properties[editIndex].__source || 'mobilier';
+        const endpoint = source === 'vehicules' ? 'vehicules' : 'mobilier';
+        await axios.put(`${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}/${properties[editIndex]._id}`, formData, { headers });
       } else {
-        const response = await axios.post(
-          `${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier`,
-          formData,
-          { headers }
-        );
-        
+        const endpoint = isVehicleCreate ? 'vehicules' : 'mobilier';
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}`, formData, { headers });
         console.log('Bien créé avec succès:', response.data);
       }
       

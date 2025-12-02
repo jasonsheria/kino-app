@@ -69,7 +69,15 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     superficie: initial.superficie || initial.area || '',
     features: initial.features || [],
     status: initial.status || 'vente',
-    geoloc: initial.geoloc || { lat: '', lng: '' }
+    geoloc: initial.geoloc || { lat: '', lng: '' },
+    // vehicle-specific defaults
+    visitFee: initial.visitFee || initial.fraisVisite || 0,
+    couleur: initial.couleur || '',
+    kilometrage: initial.kilometrage || initial.km || 0,
+    annee: initial.annee || initial.year || '',
+    carburant: initial.carburant || '',
+    transmission: initial.transmission || '',
+    places: initial.places || 0,
   };
 
   const [p, setP] = useState(defaults);
@@ -92,7 +100,8 @@ export default function OwnerPropertyForm({onSave, initial={}}){
 
   const types = useMemo(()=>{
     const fromSample = Array.from(new Set((sampleProps||[]).map(x=>x.type).filter(Boolean)));
-    const base = ['Appartement','Maison','Villa','Studio','Terrain','Terrain vide','Boutique','Place commerciale','Magasin','Penthouse','Salle de fête','Voiture'];
+    // include unified values for vehicles so pages that check for 'VEHICULES' or 'MOTO' work
+    const base = ['Appartement','Maison','Villa','Studio','Terrain','Terrain vide','Boutique','Place commerciale','Magasin','Penthouse','Salle de fête','VEHICULES','MOTO','Voiture'];
     const merged = Array.from(new Set([...fromSample, ...base]));
     return merged;
   }, []);
@@ -104,9 +113,11 @@ export default function OwnerPropertyForm({onSave, initial={}}){
 
   const submit = (e)=>{ e && e.preventDefault && e.preventDefault(); onSave(p); };
 
-  const isResidential = ['Appartement','Maison','Villa','Studio','Penthouse'].includes(p.type);
-  const isLand = p.type && p.type.toLowerCase().includes('terrain');
-  const isCommercial = ['Boutique','Place commerciale','Magasin'].includes(p.type);
+  const typeNorm = (p.type || '').toString().toUpperCase();
+  const isResidential = ['APPARTEMENT','MAISON','VILLA','STUDIO','PENTHOUSE'].includes(typeNorm);
+  const isLand = typeNorm && typeNorm.includes('TERRAIN');
+  const isCommercial = ['BOUTIQUE','PLACE COMMERCIALE','MAGASIN'].some(t => (p.type||'').toString().toUpperCase().includes(t));
+  const isVehicle = ['VEHICULES','MOTO','VOITURE'].includes(typeNorm);
 
   // Simple client-side validation
   const validate = ()=>{
@@ -379,6 +390,73 @@ export default function OwnerPropertyForm({onSave, initial={}}){
               />
             </Grid>
           </Grid>
+
+          {/* Vehicle-specific fields */}
+          {isVehicle && (
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Frais de visite"
+                  value={p.visitFee}
+                  onChange={(e) => setP({ ...p, visitFee: e.target.value })}
+                  type="number"
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Couleur"
+                  value={p.couleur}
+                  onChange={(e) => setP({ ...p, couleur: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Kilométrage"
+                  value={p.kilometrage}
+                  onChange={(e) => setP({ ...p, kilometrage: e.target.value })}
+                  type="number"
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Année"
+                  value={p.annee}
+                  onChange={(e) => setP({ ...p, annee: e.target.value })}
+                  type="number"
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Carburant"
+                  value={p.carburant}
+                  onChange={(e) => setP({ ...p, carburant: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Transmission"
+                  value={p.transmission}
+                  onChange={(e) => setP({ ...p, transmission: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <TextField
+                  fullWidth
+                  label="Places"
+                  value={p.places}
+                  onChange={(e) => setP({ ...p, places: Number(e.target.value) })}
+                  type="number"
+                />
+              </Grid>
+            </Grid>
+          )}
 
           <Grid container spacing={2}>
             <Grid item xs={12} md={8}>

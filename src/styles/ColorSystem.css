@@ -330,7 +330,7 @@ img, svg {
    ============================================================ */
 
 .btn, button, [role="button"] {
-  display: inline-flex;
+  /* display: inline-flex; */
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
