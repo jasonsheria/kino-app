@@ -147,45 +147,49 @@ const AgentProfileCard = ({ agent, property, onContactClick, onViewMoreClick, is
           </p>
         </div>
 
-        {/* Boutons d'action */}
-        <div className="agent-action-buttons">
+        {/* Boutons d'action - icônes seulement */}
+        <div className="agent-action-buttons icon-only">
           {agentPhone && (
-            <button 
-              className="btn btn-action btn-whatsapp"
+            <button
+              className="btn btn-icon btn-whatsapp"
               onClick={() => onContactClick?.('whatsapp')}
               title="Contacter via WhatsApp"
+              aria-label="WhatsApp"
             >
-              <FaWhatsapp className="me-2" /> WhatsApp
+              <FaWhatsapp />
             </button>
           )}
-          
-          <button 
-            className="btn btn-action btn-phone"
+
+          <button
+            className="btn btn-icon btn-phone"
             onClick={() => onContactClick?.('phone')}
             title="Appeler"
+            aria-label="Appeler"
           >
-            <FaPhone className="me-2" /> Appeler
+            <FaPhone />
           </button>
 
           {agentEmail && (
-            <button 
-              className="btn btn-action btn-email"
+            <button
+              className="btn btn-icon btn-email"
               onClick={() => onContactClick?.('email')}
-              title="Email"
+              title="Envoyer un email"
+              aria-label="Email"
             >
-              <FaMailchimp className="me-2" /> Email
+              <FaMailchimp />
             </button>
           )}
 
           {agentFacebook && (
-            <a 
+            <a
               href={agentFacebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-action btn-facebook"
+              className="btn btn-icon btn-facebook"
               title="Facebook"
+              aria-label="Facebook"
             >
-              <FaFacebook className="me-2" /> Facebook
+              <FaFacebook />
             </a>
           )}
         </div>

@@ -20,7 +20,7 @@
 
 .agent-profile-header {
   position: relative;
-  height: 140px;
+  height: 160px;
   overflow: hidden;
 }
 
@@ -42,15 +42,16 @@
 /* Avatar circulaire */
 .agent-avatar-container {
   position: absolute;
-  bottom: -30px;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -48px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .agent-avatar-large {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   border: 4px solid white;
   object-fit: cover;
@@ -100,12 +101,13 @@
    ============================================ */
 
 .agent-profile-content {
-  padding: 50px 24px 24px;
+  padding: 72px 24px 24px;
+  text-align: center;
 }
 
 /* Titre et infos de base */
 .agent-profile-header-text {
-  margin-bottom: 20px;
+  margin-bottom: 6px;
   animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
@@ -113,13 +115,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  justify-content: center;
+  margin-bottom: 6px;
 }
 
 .agent-name {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #111827;
   margin: 0;
 }
 
@@ -142,7 +145,7 @@
 
 .agent-title {
   font-size: 0.95rem;
-  color: #666;
+  color: #6b7280;
   margin: 0;
   font-weight: 500;
 }
@@ -159,10 +162,11 @@
    ============================================ */
 
 .agent-rating-section {
-  margin: 20px 0;
-  padding: 16px;
+  margin: 12px auto;
+  padding: 10px 14px;
   background: #f8f9ff;
-  border-radius: 12px;
+  border-radius: 10px;
+  display: inline-block;
   animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
@@ -220,7 +224,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 16px 0;
+  margin: 10px auto 16px;
+  justify-content: center;
   animation: fadeInUp 0.6s ease-out 0.3s both;
 }
 
@@ -267,10 +272,10 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin: 20px 0;
-  padding: 20px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-  border-radius: 12px;
+  margin: 14px 0;
+  padding: 12px;
+  background: linear-gradient(135deg, #fafbff 0%, #f6f8ff 100%);
+  border-radius: 10px;
   animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
@@ -316,7 +321,7 @@
    ============================================ */
 
 .agent-description-section {
-  margin: 20px 0;
+  margin: 12px 0 18px;
   animation: fadeInUp 0.6s ease-out 0.5s both;
 }
 
@@ -351,10 +356,11 @@
    ============================================ */
 
 .agent-action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 20px 0;
+  display: flex;
+  gap: 12px;
+  margin: 18px 0;
+  justify-content: center;
+  align-items: center;
   animation: fadeInUp 0.6s ease-out 0.6s both;
 }
 
@@ -373,10 +379,26 @@
   color: white;
 }
 
-.btn-whatsapp {
-  background: linear-gradient(135deg, #25d366 0%, #20ba58 100%);
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+.btn-icon { 
+  width: 48px; 
+  height: 48px; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  border-radius: 12px; 
+  color: #fff; 
+  font-size: 1.05rem; 
+  border: none; 
+  cursor: pointer; 
+  transition: transform 0.18s ease, box-shadow 0.18s ease; 
 }
+
+.btn-icon:active { transform: translateY(1px); }
+
+.btn-whatsapp { background: linear-gradient(135deg, #25d366 0%, #20ba58 100%); box-shadow: 0 6px 18px rgba(37,211,102,0.14);} 
+.btn-phone { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); box-shadow: 0 6px 18px rgba(0,123,255,0.12);} 
+.btn-email { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); box-shadow: 0 6px 18px rgba(255,107,107,0.12);} 
+.btn-facebook { background: linear-gradient(135deg, #1877f2 0%, #0a66c2 100%); box-shadow: 0 6px 18px rgba(24,119,242,0.12);} 
 
 .btn-whatsapp:hover {
   transform: translateY(-2px);
@@ -425,11 +447,11 @@
 .btn-view-more {
   width: 100%;
   padding: 12px 16px;
-  background: #667eea;
-  border: 2px solid #667eea;
-  color: #667eea;
+  background: #ffffff;
+  border: 1px solid rgba(16,24,40,0.06);
+  color: #374151;
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -437,7 +459,7 @@
   justify-content: center;
   gap: 8px;
   margin: 16px 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.18s ease;
   animation: fadeInUp 0.6s ease-out 0.7s both;
 }
 
