@@ -72,6 +72,7 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
   const fileInput = useRef();
   const bodyRef = useRef();
   const inputRef = useRef(null);
+
   const {user} =useAuth();
   const socketRef = useRef(null);
   const pendingQueue = useRef([]);
@@ -114,6 +115,11 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
   });
 
   const currentAgent = safeAgents.find(a => String(a.id) === String(selectedAgentId)) || null;
+  // find contact meta (last time, unread) for the selected agent if available
+  const currentContact = contacts.find(c => String(c.agent.id) === String(selectedAgentId)) || null;
+  const lastSeenTs = currentContact && currentContact.lastTime ? Number(currentContact.lastTime) : null;
+  const online = lastSeenTs ? (Date.now() - lastSeenTs) < (5 * 60 * 1000) : false; // considered online if active in last 5min
+  const lastSeenText = lastSeenTs ? formatTime(lastSeenTs) : null;
 
   // helper to recompute unread count from safeMessages
   const recomputeUnread = () => {
@@ -623,6 +629,7 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
       <button
         aria-label={visible ? 'Fermer la messagerie' : 'Ouvrir la messagerie'}
         className={`messenger-toggle-btn ${visible ? 'open' : ''}`}
+        style={{display : visible ? 'none' : 'flex'}}
         onClick={() => {
           try {
             window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { 
@@ -713,9 +720,10 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
                         position:'relative',background:'#fff'}}>
               
               {/* Chat Header */}
-              <div className="messenger-header" 
-                   style={{display:'flex',alignItems:'center',justifyContent:'space-between',
-                          padding:'10px 12px',borderBottom:'1px solid #f1f5f3'}}>
+        {/* Header: enhanced look when an agent is selected */}
+        <div className={`messenger-header ${currentAgent ? 'enhanced' : ''}`} 
+          style={{display:'flex',alignItems:'center',justifyContent:'space-between',
+           padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
                 <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12}}>
                   <button className="header-sidebar-toggle"
                           aria-label={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}
@@ -730,8 +738,14 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
                     <>
                       <img src={process.env.REACT_APP_BACKEND_APP_URL+currentAgent.photo} 
                            alt={currentAgent.name} className="agent-avatar" 
-                           style={{width:36,height:36}} />
-                      <div style={{fontWeight:700}}>{currentAgent.name}</div>
+                           style={{width:36,height:36,border:'2px solid rgba(255,255,255,0.12)'}} />
+                      <div style={{display:'flex',flexDirection:'column'}}>
+                        <div className="agent-name" style={{fontWeight:800,fontSize:'1.02rem',display:'flex',alignItems:'center',gap:8}}>
+                          <span>{currentAgent.name}</span>
+                          <span className={`status-dot ${online? 'online' : 'offline'}`} aria-hidden />
+                        </div>
+                        <div className="agent-status">{online ? 'En ligne' : (lastSeenText ? `Vu à ${lastSeenText}` : 'Hors ligne')}</div>
+                      </div>
                     </>
                   )}
                 </div>
@@ -748,8 +762,8 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
                     Aucun message avec cet agent.
                   </div>
                 )}
-                {conversationMessages.map((msg) => (
-                  <div key={msg.id} className={`msg-bubble ${String(msg.fromId)===String(effectiveUserId)?'user':'agent'}`}>
+                {conversationMessages.map((msg, i) => (
+                  <div key={msg.id} className={`msg-bubble ${String(msg.fromId)===String(effectiveUserId)?'user':'agent'}`} style={{animationDelay: `${i * 40}ms`}}>
                     {String(msg.fromId)!==String(effectiveUserId) && (
                       <img src={process.env.REACT_APP_BACKEND_APP_URL+safeAgents.find(a=>String(a.id)===String(msg.fromId))?.photo}
                            alt="avatar" className="msg-avatar" style={{width:36,height:36}} />

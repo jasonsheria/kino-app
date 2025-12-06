@@ -191,7 +191,7 @@ export default function PropertyCreate() {
                       rows="4"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Décrivez votre bien en détail..."
+                      placeholder="Décrivez votre article en détail..."
                     />
                   </div>
 

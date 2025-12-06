@@ -1,251 +1,114 @@
 import React from 'react';
-import { 
-  FaPhone, FaWhatsapp, FaFacebook, FaMailchimp, FaStar, FaCheckCircle, 
-  FaHome, FaUserTie, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaTrophy,
-  FaArrowRight
-} from 'react-icons/fa';
-import { Button } from '@mui/material';
+import { FaPhone, FaWhatsapp, FaFacebook, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
 import './AgentProfileCard.css';
 
-const AgentProfileCard = ({ agent, property, onContactClick, onViewMoreClick, isReserved }) => {
+/**
+ * AgentProfileCard - completely new, modern design
+ * - Large full-bleed avatar
+ * - Name overlay on image
+ * - Short bio and two primary actions (Message, Call)
+ */
+const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
   if (!agent) return null;
 
-  // Données du profil agent avec valeurs par défaut
-  const agentName = agent?.prenom || agent?.name || 'Agent immobilier';
-  const agentPhoto = (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.photo || agent?.image || agent?.avatar || '');
-  const agentTitle = agent?.titre || agent?.title || 'Agent immobilier professionnel';
-  const agentPhone = agent?.whatsapp || agent?.phone || '';
-  const agentEmail = agent?.email || '';
-  const agentFacebook = agent?.facebook || agent?.fb || '';
-  const agentLocation = agent?.location || agent?.city || 'Kinshasa, RDC';
-  
-  // Statistiques avec valeurs par défaut
-  const yearsExperience = agent?.yearsExperience || agent?.experience || 5;
-  const propertiesCount = agent?.propertiesCount || agent?.properties_count || 12;
-  const rating = agent?.rating || agent?.cote || 4.5;
-  const reviews = agent?.reviews || agent?.avis || 28;
-  const certifications = agent?.certifications || ['Agent Agréé', 'Expert Immobilier'];
-  const badges = agent?.badges || ['Recommandé', 'Top Agent'];
-  const description = agent?.description || agent?.bio || `Professionnel expérimenté dans la vente et la location de biens immobiliers. Expert du marché local avec une excellente connaissance des quartiers.`;
-  
-  // Fonction pour afficher les étoiles
-  const renderStars = (rating) => {
-    const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalf = rating % 1 !== 0;
-    
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(<FaStar key={i} className="star filled" />);
-      } else if (i === fullStars && hasHalf) {
-        stars.push(
-          <div key={i} className="star-half">
-            <FaStar className="star half-filled" />
-          </div>
-        );
-      } else {
-        stars.push(<FaStar key={i} className="star empty" />);
-      }
+  const name = agent?.prenom || agent?.name || 'Agent';
+  const title = agent?.titre || agent?.title || 'Agent immobilier';
+  const location = agent?.location || agent?.city || '';
+  const photo = (agent?.photo || agent?.image || agent?.avatar)
+    ? (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.photo || agent?.image || agent?.avatar)
+    : require('../../img/property-1.jpg');
+
+  const openMessengerForAgent = (agentId) => {
+    try {
+      // legacy event that primary messenger listens to
+      window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId } }));
+    } catch (e) {
+      // fallback: if the messenger expects request event, send a generic one too
+      try { window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { detail: { sourceId: 'agent-card', agentId } })); } catch(e){}
     }
-    return stars;
+  };
+
+  const handleMessageClick = () => {
+    openMessengerForAgent(agent.id || agent._id || agent.agentId);
+    onContactClick('message');
+  };
+
+  const normalizePhone = (raw) => {
+    if (!raw) return null;
+    // remove non-digits and plus
+    const digits = String(raw).replace(/[^+0-9]/g, '');
+    return digits.replace(/^\+/, '');
+  };
+
+  const handleWhatsApp = () => {
+    const phone = agent.whatsapp || agent.phone || agent.telephone || agent.tel;
+    const normalized = normalizePhone(phone);
+    if (!normalized) {
+      // fallback: open messenger
+      handleMessageClick();
+      return;
+    }
+  const text = `Bonjour ${name}, je suis intéressé par votre bien.`;
+    const url = `https://wa.me/${normalized}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    onContactClick('whatsapp');
+  };
+
+  const handlePhone = () => {
+    const phone = agent.phone || agent.whatsapp || agent.telephone || agent.tel;
+    if (!phone) return;
+    window.location.href = `tel:${phone}`;
+    onContactClick('phone');
+  };
+
+  const handleEmail = () => {
+    if (!agent.email) return;
+    window.location.href = `mailto:${agent.email}`;
+    onContactClick('email');
   };
 
   return (
-    <div className="agent-profile-card">
-      {/* Header avec photo de fond dégradé */}
-      <div className="agent-profile-header">
-        <div className="agent-header-background" />
-        
-        {/* Avatar circulaire */}
-        <div className="agent-avatar-container">
-          <img src={agentPhoto} alt={agentName} className="agent-avatar-large" />
-          {badges.includes('Top Agent') && (
-            <div className="badge-top-agent" title="Top Agent">
-              <FaTrophy className="me-1" /> TOP
-            </div>
-          )}
+    <div className="agent-card-modern">
+      <div className="agent-image" style={{ backgroundImage: `url(${photo})` }}>
+        <div className="agent-overlay">
+          <div className="agent-name-wrap">
+            <h3 className="agent-name">{name}</h3>
+            {agent?.verified && <FaCheckCircle className="agent-verified" title="Vérifié" />}
+          </div>
+          <div className="agent-sub">{title}{location ? ` • ${location}` : ''}</div>
         </div>
       </div>
 
-      {/* Contenu du profil */}
-      <div className="agent-profile-content">
-        {/* Nom et titre */}
-        <div className="agent-profile-header-text">
-          <div className="agent-name-container">
-            <h3 className="agent-name">{agentName}</h3>
-            {agent?.verified && <FaCheckCircle className="badge-verified" title="Vérifié" />}
-          </div>
-          <p className="agent-title text-muted">{agentTitle}</p>
-          <div className="agent-location small text-secondary">
-            <FaMapMarkerAlt className="me-1" /> {agentLocation}
-          </div>
-        </div>
+      <div className="agent-info">
+        <p className="agent-bio">{agent?.bio || agent?.description || 'Agent dédié pour vous accompagner dans votre recherche. Réponse rapide et conseils personnalisés.'}</p>
 
-        {/* Évaluation et cote */}
-        <div className="agent-rating-section">
-          <div className="rating-stars d-flex align-items-center gap-2">
-            <div className="stars-container">
-              {renderStars(rating)}
-            </div>
-            <span className="rating-value fw-bold">{rating.toFixed(1)}</span>
-            <span className="rating-count text-muted small">({reviews} avis)</span>
-          </div>
-        </div>
-
-        {/* Badges et certifications */}
-        <div className="agent-badges-section">
-          {certifications.map((cert, idx) => (
-            <span key={idx} className="badge badge-certification">
-              <FaCheckCircle className="me-1" /> {cert}
-            </span>
-          ))}
-          {badges.map((badge, idx) => (
-            <span key={idx} className="badge badge-achievement">
-              {badge}
-            </span>
-          ))}
-        </div>
-
-        {/* Statistiques */}
-        <div className="agent-stats-grid">
-          <div className="stat-item">
-            <div className="stat-icon">
-              <FaHome />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{propertiesCount}</div>
-              <div className="stat-label">Propriétés</div>
-            </div>
-          </div>
-          
-          <div className="stat-item">
-            <div className="stat-icon">
-              <FaCalendarAlt />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">{yearsExperience}</div>
-              <div className="stat-label">Ans d'expérience</div>
-            </div>
-          </div>
-          
-          <div className="stat-item">
-            <div className="stat-icon">
-              <FaClock />
-            </div>
-            <div className="stat-content">
-              <div className="stat-value">24h</div>
-              <div className="stat-label">Réponse rapide</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Description */}
-        <div className="agent-description-section">
-          <h6 className="section-title">À propos</h6>
-          <p className="agent-description">
-            {description}
-          </p>
-        </div>
-
-        {/* Boutons d'action - icônes seulement */}
-        <div className="agent-action-buttons icon-only">
-          {agentPhone && (
-            <button
-              className="btn btn-icon btn-whatsapp"
-              onClick={() => onContactClick?.('whatsapp')}
-              title="Contacter via WhatsApp"
-              aria-label="WhatsApp"
-            >
-              <FaWhatsapp />
-            </button>
-          )}
-
-          <button
-            className="btn btn-icon btn-phone"
-            onClick={() => onContactClick?.('phone')}
-            title="Appeler"
-            aria-label="Appeler"
-          >
-            <FaPhone />
+        <div className="agent-actions">
+          <button className="icon-btn btn-primary" onClick={handleMessageClick} aria-label="Messagerie">
+            <FaEnvelope />
           </button>
-
-          {agentEmail && (
-            <button
-              className="btn btn-icon btn-email"
-              onClick={() => onContactClick?.('email')}
-              title="Envoyer un email"
-              aria-label="Email"
-            >
-              <FaMailchimp />
-            </button>
-          )}
-
-          {agentFacebook && (
-            <a
-              href={agentFacebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-icon btn-facebook"
-              title="Facebook"
-              aria-label="Facebook"
-            >
-              <FaFacebook />
-            </a>
-          )}
+          <div className="action-icons">
+            { (agent?.whatsapp || agent?.phone) && (
+              <button className="icon-btn btn-whatsapp" onClick={handleWhatsApp} aria-label="WhatsApp">
+                <FaWhatsapp />
+              </button>
+            ) }
+            { (agent?.phone) && (
+              <button className="icon-btn btn-phone" onClick={handlePhone} aria-label="Appeler">
+                <FaPhone />
+              </button>
+            ) }
+            { agent?.email && (
+              <button className="icon-btn btn-email" onClick={handleEmail} aria-label="Email">
+                <FaEnvelope />
+              </button>
+            ) }
+            { agent?.facebook && (
+              <a className="icon-btn btn-facebook" href={agent.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
+                <FaFacebook />
+              </a>
+            ) }
+          </div>
         </div>
-
-        {/* Voir plus de biens de cet agent */}
-        <button 
-          className="btn btn-view-more"
-          onClick={onViewMoreClick}
-        >
-          Voir tous les biens de cet agent
-          <FaArrowRight className="ms-2" />
-        </button>
-
-        {/* Divider */}
-        <div className="divider"></div>
-
-        {/* Bouton principal de réservation */}
-        {isReserved ? (
-          <Button
-            fullWidth
-            variant="contained"
-            disabled
-            color="success"
-            size="large"
-            className="btn-reserve-main"
-            sx={{
-              py: 1.2,
-              fontSize: '1rem',
-              fontWeight: 600,
-              borderRadius: '12px',
-              textTransform: 'none',
-              background: 'linear-gradient(135deg, #ccc 0%, #999 100%)',
-              cursor: 'not-allowed'
-            }}
-          >
-            ✓ Déjà réservé
-          </Button>
-        ) : (
-          <Button
-            fullWidth
-            variant="contained"
-            color="success"
-            size="large"
-            className="btn-reserve-main"
-            sx={{
-              py: 1.2,
-              fontSize: '1rem',
-              fontWeight: 600,
-              borderRadius: '12px',
-              textTransform: 'none'
-            }}
-            onClick={() => onContactClick?.('reservation')}
-          >
-            Réserver une visite
-          </Button>
-        )}
       </div>
     </div>
   );

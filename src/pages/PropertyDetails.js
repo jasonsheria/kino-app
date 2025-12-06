@@ -4,12 +4,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { properties, agents } from '../data/fakedata';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWifi, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaStepBackward, FaStepForward, FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaExpand, FaTimes, FaRegImage } from 'react-icons/fa';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../pages/HomeSection.css';
 import '../pages/PropertyDetails.css';
 import ChatWidget from '../components/common/Messenger';
+import ModernVirtualTourModal from '../components/property/ModernVirtualTourModal';
 import AgentContactModal from '../components/common/AgentContactModal';
 import FooterPro from '../components/common/Footer';
 import '../components/property/PropertyCard.css';
@@ -30,7 +31,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => {} }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
-        <img
+          <img
           src={images[current]}
           alt={`${name}-${current}`}
           className="w-100"
@@ -98,6 +99,48 @@ const PropertyDetails = () => {
   const [showBooking, setShowBooking] = useState(false);
   // Track if property is already reserved
   const [isReserved, setIsReserved] = useState(false);
+
+  // Map and user geolocation state (declared unconditionally)
+  const mapRef = useRef(null);
+  const [userPosition, setUserPosition] = useState(null);
+  const [geoError, setGeoError] = useState('');
+
+  // Compute distance between two lat/lng points (km)
+  const getDistanceKm = (a, b) => {
+    if (!a || !b) return null;
+    const toRad = (v) => (v * Math.PI) / 180;
+    const R = 6371; // Earth radius km
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const aa = sinDLat * sinDLat + sinDLon * sinDLon * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+    return (R * c).toFixed(2);
+  };
+
+  // Try to get user's current location early (unconditional hook)
+  useEffect(() => {
+    if (!navigator || !navigator.geolocation) {
+      setGeoError('Géolocalisation non supportée');
+      return;
+    }
+    let mounted = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!mounted) return;
+        setUserPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      (err) => {
+        if (!mounted) return;
+        setGeoError(err.message || 'Permission refusée');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+    return () => { mounted = false; };
+  }, []);
 
   // Try fetching user-scoped agents if we couldn't resolve and local agents list is empty
   useEffect(() => {
@@ -303,17 +346,18 @@ const PropertyDetails = () => {
   const defaultPosition = { lat: -4.325, lng: 15.322 };
   const propertyPosition = property.geoloc?.lat && property.geoloc?.lng ? property.geoloc : defaultPosition;
   const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition;
+  
 
 
   return (
     <div className="property-details-reset pd-clean-root">
       <HomeLayout />
       <div className="container pd-clean-container">
-        <div className="pd-breadcrumb"><Link to="/">&lt; Back to Home</Link> / <strong>Details</strong></div>
+        <div className="pd-breadcrumb"><Link to="/">← Retour à l'accueil</Link> / <strong>Détails</strong></div>
         <div className="pd-actions">
-          <button className="btn pd-secondary">Share</button>
-          <button className="btn pd-secondary">Favorite</button>
-          <button className="btn pd-secondary">Browse nearby listings</button>
+          <button className="btn pd-secondary">Partager</button>
+          <button className="btn pd-secondary">Favori</button>
+          <button className="btn pd-secondary">Voir les annonces à proximité</button>
         </div>
 
         <div className="pd-page-grid">
@@ -321,13 +365,21 @@ const PropertyDetails = () => {
           <div>
             <div className="pd-hero">
               <div className="pd-hero-main">
-                <motion.img src={(property.images && property.images[0]) ? property.images[0] : require('../img/property-1.jpg')} alt={property.name} initial={{ opacity: 0.95 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }} />
+                <motion.img
+                  src={(property.images && property.images[0]) ? property.images[0] : require('../img/property-1.jpg')}
+                  alt={property.name}
+                  initial={{ opacity: 0.95 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.45 }}
+                  style={{ cursor: 'zoom-in' }}
+                  onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}
+                />
 
                 {/* Video / virtual tour CTA overlay */}
                 {videos && videos.length > 0 ? (
                   <button
                     className="pd-video-btn"
-                    onClick={() => setShowVirtual(true)}
+                    onClick={() => { setSelectedVideo(0); setShowVirtual(true); }}
                     aria-label="Ouvrir la visite virtuelle"
                     title="Visite virtuelle"
                   >
@@ -337,7 +389,7 @@ const PropertyDetails = () => {
                 ) : (
                   <button
                     className="pd-video-btn"
-                    onClick={() => setShowVirtual(true)}
+                    onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}
                     aria-label="Voir les photos"
                     title="Voir les photos"
                   >
@@ -349,7 +401,15 @@ const PropertyDetails = () => {
               <div className="pd-hero-thumbs">
                 {(property.images || []).slice(1, 3).map((img, i) => (
                   <div key={i} className="pd-thumb">
-                    <motion.img src={img} alt={`${property.name}-thumb-${i}`} initial={{ x: 20, opacity: 0.8 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.06 * i }} />
+                    <motion.img
+                      src={img}
+                      alt={`${property.name}-thumb-${i}`}
+                      initial={{ x: 20, opacity: 0.8 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: 0.06 * i }}
+                      onClick={() => { setLightboxIndex(i + 1); setShowImageLightbox(true); }}
+                      style={{ cursor: 'zoom-in' }}
+                    />
                   </div>
                 ))}
               </div>
@@ -382,7 +442,7 @@ const PropertyDetails = () => {
               </div>
 
               <div className="pd-reviews">
-                <h5>Customer Review</h5>
+                <h5>Avis clients</h5>
                 {(property.reviews || []).slice(0,2).map((r, i) => (
                   <div className="pd-review-card" key={i}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -399,11 +459,67 @@ const PropertyDetails = () => {
               </div>
 
               <div style={{ marginTop: 20 }}>
-                <h5>Location</h5>
-                <div className="pd-map" style={{ height: 260 }}>
-                  <MapContainer center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                <h5>Localisation</h5>
+                <div className="pd-map" style={{ height: 260, position: 'relative' }}>
+                  {/* small control to focus on user/property */}
+                  <div style={{ position: 'absolute', right: 10, top: 10, zIndex: 5000 }}>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        if (mapRef.current) {
+                          if (userPosition) {
+                            const b = L.latLngBounds([[propertyPosition.lat, propertyPosition.lng], [userPosition.lat, userPosition.lng]]);
+                            mapRef.current.fitBounds(b, { padding: [40, 40] });
+                          } else if (navigator && navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition((p) => {
+                              const up = { lat: p.coords.latitude, lng: p.coords.longitude };
+                              setUserPosition(up);
+                              const b = L.latLngBounds([[propertyPosition.lat, propertyPosition.lng], [up.lat, up.lng]]);
+                              mapRef.current.fitBounds(b, { padding: [40, 40] });
+                            });
+                          }
+                        }
+                      }}
+                      title="Localiser moi et afficher le trajet"
+                      style={{ background: 'rgba(255,255,255,0.95)', borderRadius: 8, padding: '6px 8px', border: 'none', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}
+                    >
+                      Localiser
+                    </button>
+                  </div>
+
+                  <MapContainer whenCreated={(m) => (mapRef.current = m)} center={[centerPosition.lat, centerPosition.lng]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[propertyPosition.lat, propertyPosition.lng]} icon={redIcon} />
+
+                    {/* Property marker with popup showing distance if user known */}
+                    <Marker position={[propertyPosition.lat, propertyPosition.lng]} icon={redIcon} eventHandlers={{ click: (e) => { if (mapRef.current) mapRef.current.flyTo([propertyPosition.lat, propertyPosition.lng], 15); } }}>
+                      <Popup>
+                        <div style={{ minWidth: 160 }}>
+                          <strong>{property.name}</strong>
+                          <div style={{ fontSize: 13, color: '#6b7280' }}>{property.address || ''}</div>
+                          {userPosition && (
+                            <div style={{ marginTop: 8, fontSize: 13 }}>
+                              Vous êtes à ~ {getDistanceKm(userPosition, propertyPosition)} km d'ici
+                            </div>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+
+                    {/* If we have user position, show it and draw a line */}
+                    {userPosition && (
+                      <>
+                        <Marker position={[userPosition.lat, userPosition.lng]} icon={blueIcon}>
+                          <Popup>
+                            <div>
+                              <strong>Votre position</strong>
+                              <div style={{ fontSize: 13, color: '#6b7280' }}>{getDistanceKm(userPosition, propertyPosition)} km du bien</div>
+                            </div>
+                          </Popup>
+                        </Marker>
+                        <Polyline positions={[[userPosition.lat, userPosition.lng], [propertyPosition.lat, propertyPosition.lng]]} pathOptions={{ color: '#6a46f7', weight: 3, opacity: 0.8 }} />
+                        <Circle center={[userPosition.lat, userPosition.lng]} radius={40} pathOptions={{ color: '#1e90ff', fillOpacity: 0.08 }} />
+                      </>
+                    )}
                   </MapContainer>
                 </div>
               </div>
@@ -424,13 +540,64 @@ const PropertyDetails = () => {
               </div>
 
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-                <button className="btn pd-primary" style={{ flex: 1 }}>Message</button>
-                <button className="btn" style={{ flex: 1, background: '#22c55e', color: '#fff' }}>Call</button>
+                <button className="btn pd-primary" style={{ flex: 1 }} onClick={() => { try { window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId: resolvedAgent?.id } })); } catch (e) { /* ignore */ } }}>message</button>
+                <button className="btn" style={{ flex: 1, background: 'var(--ndaku-primary)', color: '#fff' }} onClick={() => { if (resolvedAgent?.phone) window.location.href = `tel:${resolvedAgent.phone}`; }}>Appeler</button>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <button className="btn-reserve-visite btn pd-primary" style={{ width: '100%' }} onClick={() => setShowBooking(true)}>
+                  Réserver une visite
+                </button>
               </div>
             </div>
           </aside>
         </div>
       </div>
+      {/* Virtual tour modal */}
+      {showVirtual && (
+        <ModernVirtualTourModal
+          videos={videos}
+          selectedIndex={selectedVideo}
+          onClose={() => setShowVirtual(false)}
+          onSelect={(i) => setSelectedVideo(i)}
+        />
+      )}
+
+      {/* Simple Image Lightbox */}
+      {showImageLightbox && (property.images && property.images.length) && (
+        <div
+          className="lightbox-full"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 12000 }}
+          onClick={() => setShowImageLightbox(false)}
+        >
+          <div style={{ position: 'relative', maxWidth: '96vw', maxHeight: '88vh' }} onClick={(e) => e.stopPropagation()}>
+            <img src={property.images[lightboxIndex]} alt={`lightbox-${lightboxIndex}`} className="lightbox-img" style={{ maxWidth: '96vw', maxHeight: '88vh', borderRadius: 8 }} />
+
+            <button className="lightbox-close" onClick={() => setShowImageLightbox(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', padding: 8, borderRadius: 8 }}>
+              ✕
+            </button>
+
+            <button className="lightbox-prev" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + property.images.length - 1) % property.images.length); }} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', padding: 10, borderRadius: 8 }}>
+              ‹
+            </button>
+
+            <button className="lightbox-next" onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % property.images.length); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.06)', border: 'none', color: '#fff', padding: 10, borderRadius: 8 }}>
+              ›
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Booking modal */}
+      {showBooking && (
+        <VisitBookingModal
+          open={showBooking}
+          onClose={() => setShowBooking(false)}
+          onSuccess={(data) => { setIsReserved(true); setShowBooking(false); }}
+          property={property}
+          agent={resolvedAgent}
+        />
+      )}
+
       <FooterPro />
     </div>
   );

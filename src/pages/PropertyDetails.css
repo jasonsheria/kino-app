@@ -207,7 +207,7 @@
 
 /* Bouton Réserver visite - Style spécial */
 .btn-reserve-visite {
-  background: linear-gradient(135deg, #0f5132 0%, #083822 100%);
+  background: linear-gradient(135deg, var(--ndaku-primary) 0%, rgba(4,80,60,0.95) 100%);
   border: none;
   box-shadow: 0 4px 16px rgba(15, 81, 50, 0.2);
   font-size: clamp(0.95rem, 2vw, 1.1rem);
@@ -300,6 +300,44 @@
 
 .carousel-main img {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hero / video overlay and page grid */
+.pd-page-grid { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
+.pd-hero { display: grid; grid-template-columns: 1fr 140px; gap: 12px; align-items: start; }
+.pd-hero-main { position: relative; overflow: hidden; border-radius: 12px; }
+.pd-hero-main img, .pd-hero-main img{ width:100%; height:420px; object-fit:cover; display:block; }
+.pd-hero-thumbs { display:flex; flex-direction:column; gap:12px; }
+.pd-thumb img { width:100%; height: calc((420px - 12px)/2); object-fit: cover; border-radius:8px; cursor: pointer; }
+
+.pd-video-btn {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  background: linear-gradient(90deg, var(--ndaku-primary), rgba(0,0,0,0.85));
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 8px 30px rgba(10,10,10,0.18);
+  cursor: pointer;
+  z-index: 60;
+}
+.pd-video-btn .icon { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:8px; background: rgba(255,255,255,0.08); }
+
+/* Side panel */
+.pd-sidepanel { position: sticky; top: 96px; }
+
+@media (max-width: 980px) {
+  .pd-page-grid { grid-template-columns: 1fr; }
+  .pd-hero { grid-template-columns: 1fr; }
+  .pd-hero-main img { height: 320px; }
+  .pd-thumb img { height: 120px; }
+  .pd-sidepanel { position: static; }
 }
 
 .carousel-main:hover img {
@@ -406,7 +444,7 @@
   .pd-page-grid { grid-template-columns: 1fr; }
   .pd-hero-main img { height: 380px; }
   .pd-hero-thumbs { flex-direction: row; }
-  .pd-thumb img { height: 120px; width: 48%; }
+  .pd-thumb img { height: 120px; width: 178px; }
 }
 
 /* Palette and improved button styles */
