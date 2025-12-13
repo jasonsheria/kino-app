@@ -30,7 +30,7 @@
 .agent-sub { font-size:0.82rem; color: rgba(255,255,255,0.9); margin-top:6px; }
 
 .agent-info { padding: 14px 16px; }
-.agent-bio { margin: 0 0 12px 0; color: #374151; font-size: 0.95rem; line-height:1.4; }
+.agent-bio { margin: 0 0   12px 0; color: #374151; font-size: 0.95rem; line-height:1.4; }
 
 .agent-actions {margin-top: 22px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .btn-primary { background: linear-gradient(90deg, var(--ndaku-primary), rgba(2, 80, 60, 0.95)); color:#fff; border:none; padding:9px 12px; border-radius:10px; font-weight:700; cursor:pointer; }

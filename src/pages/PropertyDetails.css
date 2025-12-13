@@ -415,7 +415,7 @@
 .pd-main { margin-top: 20px; }
 .pd-title { font-size: 1.9rem; margin: 8px 0 6px; font-weight: 700; }
 .pd-meta-row { display:flex; justify-content: space-between; align-items:center; gap: 12px; margin-bottom: 12px; }
-.pd-price { font-size: 1.25rem; font-weight: 800; color: var(--ndaku-dark); }
+.pd-price { font-size: 1.25rem; font-weight: 800; color:#0e3a66; }
 .pd-type { font-size: 0.95rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.6px; }
 .pd-desc { color: #374151; line-height: 1.6; }
 .pd-agent { margin-top: 20px; }

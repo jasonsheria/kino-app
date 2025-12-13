@@ -525,7 +525,6 @@ export default function HomeLayout({ children }) {
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
-          gap: 3,
           overflow: 'hidden',
         }}
 

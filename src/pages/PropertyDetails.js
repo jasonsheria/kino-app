@@ -21,7 +21,7 @@ import AgentProfileCard from '../components/property/AgentProfileCard';
 import SuggestionsEnhanced from '../components/property/SuggestionsEnhanced';
 import AmenitiesSection from '../components/property/AmenitiesSection';
 // Simple ImageCarousel: main image with small thumb strip
-function ImageCarousel({ images = [], name = '', onOpen = () => {} }) {
+function ImageCarousel({ images = [], name = '', onOpen = () => { } }) {
   const [current, setCurrent] = useState(0);
   if (!images || images.length === 0) return null;
 
@@ -31,7 +31,7 @@ function ImageCarousel({ images = [], name = '', onOpen = () => {} }) {
   return (
     <div className="image-carousel">
       <div className="carousel-main position-relative rounded overflow-hidden">
-          <img
+        <img
           src={images[current]}
           alt={`${name}-${current}`}
           className="w-100"
@@ -346,7 +346,7 @@ const PropertyDetails = () => {
   const defaultPosition = { lat: -4.325, lng: 15.322 };
   const propertyPosition = property.geoloc?.lat && property.geoloc?.lng ? property.geoloc : defaultPosition;
   const centerPosition = mainPos?.lat && mainPos?.lng ? mainPos : propertyPosition;
-  
+
 
 
   return (
@@ -363,7 +363,13 @@ const PropertyDetails = () => {
         <div className="pd-page-grid">
           {/* LEFT: Main content */}
           <div>
+             <div className="d-flex justify-content-between align-items-center w-100 mb-4" style={{ marginRight: "9%" }}>
+                <div className="pd-type">{property.name || 'Appartement'}</div>
+                <div className="pd-price d-flex justify-content-center align-items-center" style={{ fontSize: 20 }}><FaMapMarkerAlt /> {property.address ? property.address: ''}</div>
+
+              </div>
             <div className="pd-hero">
+             
               <div className="pd-hero-main">
                 <motion.img
                   src={(property.images && property.images[0]) ? property.images[0] : require('../img/property-1.jpg')}
@@ -417,10 +423,10 @@ const PropertyDetails = () => {
 
             <div className="pd-main">
               <div className="pd-meta-row">
-                <div>
+                <div className="d-flex justify-content-between align-items-center w-100" style={{ marginRight: "9%" }}>
                   <div className="pd-type">{property.type || 'Apartment'}</div>
-                  {/* (video CTA moved into hero image overlay) */}
-                  <div className="pd-title">{property.name}</div>
+                  <div >{property.price ? `${property.price.toLocaleString()}$` : '$'}</div>
+
                 </div>
                 <div className="pd-star-row">
                   <span style={{ fontWeight: 700, marginRight: 8 }}>{property.rating || 4.6}</span>
@@ -429,11 +435,12 @@ const PropertyDetails = () => {
               </div>
 
               <div className="pd-facilities">
-                <div className="pd-facility"><FaBed /> 2 Beds</div>
-                <div className="pd-facility"><FaShower /> 3 Baths</div>
-                <div className="pd-facility"><FaUtensils /> Kitchen</div>
-                <div className="pd-facility"><FaWifi /> Wifi</div>
-                <div className="pd-facility"><FaMapMarkerAlt /> Parking Area</div>
+                <div className="pd-facility"><FaCouch /> <span>{property.salon || 0} Salon </span></div>
+                <div className="pd-facility"><FaBed /> {property.chambres} Chambre(s)</div>
+                <div className="pd-facility"><FaShower /> {property.douches} Salle de bain(s)</div>
+                <div className="pd-facility"><FaUtensils /> {property.cuisine} cuisine(s)</div>
+                <div className="pd-facility"><FaWifi /> Wifi </div>
+                <div className="pd-facility"><FaMapMarkerAlt /> Place Parking</div>
               </div>
 
               <div className="pd-desc">
@@ -443,7 +450,7 @@ const PropertyDetails = () => {
 
               <div className="pd-reviews">
                 <h5>Avis clients</h5>
-                {(property.reviews || []).slice(0,2).map((r, i) => (
+                {(property.reviews || []).slice(0, 2).map((r, i) => (
                   <div className="pd-review-card" key={i}>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <img src={r.avatar || require('../img/property-1.jpg')} alt={r.name} style={{ width: 44, height: 44, borderRadius: '50%' }} />
@@ -528,13 +535,7 @@ const PropertyDetails = () => {
 
           {/* RIGHT: Side panel (price + agent + CTAs) */}
           <aside className="pd-sidepanel">
-            <div style={{ background: '#fff', padding: 18, borderRadius: 12, boxShadow: '0 8px 24px rgba(2,6,23,0.06)' }}>
-              <div className="pd-type" style={{ textTransform: 'uppercase', fontSize: 12 }}>{property.type}</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                <div style={{ fontSize: 20, fontWeight: 800 }}>{property.name}</div>
-                <div className="pd-price" style={{ fontSize: 20 }}>{property.price ? `${property.price.toLocaleString()}` : ''}</div>
-              </div>
-
+            <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(2,6,23,0.06)' }}>
               <div style={{ marginTop: 12 }}>
                 <AgentProfileCard agent={resolvedAgent} property={property} isReserved={isReserved} onContactClick={(t) => { if (t === 'whatsapp') setShowContact(true); }} />
               </div>

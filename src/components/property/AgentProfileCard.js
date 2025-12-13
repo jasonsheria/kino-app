@@ -15,7 +15,7 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
   const title = agent?.titre || agent?.title || 'Agent immobilier';
   const location = agent?.location || agent?.city || '';
   const photo = (agent?.photo || agent?.image || agent?.avatar)
-    ? (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.photo || agent?.image || agent?.avatar)
+    ? (agent?.photo || agent?.image || agent?.avatar)
     : require('../../img/property-1.jpg');
 
   const openMessengerForAgent = (agentId) => {

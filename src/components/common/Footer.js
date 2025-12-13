@@ -43,6 +43,7 @@ const Footer = () => {
       component="footer"
       sx={{
         mt: 'auto',
+        backgroundColor: isDark ? 'var(--ndaku-dark)' : '#07252a',
         position: 'relative',
         '&::before': {
           content: '""',
