@@ -98,18 +98,18 @@ function App() {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <Tooltip title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}>
-                    <IconButton
+                    {/* <IconButton
                       onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
                       style={{
                         position: 'fixed',
-                        bottom: 10,
+                        bottom: 18,
                         right: 71,
                         zIndex: 9999,
                         background: theme.palette.background.paper,
                         color: "white",
                         borderRadius: '50%',
-                        width: 45,
-                        height: 45,
+                        width: 47,
+                        height: 48,
                         boxShadow: '0 2px 8px var(--ndaku-primary-22)',
                         transition: 'background 0.3s, color 0.3s',
                       }}
@@ -123,7 +123,7 @@ function App() {
                       aria-label="Changer le mode de couleur"
                     >
                       {mode === 'dark' ? <FaSun size={22} /> : <FaMoon size={22} />}
-                    </IconButton>
+                    </IconButton> */}
                     <MessengerWidget />
 
                   </Tooltip>

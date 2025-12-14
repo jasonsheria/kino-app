@@ -724,7 +724,7 @@ const MessengerWidget = ({ open, onClose, userId = null, initialAgentId = null }
         <div className={`messenger-header ${currentAgent ? 'enhanced' : ''}`} 
           style={{display:'flex',alignItems:'center',justifyContent:'space-between',
            padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-                <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12}}>
+                <div className="agent-info" style={{display:'flex',alignItems:'center',gap:12, flexDirection : 'row'}}>
                   <button className="header-sidebar-toggle"
                           aria-label={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}
                           title={sidebarCollapsed ? 'Ouvrir la liste' : 'Fermer la liste'}

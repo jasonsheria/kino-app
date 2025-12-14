@@ -133,9 +133,6 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="fade-in">
             <div className="social-auth">
-              {/* <button type="button" className="social-btn google" disabled={loading}> */}
-                {/* <FaGoogle /> Continuer avec Google */}
-                {/* Intégration directe du bouton GoogleLogin */}
                 <GoogleLogin
                 style={{borderRadius : 'none'}}
                   onSuccess={async (credentialResponse) => {
@@ -190,10 +187,9 @@ const Login = () => {
                   width="100%"
                   useOneTap
                 />
-              {/* </button> */}
             </div>
 
-            <div className="or-divider">
+            {/* <div className="or-divider">
               <span>ou</span>
             </div>
 
@@ -236,15 +232,15 @@ const Login = () => {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
-            </div>
+            </div> */}
 
-            {error ? (
+            {/* {error ? (
               <div className="alert alert-danger py-2 mb-3 small">
                 {typeof error === 'string' ? error : (error.message || 'Une erreur est survenue')}
               </div>
-            ) : null}
+            ) : null} */}
 
-            <div className="mb-3 d-flex justify-content-between align-items-center">
+            {/* <div className="mb-3 d-flex justify-content-between align-items-center">
               <div>
                 <input type="checkbox" id="remember" /> <label htmlFor="remember" className="small ms-1 auth-small">Se souvenir</label>
               </div>
@@ -258,10 +254,10 @@ const Login = () => {
                 {loading ? <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> : null}
                 {loading ? 'Connexion...' : 'Se connecter'}
               </button>
-            </div>
+            </div> */}
           </form>
 
-          <div className="text-center mt-3 small text-muted">Pas encore de compte ? <Link to="/register">S'inscrire</Link></div>
+          {/* <div className="text-center mt-3 small text-muted">Pas encore de compte ? <Link to="/register">S'inscrire</Link></div> */}
         </div>
       </div>
      

@@ -175,6 +175,10 @@ export const subscriptions = [
           commune: p.commune || '',
           ville: p.ville || '',
           pays: p.pays || 'RDC',
+          promotion : p.promotion,
+          promoPrice : p.promoPrice,
+          promoStart : p.promoStart,
+          promoEnd : p.promoEnd,
         }));
         // inplace replace
         properties.splice(0, properties.length, ...mapped);

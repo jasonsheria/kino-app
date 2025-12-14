@@ -1,4 +1,7 @@
 /* --- Stat cards pro row --- */
+.promo-grid-item{
+  margin : 10px;
+}
 .stat-cards-pro-row {
   display: flex;
   flex-direction: row;
@@ -262,7 +265,7 @@
 .vehicle-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   min-width: 0;
   background: linear-gradient(120deg, #f8f9fa 60%, #e9f7f3 100%);
   border-radius: 18px;

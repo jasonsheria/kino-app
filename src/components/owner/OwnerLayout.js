@@ -272,12 +272,12 @@ export default function OwnerLayout({ children }) {
                             sx={{
                               width: 32,
                               height: 32,
-                              border: socketConnected ? `2px solid ${theme.palette.background.paper}` : `2px solid #00c59b}`,
-                              backgroundColor: socketConnected ? '##ffffff' : '#888',
+                              border: socketConnected ? `2px solid ${theme.palette.background.paper}` : '2px solid #00c59b',
+                              backgroundColor: socketConnected ? '#ffffff' : '#888',
                               color: socketConnected ? '#00c59b' : '#888',
                               boxShadow: theme.shadows[2]
                             }}
-            
+
                           />
                         </IconButton>
           </Box>

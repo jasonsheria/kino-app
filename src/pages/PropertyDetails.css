@@ -454,7 +454,7 @@
   --pd-muted: #6b7280;
 }
 
-.pd-primary { background: linear-gradient(180deg, var(--pd-accent-2) 0%, var(--pd-primary) 100%); color: #fff; }
+.pd-primary { background: #95a6a8; color: #fff; }
 
 /* Video button overlay on hero */
 .pd-hero-main { position: relative; }
@@ -465,7 +465,7 @@
   display: inline-flex;
   gap: 10px;
   align-items: center;
-  background: linear-gradient(90deg, rgba(124,92,255,0.98), rgba(106,70,247,0.98));
+  background: linear-gradient(90deg, rgb(13, 178, 199), rgb(15, 23, 42));
   color: #fff;
   padding: 10px 14px;
   border-radius: 12px;

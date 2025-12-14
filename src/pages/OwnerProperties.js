@@ -69,6 +69,13 @@ export default function OwnerProperties() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
+  // Promotion dialog state
+  const [promoDialogOpen, setPromoDialogOpen] = useState(false);
+  const [promoTargetIndex, setPromoTargetIndex] = useState(null);
+  const [promoData, setPromoData] = useState({ price: '', start: '', end: '', comment: '' });
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState(null);
+
   // Normalize various error shapes coming from axios / backend
   const formatError = (errOrMessage) => {
     if (!errOrMessage) return null;
@@ -220,6 +227,96 @@ export default function OwnerProperties() {
     setDeleteTargetIndex(i);
     setDeleteError(null);
     setDeleteDialogOpen(true);
+  };
+
+  const openPromote = (i) => {
+    const target = properties[i] || {};
+    setPromoTargetIndex(i);
+    setPromoData({
+      price: target.promoPrice != null ? target.promoPrice : '',
+      start: target.promoStart ? (new Date(target.promoStart)).toISOString().slice(0,10) : '',
+      end: target.promoEnd ? (new Date(target.promoEnd)).toISOString().slice(0,10) : '',
+      comment: target.promoComment || ''
+    });
+    setPromoError(null);
+    setPromoDialogOpen(true);
+  };
+
+  const submitPromotion = async () => {
+    if (promoTargetIndex == null) return;
+    try {
+      setPromoLoading(true);
+      const token = localStorage.getItem('ndaku_auth_token');
+      const target = properties[promoTargetIndex];
+      const source = target.__source || 'mobilier';
+      const endpoint = source === 'vehicules' ? 'vehicules' : 'mobilier';
+
+      const payload = {
+        promotion: true,
+        promoPrice: Number(promoData.price) || 0,
+        promoStart: promoData.start || null,
+        promoEnd: promoData.end || null,
+        promoComment: promoData.comment || ''
+      };
+
+      // Nest controller expects form field 'data' containing a JSON string when using file endpoints.
+      const body = { data: JSON.stringify(payload) };
+
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}/${target._id}`,
+        body,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPromoDialogOpen(false);
+      setPromoTargetIndex(null);
+      setPromoError(null);
+      await fetchProperties();
+    } catch (err) {
+      console.error('Erreur promotion:', err.response?.data || err.message);
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors de la promotion';
+      setPromoError(msg);
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const removePromotion = async () => {
+    if (promoTargetIndex == null) return;
+    try {
+      setPromoLoading(true);
+      const token = localStorage.getItem('ndaku_auth_token');
+      const target = properties[promoTargetIndex];
+      const source = target.__source || 'mobilier';
+      const endpoint = source === 'vehicules' ? 'vehicules' : 'mobilier';
+
+      const payload = {
+        promotion: false,
+        promoPrice: null,
+        promoStart: null,
+        promoEnd: null,
+        promoComment: ''
+      };
+
+      const body = { data: JSON.stringify(payload) };
+
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}/${target._id}`,
+        body,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPromoDialogOpen(false);
+      setPromoTargetIndex(null);
+      setPromoError(null);
+      await fetchProperties();
+    } catch (err) {
+      console.error('Erreur suppression promotion:', err.response?.data || err.message);
+      const msg = formatError(err.response?.data?.message) || formatError(err.response?.data) || formatError(err.message) || 'Erreur lors de la suppression de la promotion';
+      setPromoError(msg);
+    } finally {
+      setPromoLoading(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -730,7 +827,7 @@ export default function OwnerProperties() {
                 sx={{
                   position: 'relative',
                   width: '100%',
-                  maxWidth: 360,
+                  maxWidth: 480,
                   boxShadow: 3,
                   borderRadius: 2,
                   overflow: 'hidden',
@@ -774,6 +871,21 @@ export default function OwnerProperties() {
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
+                    <Button
+                      size="small"
+                      onClick={() => openPromote(properties.indexOf(p))}
+                      sx={{
+                        bgcolor: 'background.paper',
+                        color: 'text.primary',
+                        '&:hover': { bgcolor: 'action.hover' },
+                        boxShadow: 1,
+                        borderRadius: 0,
+                        px: 1.5,
+                        textTransform: 'none',
+                      }}
+                    >
+                      Promo
+                    </Button>
                     <IconButton
                       size="small"
                       onClick={() => remove(properties.indexOf(p))}
@@ -909,6 +1021,60 @@ export default function OwnerProperties() {
             <Button onClick={() => { setDeleteDialogOpen(false); setDeleteTargetIndex(null); setDeleteError(null); }} disabled={deleteLoading}>Annuler</Button>
             <Button color="error" variant="contained" onClick={confirmDelete} disabled={deleteLoading} startIcon={deleteLoading ? <CircularProgress size={16} /> : null}>
               {deleteLoading ? 'Suppression...' : 'Supprimer'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        {/* Promotion dialog */}
+        <Dialog
+          open={promoDialogOpen}
+          onClose={() => { if (!promoLoading) { setPromoDialogOpen(false); setPromoTargetIndex(null); setPromoError(null); } }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Mettre en promotion</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Prix promotionnel"
+                type="number"
+                value={promoData.price}
+                onChange={(e) => setPromoData(d => ({ ...d, price: e.target.value }))}
+                fullWidth
+              />
+              <TextField
+                label="Date de début"
+                type="date"
+                value={promoData.start}
+                onChange={(e) => setPromoData(d => ({ ...d, start: e.target.value }))}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Date de fin"
+                type="date"
+                value={promoData.end}
+                onChange={(e) => setPromoData(d => ({ ...d, end: e.target.value }))}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Commentaire"
+                value={promoData.comment}
+                onChange={(e) => setPromoData(d => ({ ...d, comment: e.target.value }))}
+                fullWidth
+                multiline
+                minRows={3}
+              />
+              {promoError && <Alert severity="error">{promoError}</Alert>}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setPromoDialogOpen(false); setPromoTargetIndex(null); setPromoError(null); }} disabled={promoLoading}>Annuler</Button>
+            <Button color="error" onClick={removePromotion} disabled={promoLoading || !properties[promoTargetIndex]?.promotion}>
+              Supprimer la promotion
+            </Button>
+            <Button variant="contained" onClick={submitPromotion} disabled={promoLoading} startIcon={promoLoading ? <CircularProgress size={16} color="inherit" /> : null}>
+              {promoLoading ? 'En cours...' : 'Valider la promotion'}
             </Button>
           </DialogActions>
         </Dialog>

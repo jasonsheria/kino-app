@@ -32,11 +32,12 @@
 .agent-info { padding: 14px 16px; }
 .agent-bio { margin: 0 0   12px 0; color: #374151; font-size: 0.95rem; line-height:1.4; }
 
-.agent-actions {margin-top: 22px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.agent-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .btn-primary { background: linear-gradient(90deg, var(--ndaku-primary), rgba(2, 80, 60, 0.95)); color:#fff; border:none; padding:9px 12px; border-radius:10px; font-weight:700; cursor:pointer; }
 
 .action-icons { display:flex; gap:8px; }
-.icon-btn { width:44px; height:44px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; border:none; background:rgba(250,250,250,0.9); color:var(--ndaku-dark, #111827); cursor:pointer; }
+.icon-btn { width:53px; height:44px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; border:none; background:rgba(250,250,250,0.9); color: #111827; cursor:pointer;font-size: 1.2rem;
+ transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .icon-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
 
 @media (max-width: 680px) {

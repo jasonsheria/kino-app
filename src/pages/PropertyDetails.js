@@ -354,18 +354,14 @@ const PropertyDetails = () => {
       <HomeLayout />
       <div className="container pd-clean-container">
         <div className="pd-breadcrumb"><Link to="/">← Retour à l'accueil</Link> / <strong>Détails</strong></div>
-        <div className="pd-actions">
-          <button className="btn pd-secondary">Partager</button>
-          <button className="btn pd-secondary">Favori</button>
-          <button className="btn pd-secondary">Voir les annonces à proximité</button>
-        </div>
+       
 
         <div className="pd-page-grid">
           {/* LEFT: Main content */}
           <div>
              <div className="d-flex justify-content-between align-items-center w-100 mb-4" style={{ marginRight: "9%" }}>
                 <div className="pd-type">{property.name || 'Appartement'}</div>
-                <div className="pd-price d-flex justify-content-center align-items-center" style={{ fontSize: 20 }}><FaMapMarkerAlt /> {property.address ? property.address: ''}</div>
+                <div className="pd-price d-flex justify-content-center align-items-center" style={{ fontSize: 16 }}><FaMapMarkerAlt /> {property.address ? property.address: ''}</div>
 
               </div>
             <div className="pd-hero">
@@ -445,10 +441,10 @@ const PropertyDetails = () => {
 
               <div className="pd-desc">
                 <h4>Description</h4>
-                <p>{property.description}</p>
+                <p style={{color : "black"}}>{property.description}</p>
               </div>
 
-              <div className="pd-reviews">
+              {/* <div className="pd-reviews">
                 <h5>Avis clients</h5>
                 {(property.reviews || []).slice(0, 2).map((r, i) => (
                   <div className="pd-review-card" key={i}>
@@ -463,10 +459,10 @@ const PropertyDetails = () => {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div> */}
 
               <div style={{ marginTop: 20 }}>
-                <h5>Localisation</h5>
+                <h4>Localisation</h4>
                 <div className="pd-map" style={{ height: 260, position: 'relative' }}>
                   {/* small control to focus on user/property */}
                   <div style={{ position: 'absolute', right: 10, top: 10, zIndex: 5000 }}>

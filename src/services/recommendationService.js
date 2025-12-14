@@ -12,11 +12,12 @@ function shuffleArray(array) {
 }
 
 // Fonction pour filtrer les éléments similaires basés sur certains critères
-function getSimilarItems(item, items, kind) {
+function getSimilarItems(item, items, kind, promotion = false) {
     if (kind === 'properties') {
         return items.filter(p => 
             p.id !== item.id && (
                 p.type === item.type ||
+                p.promotion== false && item.promotion== false ||
                 p.price >= item.price * 0.8 && p.price <= item.price * 1.2 ||
                 p.address.includes(item.address.split(',')[0]) // Même commune
             )
@@ -113,12 +114,12 @@ class RecommendationService {
      * @returns {Promise<Array>} Liste des éléments recommandés
      */
     async getRecommendations(items, options = {}) {
-        const { kind = 'properties', limit = 12 } = options;
+        const { kind = 'properties', limit = 12, promotion = false } = options;
 
         try {
             // Pour l'instant, on utilise une approche simple :
             // 1. On récupère quelques éléments similaires pour chaque élément
-            // 2. On mélange les résultats
+            // 2. On mélange les résultats, 
             // 3. On limite le nombre de résultats
 
             let recommendations = new Set();

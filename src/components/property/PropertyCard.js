@@ -23,12 +23,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   // Resolve agent robustly:
-  const [resolvedAgent, setResolvedAgent] = useState(() => {
-    try {
-      if (property && property.agent && typeof property.agent === 'object') return property.agent;
-      return null;
-    } catch (e) { return null; }
-  });
+
   const [remoteAgentsLoading, setRemoteAgentsLoading] = useState(false);
   const [remoteAgentsError, setRemoteAgentsError] = useState(null);
   const location = useLocation();
@@ -39,6 +34,12 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
       return reserved.includes(String(property.id || property._id)) || Boolean(property.isReserved);
     } catch (e) { return Boolean(property.isReserved); }
+  });
+    const [resolvedAgent, setResolvedAgent] = useState(() => {
+    try {
+      if (property && property.agent && typeof property.agent === 'object') return property.agent;
+      return null;
+    } catch (e) { return null; }
   });
   const [showBooking, setShowBooking] = useState(false);
 
@@ -187,10 +188,16 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   // Reservation success is handled globally via event dispatch/localStorage in the modal
 
   // safe images array (fallback to property.image or a bundled placeholder)
+  const safeStr = (v) => {
+    if (v === undefined || v === null) return '';
+    if (typeof v === 'string') return v;
+    try { return String(v); } catch (e) { return '' }
+  };
+
   const imgs = Array.isArray(property.images) && property.images.length
-    ? property.images
-    : (property.image ? [property.image] : [require('../../img/property-1.jpg')]);
-  const displayName = property.name || property.title || 'Bien immobilier';
+    ? property.images.map(i => (typeof i === 'string' ? i : (i && i.url) ? i.url : require('../../img/property-1.jpg')))
+    : (property.image ? [ (typeof property.image === 'string' ? property.image : (property.image && property.image.url) ? property.image.url : require('../../img/property-1.jpg')) ] : [require('../../img/property-1.jpg')]);
+  const displayName = safeStr(property.titre || property.name || property.title || property.nom) || 'Bien immobilier';
 
   // Suggestions (autres biens, exclure le courant)
   const suggestions = properties.filter(p => String(p.id) !== String(property.id)).slice(0, 3);
@@ -296,10 +303,10 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         <img src={imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay" />
         <div className="badges">
-          <div className="badge status-badge">{property.status || ''}</div>
-          <div className="badge type-badge">{property.type || ''}</div>
+          <div className="badge status-badge">{safeStr(property.statut || property.status || '')}</div>
+          <div className="badge type-badge">{safeStr(property.type || '')}</div>
         </div>
-        <div className="price-badge">{new Intl.NumberFormat().format(property.price || 0)} $</div>
+        <div className="price-badge">{new Intl.NumberFormat().format(property.prix || property.price || 0)} $</div>
         {showActions && (
           <div className="card-actions">
             <button className="action-btn" title="Edit"><FaEdit /></button>
@@ -310,11 +317,11 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       <div className="card-body" onClick={() => navigate(`/properties/${property.id}`)} style={{ cursor: 'pointer' }}>
         <div className="title-row">
           <h6 className="card-title mb-0">{displayName}</h6>
-          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1" />{tronquerTexte(property.address, 30)}</div>
+          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1" />{tronquerTexte(safeStr(property.adresse || property.address), 30)}</div>
         </div>
-        <p className="card-desc text-secondary small"> {tronquerTexte((property.description), 40)}</p>
+        <p className="card-desc text-secondary small"> {tronquerTexte(safeStr(property.description || property.desc || property.details || ''), 40)}</p>
         <div className="features-row">
-          {(property.chambres || property.douches || property.salon || property.cuisine) && (
+          {((property.chambres || property.douches || property.salon || property.cuisine) && property.type !== "Salle de fête" ) && (
             <>
               <div className="feature"><FaBed /> <span>{property.chambres || 0}</span></div>
               <div className="feature"><FaShower /> <span>{property.douches || 0}</span></div>

@@ -288,7 +288,7 @@
 
 /* Responsive adjustments */
 @media (max-width: 520px) {
-  .agent-contact-modal { width: 60%; height : 40vh; padding: 18px; max-width: 94%; border-radius: 12px }
+  .agent-contact-modal { width: 60%; height : auto; padding: 18px; max-width: 94%; border-radius: 12px }
   .agent-contact-header { gap: 10px; align-items: flex-start }
   .agent-contact-header > div { flex: 1 }
   .agent-contact-actions { width: 100%; display:flex; flex-direction:column; gap:8px }

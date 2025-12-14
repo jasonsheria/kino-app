@@ -222,7 +222,11 @@ export default function OwnerAppointments() {
                         fontSize: 16
                       }}
                     >
-                      {properties.map(p => <option key={p} value={p}>{p === 'all' ? 'Toutes les propriétés' : `${tronquerTexte(p.titre, 25)}`}</option>)}
+                      {properties.map(p => {
+                        const val = p === 'all' ? 'all' : (typeof p === 'object' ? (p._id || p.id || String(p)) : p);
+                        const label = p === 'all' ? 'Toutes les propriétés' : (typeof p === 'object' ? (p.titre || p.name || p._id || String(p)) : p);
+                        return <option key={val} value={val}>{tronquerTexte(label, 25)}</option>;
+                      })}
                     </TextField>
                   </Grid>
                   <Grid item xs={6} sm={3} sx={{ width: '100%' }}>

@@ -71,12 +71,32 @@ export default function ModernVirtualTourModal({
       url.includes('watch?v=') ||
       url.includes('youtu.be'));
 
+  const getVideoUrl = (url) => {
+    if (!url) return '';
+    // If already a full URL (starts with http or https), return as is
+    if (typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
+      return url;
+    }
+    // If it's a relative path, prepend backend URL if available
+    if (typeof url === 'string' && process.env.REACT_APP_BACKEND_APP_URL) {
+      return process.env.REACT_APP_BACKEND_APP_URL + url;
+    }
+    // Fallback: return as is
+    return url || '';
+  };
+
   const getVideoType = (url) => {
-    if (!url || typeof url !== 'string') return '';
+    if (!url || typeof url !== 'string') return 'video/mp4';
     const u = url.split('?')[0].toLowerCase();
     if (u.endsWith('.mp4')) return 'video/mp4';
     if (u.endsWith('.webm')) return 'video/webm';
-    if (u.endsWith('.ogg')) return 'video/ogg';
+    if (u.endsWith('.ogg') || u.endsWith('.ogv')) return 'video/ogg';
+    if (u.endsWith('.mov') || u.endsWith('.qt')) return 'video/quicktime';
+    if (u.endsWith('.avi')) return 'video/avi';
+    if (u.endsWith('.mkv')) return 'video/x-matroska';
+    if (u.endsWith('.flv')) return 'video/x-flv';
+    if (u.endsWith('.wmv')) return 'video/x-ms-wmv';
+    // Default to mp4 if format cannot be determined
     return 'video/mp4';
   };
 
@@ -217,8 +237,11 @@ export default function ModernVirtualTourModal({
                   <p style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                     Impossible de lire la vidéo
                   </p>
-                  <p style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '1.5rem' }}>
+                  <p style={{ fontSize: '0.9rem', opacity: 0.7, marginBottom: '0.5rem' }}>
                     Le navigateur ne prend pas en charge ce format.
+                  </p>
+                  <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '1.5rem', fontFamily: 'monospace' }}>
+                    URL: {getVideoUrl(current)?.substring(0, 50)}...
                   </p>
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                     <button
@@ -239,8 +262,10 @@ export default function ModernVirtualTourModal({
                 </motion.div>
               ) : (
                 <video
+                  key={current}
                   ref={videoRef}
                   controls
+                  controlsList="nodownload"
                   playsInline
                   webkitPlaysInline
                   preload="metadata"
@@ -248,16 +273,34 @@ export default function ModernVirtualTourModal({
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
+                    backgroundColor: '#000',
                   }}
                   muted={muted}
                   onPlay={() => setPlaying(true)}
                   onPause={() => setPlaying(false)}
-                  onError={() => setVideoError(true)}
+                  onError={(e) => {
+                    console.error('Video error:', e.target.error, { current, url: getVideoUrl(current) });
+                    setVideoError(true);
+                  }}
                 >
+                  {/* Support multiple video formats for cross-browser compatibility */}
                   <source
-                    src={process.env.REACT_APP_BACKEND_APP_URL + current}
-                    type={getVideoType(current)}
+                    src={getVideoUrl(current)}
+                    type="video/mp4"
                   />
+                  <source
+                    src={getVideoUrl(current)}
+                    type="video/webm"
+                  />
+                  <source
+                    src={getVideoUrl(current)}
+                    type="video/ogg"
+                  />
+                  <source
+                    src={getVideoUrl(current)}
+                    type="video/quicktime"
+                  />
+                  Votre navigateur ne supporte pas la lecture vidéo
                 </video>
               )
             ) : (

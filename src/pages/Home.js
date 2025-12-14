@@ -14,7 +14,7 @@ import { properties, agents } from '../data/fakedata';
 import { vehicles } from '../data/fakedataVehicles';
 import axios from 'axios';
 import recService from '../services/recommendationService';
-import { promotions as promoData } from '../data/fakedataPromotions';
+import { getLocalPromotions, fetchMorePromotionsFromServer } from '../data/fakedataPromotions';
 import VehicleList from '../components/vehicle/VehicleList';
 import './HomeSection.css';
 import '../styles/services-modern.css';
@@ -33,6 +33,7 @@ import { Box, Container, Grid, Stack, Typography, IconButton, useMediaQuery, But
 import authService from '../services/authService';
 import HomeLayout from '../components/homeComponent/HomeLayout'
 import img6 from '../assets/images/quelle-agence-immobiliere-choisir-pour-vendre-1.jpg'
+import MapPropertyViewer from '../components/map/MapPropertyViewer'
 const Home = () => {
     const { enqueueSnackbar } = useSnackbar();
     const [contactOpen, setContactOpen] = React.useState(false);
@@ -110,7 +111,7 @@ const Home = () => {
                 if (Array.isArray(items) && items.length) {
                     setServerVehicles(items);
                     // Use recommender over server items if desired; for now feed recommender with server items
-                    const recs = await recService.getRecommendations(items.slice(0, 50), { kind: 'vehicles', limit: 12 });
+                    const recs = await recService.getRecommendations(items.slice(0, 50), { kind: 'vehicles', limit: 12, promotion:false });
                     setRecommendedVehicles(recs);
                 } else {
                     const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
@@ -248,9 +249,8 @@ const Home = () => {
     const communes = React.useMemo(() => {
         const all = properties.map(p => {
             // Extraction simple: on prend le dernier mot de l'adresse comme commune (ex: "Gombe, Kinshasa")
-            const parts = p.address.split(',').map(s => s.trim());
-            if (parts.length > 1) return parts[parts.length - 2];
-            return null;
+            const parts = p.commune;
+             return parts;
         }).filter(Boolean);
         return Array.from(new Set(all));
     }, [properties]);
@@ -308,20 +308,11 @@ const Home = () => {
         } catch (e) { /* ignore */ }
     };
 
-    // Promotion unique salle de fête -30% (each promo gets a stable __key)
-    const [promotions, setPromotions] = React.useState([
-        {
-            __key: 'p1',
-            id: 'p1',
-            title: 'Salle de fête Gombe - Offre Spéciale',
-            excerpt: 'Profitez d’une réduction exceptionnelle de 30% sur la location de notre salle de fête à Gombe ! Offre valable jusqu’à la fin du mois.',
-            image: require('../img/salles/promo1.jpg'),
-            oldPrice: 1000,
-            newPrice: 700,
-            likes: 12,
-            comments: [{ id: 'c1', author: 'Aline', text: 'Excellente offre !' }]
-        }
-    ]);
+    // Promotions state (loaded from local fakedataPromotions or server)
+    const [promotions, setPromotions] = React.useState([]);
+    const [promotionsOffset, setPromotionsOffset] = React.useState(0);
+    const [loadingPromotions, setLoadingPromotions] = React.useState(false);
+    const [promotionsHasMore, setPromotionsHasMore] = React.useState(true);
 
     // per-promo comment open state to view older comments
     const [commentsOpen, setCommentsOpen] = React.useState({});
@@ -359,6 +350,82 @@ const Home = () => {
         setReplyTo(rt => ({ ...rt, [promoKey]: null }));
     };
 
+    // Load initial promotions from local source on mount
+    React.useEffect(() => {
+        let mounted = true;
+        (async () => {
+            setLoadingPromotions(true);
+            try {
+                // Request promotions from server only (no local fallback)
+                const items = await fetchMorePromotionsFromServer({ offset: 0, limit: 10, noFallback: true });
+                if (!mounted) return;
+                // log what we received for debugging
+                // eslint-disable-next-line no-console
+                console.debug('[Home] initial promotions fetched', { count: Array.isArray(items) ? items.length : 0, sample: Array.isArray(items) && items[0] ? (items[0]._id || items[0].id || '(obj)') : null });
+                setPromotions(Array.isArray(items) ? items : []);
+                setPromotionsOffset(Array.isArray(items) ? items.length : 0);
+                setPromotionsHasMore(Array.isArray(items) && items.length >= 10);
+            } catch (e) {
+                console.warn('Failed to load promotions from server', e);
+                if (!mounted) return;
+                setPromotions([]);
+                setPromotionsOffset(0);
+                setPromotionsHasMore(false);
+            } finally {
+                if (mounted) setLoadingPromotions(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
+
+    // Debug: log promotions state when it changes to help trace rendering issues
+    React.useEffect(() => {
+        // eslint-disable-next-line no-console
+        console.debug('[Home] promotions state updated', { length: promotions.length, sample: promotions[0] ? (promotions[0].id || promotions[0].title || '(obj)') : null });
+        // detect problematic fields that are objects but used as children later
+        promotions.forEach((p, idx) => {
+            try {
+                if (p && typeof p.title === 'object') {
+                    // eslint-disable-next-line no-console
+                    console.warn('[Home] promotion title is an object (likely cause of React child error)', { index: idx, title: p.title, item: p });
+                }
+                if (p && p.image && typeof p.image !== 'string') {
+                    // eslint-disable-next-line no-console
+                    console.warn('[Home] promotion image is not a string', { index: idx, image: p.image });
+                }
+                if (p && p.comments && !Array.isArray(p.comments)) {
+                    // eslint-disable-next-line no-console
+                    console.warn('[Home] promotion comments is not an array', { index: idx, comments: p.comments });
+                }
+            } catch (err) {
+                // eslint-disable-next-line no-console
+                console.error('[Home] error inspecting promotion item', { index: idx, error: err && err.message });
+            }
+        });
+    }, [promotions]);
+
+    const loadMorePromotions = async () => {
+        if (loadingPromotions) return;
+        setLoadingPromotions(true);
+        try {
+            // try server first; fetchMorePromotionsFromServer will fallback to local data
+            const next = await fetchMorePromotionsFromServer({ offset: promotionsOffset, limit: 10 });
+            if (Array.isArray(next) && next.length) {
+                setPromotions(prev => [...prev, ...next]);
+                setPromotionsOffset(prev => prev + next.length);
+                if (next.length < 10) setPromotionsHasMore(false);
+                else setPromotionsHasMore(true);
+            } else {
+                // no items returned
+                setPromotionsHasMore(false);
+            }
+        } catch (err) {
+            console.warn('Error loading more promotions', err);
+        } finally {
+            setLoadingPromotions(false);
+        }
+    };
+
     const deleteCommentPromo = (promoKey, commentId) => {
         setPromotions(prev => prev.map((p, i) => {
             const key = ensurePromoKey(p, i);
@@ -371,24 +438,8 @@ const Home = () => {
     };
 
     const handleVisitOrView = (promo, promoIndex) => {
-        // append next batch of promotions (up to 10)
-        setPromotions(prev => {
-            const already = prev.__shownCount || prev.length || 0;
-            const next = promoData.slice(already, already + 10).map((item, idx) => {
-                const prop = item.property || {};
-                return {
-                    ...prop,
-                    __key: prop.__key || prop.id || item.promoId || `promo-${already + idx}`,
-                    _promoMeta: { promoId: item.promoId, discountPercent: item.discountPercent },
-                    likes: prop.likes || 0,
-                    comments: prop.comments || []
-                };
-            });
-            const newList = [...prev, ...next];
-            newList.__shownCount = already + next.length;
-            return newList;
-        });
-        // navigate to property details (if id available)
+        // Load more promotions (best-effort) then navigate to property details
+        loadMorePromotions();
         const id = promo.id || promo.propertyId || '';
         if (id) navigate(`/property/${id}`);
     };
@@ -473,9 +524,9 @@ const Home = () => {
             {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
             <section className="landing-hero">
                 <div className="container hero-inner d-grid">
-                    <div className="hero-left hero-fade-up text-center">
-                        <h1 className="hero-title">Ndaku — La plateforme immobilière de Kinshasa</h1>
-                        <p className="hero-sub text-center">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
+                    <div className="hero-left hero-fade-up">
+                        <h1 className="hero-title  text-center">Ndaku — La plateforme immobilière de Kinshasa</h1>
+                        <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
 
 
                         {/* ajouter une image visible uniquemen tpour le mobile */}
@@ -483,7 +534,7 @@ const Home = () => {
                             <img src={img6} alt="bannier" style={{ marginBotton: '2vh', width: '100%', height: '400px' }} />
 
                         </div>
-                        <div className="hero-ctas" style={{ justifyContent: 'center' }}>
+                        <div className="hero-ctas" style={{ justifyContent: 'space-between' }}>
                             <Button onClick={() => scrollToId('biens')} variant="" sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
                             <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
                         </div>
@@ -523,8 +574,8 @@ const Home = () => {
                     </div>
 
                     <div className="d-flex gap-2 mt-3 mt-md-0">
-                        <Link to="/agency/Onboard" style={{ textDecoration: 'none' }}>
-                            <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Agence </MuiButton>
+                        <Link to="#" style={{ textDecoration: 'none' }}>
+                            <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Immobilier </MuiButton>
                         </Link>
                         <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
                             <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'> Propriétaire </Button>
@@ -532,6 +583,28 @@ const Home = () => {
                     </div>
 
                 </div>
+            </section>
+
+            {/* Map Section - Browse properties on interactive map */}
+            <section className="map-section py-5" style={{ background: '#f8fafc' }}>
+              <div className="container">
+                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
+                  <span className="icon-circle text-white me-3"><FaMapMarkerAlt size={28} /></span>
+                  <span className="fw-bold">Explorez nos biens sur la carte</span>
+                </div>
+                <p className="text-center text-muted mb-4">Visualisez tous les biens disponibles à Kinshasa, interagissez avec les marqueurs et réservez une visite directement depuis la carte.</p>
+                
+                <div style={{ height: '500px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(17,25,40,0.12)' }}>
+                  <MapPropertyViewer 
+                    properties={filteredResults && filteredResults.length > 0 ? filteredResults : properties}
+                    onVisitRequest={(data) => {
+                      openBooking(data.property, data.agent);
+                    }}
+                    defaultCenter={[-4.325, 15.322]}
+                    defaultZoom={13}
+                  />
+                </div>
+              </div>
             </section>
 
             {/* Cleaned Agency section: concise, airy, professional */}
@@ -842,9 +915,11 @@ const Home = () => {
                     }
                 `}</style>
                 <div className="row justify-content-center">
-                    {filteredResults.slice(0, 6).map((property, idx) => (
+                    {filteredResults.filter(p=> p.promotion!==true).slice(0, 6).map((property, idx) => (
                         <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
-                            <PropertyCard property={property} onOpenBooking={openBooking} />
+                            
+                               <PropertyCard property={property} onOpenBooking={openBooking} />
+                               
                         </ScrollReveal>
                     ))}
                     {filteredResults.length === 0 && (
@@ -966,43 +1041,7 @@ const Home = () => {
                         <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
-                    <div className="row gx-4 gy-4 justify-content-center">
-                        {(() => {
-                            // make agent list deterministic and surface best matches first
-                            const sorted = [...agents].sort((a, b) => {
-                                // certified first
-                                const certA = a.isCertified ? 0 : 1;
-                                const certB = b.isCertified ? 0 : 1;
-                                if (certA !== certB) return certA - certB;
-                                // active status next
-                                const statusOrder = s => (s === 'Actif' || s === 'active' ? 0 : 1);
-                                const sA = statusOrder(a.status);
-                                const sB = statusOrder(b.status);
-                                if (sA !== sB) return sA - sB;
-                                // then by dealsCount (desc)
-                                const da = Number(a.dealsCount || a.deals || 0);
-                                const db = Number(b.dealsCount || b.deals || 0);
-                                if (db !== da) return db - da;
-                                // finally by name
-                                return String(a.name || '').localeCompare(String(b.name || ''));
-                            });
-
-                            return sorted.slice(0, 6).map(agent => (
-                                <ScrollReveal className="col-12 col-md-6 col-lg-4 animate-card" key={agent.id}>
-                                    {/* wrapper cliquable pour ouvrir la messagerie */}
-                                    <div
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={() => openContact(agent)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') openContact(agent); }}
-                                        style={{ cursor: 'pointer', outline: 'none' }}
-                                    >
-                                        <AgentCard agent={agent} />
-                                    </div>
-                                </ScrollReveal>
-                            ));
-                        })()}
-                    </div>
+                   
                     <div className="d-flex justify-content-center mt-3">
                         <Link to="/agents" style={{ textDecoration: 'none' }}>
                             <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
@@ -1118,7 +1157,7 @@ const Home = () => {
                                                     fontSize: '0.9rem',
                                                     fontWeight: 500
                                                 }}>
-                                                    {promo.comments.length} commentaires
+                                                        {Array.isArray(promo.promoComment) ? promo.promoComment.length : (promo.promoComment ? 1 : 0)} commentaires
                                                 </span>
                                             </div>
                                         </div>
@@ -1126,23 +1165,29 @@ const Home = () => {
                                             maxHeight: '180px',
                                             overflowY: 'auto',
                                             borderRadius: '12px',
-                                            background: 'rgba(249, 250, 251, 0.8)',
+                                            background: 'rgba(251, 249, 251, 0.8)',
                                             padding: '12px',
                                             marginBottom: '16px'
                                         }}>
                                             <ul className="list-unstyled mb-2">
-                                                {promo.comments.map(c => (
-                                                    <li key={c.id} className="comment-item" style={{
-                                                        padding: '8px 12px',
-                                                        marginBottom: '8px',
-                                                        borderRadius: '8px',
-                                                        background: 'white',
-                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                                                    }}>
-                                                        <strong style={{ color: '#374151' }}>{c.author}:</strong>
-                                                        <span style={{ color: '#6b7280', marginLeft: '8px' }}>{c.text}</span>
-                                                    </li>
-                                                ))}
+                                                    {(() => {
+                                                        const promoComments = Array.isArray(promo.promoComment)
+                                                            ? promo.promoComment
+                                                            : (promo.promoComment ? [{ id: 'inline', author: 'Annonceur', text: String(promo.promoComment) }] : []);
+                                                        if (promoComments.length === 0) return (<li className="text-muted" style={{ fontSize: '0.9rem' }}>Pas encore de commentaires. Soyez le premier à commenter !</li>);
+                                                        return promoComments.map(c => (
+                                                            <li key={c.id || c._id || Math.random()} className="comment-item" style={{
+                                                                padding: '8px 12px',
+                                                                marginBottom: '8px',
+                                                                borderRadius: '8px',
+                                                                background: 'white',
+                                                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                                                            }}>
+                                                                <strong style={{ color: '#374151' }}>{c.author || 'Anonyme'}:</strong>
+                                                                <span style={{ color: '#6b7280', marginLeft: '8px' }}>{c.text || ''}</span>
+                                                            </li>
+                                                        ));
+                                                    })()}
                                             </ul>
                                         </div>
                                         <CommentInput onAdd={(author, text) => addCommentPromo(promo.id, author || 'Anonyme', text)} />
@@ -1167,44 +1212,29 @@ const Home = () => {
                         <p className="text-muted mt-2 mb-0">Les meilleures réductions du moment</p>
                     </div>
                 </div>
-                <div className="row g-4">
+                <div className="promo-grid">
                     {promotions && promotions.length > 0 ? promotions.map((p, i) => {
                         const promoKey = ensurePromoKey(p, i);
+                        const agent = p.agent || p.owner || null;
+                        const imageSrc = p.image || (p.images && p.images[0]) || require('../img/property-1.jpg');
+                        const price = p.price || p.newPrice || p.amount || null;
+
                         return (
-                            <div key={promoKey} className="col-12 col-lg-6 d-flex align-items-center justify-content-center">
+                            <div key={promoKey} className="promo-grid-item">
                                 <PromoCard
                                     id={p.id || promoKey}
-                                    promoId={p._promoMeta?.promoId || promoKey}
-                                    title={p.name || p.title || 'Offre spéciale'}
+                                    title={p.title || p.name || 'Offre spéciale'}
                                     description={p.address || p.excerpt || p.description || ''}
-                                    image={p.images?.[0] || p.image || require('../img/property-1.jpg')}
-                                    oldPrice={p.oldPrice}
-                                    newPrice={p.newPrice}
-                                    discountPercent={p._promoMeta?.discountPercent}
-                                    likes={p.likes || 0}
-                                    comments={p.comments || []}
-                                    category={p.category || 'Immobilier'}
+                                    image={imageSrc}
+                                    agent={agent}
+                                    price={price}
+                                    initialLikes={p.likes || 0}
+                                    initialComments={p.comments || []}
                                     isHot={i === 0}
                                     isTrending={i % 2 === 0}
-                                    onLike={(id) => toggleLikePromo(promoKey)}
-                                    onShare={(id) => {
-                                        const shareUrl = `${window.location.origin}${window.location.pathname}#promo-${promoKey}`;
-                                        if (navigator.share) {
-                                            navigator.share({ title: p.title || p.name, text: p.excerpt || '', url: shareUrl }).catch(() => { });
-                                        } else if (navigator.clipboard) {
-                                            navigator.clipboard.writeText(shareUrl).then(() => {
-                                                setInfoMsg('Lien de l\'offre copié dans le presse-papiers');
-                                                setInfoOpen(true);
-                                            }).catch(() => {
-                                                setInfoMsg('Impossible de copier le lien');
-                                                setInfoOpen(true);
-                                            });
-                                        } else {
-                                            setInfoMsg('Partage non disponible sur ce navigateur');
-                                            setInfoOpen(true);
-                                        }
-                                    }}
-                                    onComment={(id, text) => addCommentPromo(promoKey, text)}
+                                    onReserve={() => openBooking({ id: p.id || promoKey, title: p.title || p.name || 'Offre spéciale', image: imageSrc, price }, agent)}
+                                    onViewAgent={(ag) => openBooking(null, ag)}
+                                    styles={{ margin : 10 }}
                                 />
                             </div>
                         );
@@ -1218,27 +1248,12 @@ const Home = () => {
                 </div>
                 {/* Load more button */}
                 <div className="d-flex justify-content-center mt-5">
-                    <Button
-                        className="btn btn-lg btn-success fw-bold px-5"
-                        variant='outlined'
-                        onClick={() => {
-                            setPromotions(prev => {
-                                const already = prev.__shownCount || prev.length || 0;
-                                const next = promoData.slice(already, already + 10).map(item => {
-                                    const prop = item.property || {};
-                                    return {
-                                        ...prop,
-                                        __key: prop.__key || prop.id || item.promoId || `promo-${already + Math.random()}`,
-                                        _promoMeta: { promoId: item.promoId, discountPercent: item.discountPercent },
-                                        likes: prop.likes || 0,
-                                        comments: prop.comments || []
-                                    };
-                                });
-                                const newList = [...prev, ...next];
-                                newList.__shownCount = already + next.length;
-                                return newList;
-                            });
-                        }}
+                    {promotionsHasMore ? (
+                        <Button
+                            className="btn btn-lg btn-success fw-bold px-5"
+                            variant='outlined'
+                            onClick={() => { loadMorePromotions(); }}
+                            disabled={loadingPromotions}
                         style={{
 
                             border: 'none',
@@ -1259,9 +1274,14 @@ const Home = () => {
                             e.target.style.transform = 'translateY(0)';
                             e.target.style.boxShadow = '0 6px 20px rgba(15, 81, 50, 0.3)';
                         }}
-                    >
-                        ⬇️ Voir plus d'offres
-                    </Button>
+                        >
+                            {loadingPromotions ? 'Chargement…' : '⬇️ Voir plus d\'offres'}
+                        </Button>
+                    ) : (
+                        <div className="text-muted small" style={{ padding: '14px 40px', borderRadius: 12 }}>
+                            ✅ Plus de résultats disponibles
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -1275,7 +1295,7 @@ const Home = () => {
             </div>
 
             {/* Call to action */}
-            <div className=" text-white text-center py-5" style={{
+            {/* <div className=" text-white text-center py-5" style={{
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
@@ -1287,7 +1307,7 @@ const Home = () => {
                     <p className="mb-4 fs-5 text-white">Inscrivez-vous gratuitement, publiez vos biens et bénéficiez d’une visibilité maximale sur Ndaku.</p>
                     <Button variant="outlined" color="inherit" sx={{ fontSize: '1.05rem', minWidth: 'min(180px, 60vw)', borderColor: 'rgba(255,255,255,0.6)', color: 'white' }} onClick={() => scrollToId('agence')}>Devenir agent</Button>
                 </div>
-            </div >
+            </div > */}
 
 
 

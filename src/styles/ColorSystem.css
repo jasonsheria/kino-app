@@ -296,7 +296,7 @@ h4, .h4 {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-tight);
-  color: var(--color-text-primary);
+  color: #0098fe;
 }
 
 h5, .h5 {

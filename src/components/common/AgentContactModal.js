@@ -50,7 +50,7 @@ const AgentContactModal = ({ agent, open, onClose }) => {
 
   // Safe accessor for agent fields to avoid calling .replace on undefined
   const agentName = agent?.prenom || agent?.name || 'Agent';
-  const agentImageUrl = (process.env.REACT_APP_BACKEND_APP_URL || '') + (agent?.image || '');
+  const agentImageUrl = (agent?.image || '');
   const rawWhatsapp = agent?.whatsapp || agent?.telephone || '';
   const whatsappNumber = rawWhatsapp ? String(rawWhatsapp).replace(/[^\d]/g, '') : '';
 

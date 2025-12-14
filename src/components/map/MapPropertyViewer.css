@@ -1,0 +1,771 @@
+/* MapPropertyViewer.css - Modern Map & Property Modal Design */
+
+.map-property-viewer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(17, 25, 40, 0.12);
+}
+
+/* Custom Marker Styles */
+.custom-marker-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.custom-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.custom-marker:hover {
+  transform: rotate(-45deg) scale(1.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.custom-marker svg {
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+}
+
+.custom-marker.featured {
+  animation: markerPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes markerPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(255, 122, 89, 0.3); }
+  50% { box-shadow: 0 4px 20px rgba(255, 122, 89, 0.5); }
+}
+
+/* Popup Marker Styles */
+.marker-popup {
+  width: 180px;
+  padding: 0;
+}
+
+.popup-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px 8px 0 0;
+  margin: -3px -3px 0 -3px;
+}
+
+.popup-title {
+  margin: 8px 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.popup-price {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.popup-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.popup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Property Detail Modal - Enhanced Design */
+.map-property-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: fadeInBg 0.3s ease;
+}
+
+@keyframes fadeInBg {
+  from { opacity: 0; backdrop-filter: blur(0px); }
+  to { opacity: 1; backdrop-filter: blur(6px); }
+}
+
+.map-property-modal {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+  animation: slideUpModal 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+  position: relative;
+}
+
+.map-property-modal.enhanced {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+@keyframes slideUpModal {
+  from {
+    transform: translateY(60px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 26px;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+.modal-close:hover {
+  background: white;
+  transform: scale(1.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Hero Image Section */
+.modal-hero {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
+.modal-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.modal-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
+}
+
+/* Badges */
+.modal-badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.badge-promo {
+  background: linear-gradient(90deg, #ff7a59, #ff3d6b);
+  color: white;
+}
+
+.badge-discount {
+  background: linear-gradient(90deg, #16a34a, #059669);
+  color: white;
+}
+
+/* Price Card - Floating */
+.modal-price-card {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.price-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.price-old {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: rgba(15, 23, 42, 0.5);
+  font-size: 0.8rem;
+  text-decoration: line-through;
+}
+
+.price-old span:first-child {
+  font-weight: 700;
+}
+
+.price-current {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.price-current .amount {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #16a34a;
+  line-height: 1;
+}
+
+.price-current .currency {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #16a34a;
+  margin-top: 4px;
+}
+
+/* Modal Content */
+.modal-content {
+  padding: 24px;
+}
+
+.modal-content.enhanced {
+  padding: 28px;
+}
+
+.modal-title {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+.modal-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.modal-location svg {
+  color: #ff7a59;
+  flex-shrink: 0;
+}
+
+.modal-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0.1), rgba(0,0,0,0));
+  margin: 12px 0 14px;
+}
+
+.modal-description {
+  margin: 0 0 16px;
+  color: rgba(15, 23, 42, 0.75);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Property Features Grid */
+.modal-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+}
+
+.feature-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.6);
+  letter-spacing: 0.5px;
+}
+
+.feature-value {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #667eea;
+}
+
+/* Agent Section - Enhanced */
+.modal-agent-section {
+  margin: 18px 0;
+  padding: 0;
+}
+
+.modal-agent-section.enhanced {
+  background: linear-gradient(135deg, #667eea06 0%, #764ba206 100%);
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.agent-section-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.agent-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.agent-avatar-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.agent-info-content {
+  flex: 1;
+}
+
+.agent-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.agent-company {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 500;
+}
+
+.agent-phone-display {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.agent-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.agent-actions.enhanced {
+  gap: 10px;
+}
+
+.action-btn-modern {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: white;
+  border: 2px solid transparent;
+  flex-direction: column;
+}
+
+.action-btn-modern svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.action-btn-modern.whatsapp {
+  background: linear-gradient(135deg, #25d366, #20ba58);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.action-btn-modern.whatsapp:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+}
+
+.action-btn-modern.facebook {
+  background: linear-gradient(135deg, #1877f2, #0a66c2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);
+}
+
+.action-btn-modern.facebook:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+}
+
+.action-btn-modern.call {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.action-btn-modern.call:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* CTA Button */
+.modal-visit-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #16a34a, #059669);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  letter-spacing: 0.5px;
+}
+
+.modal-visit-btn.enhanced {
+  padding: 16px;
+  font-size: 1rem;
+}
+
+.modal-visit-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(22, 163, 74, 0.35);
+}
+
+.modal-visit-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Empty State */
+.map-empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #f8fafc;
+  border-radius: 14px;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.map-empty-state svg {
+  opacity: 0.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .map-property-modal {
+    max-width: calc(100% - 32px);
+    max-height: calc(100vh - 32px);
+    border-radius: 16px;
+  }
+
+  .modal-hero {
+    height: 260px;
+  }
+
+  .modal-price-card {
+    bottom: 10px;
+    right: 10px;
+    padding: 10px 14px;
+  }
+
+  .price-current .amount {
+    font-size: 1.2rem;
+  }
+
+  .modal-content.enhanced {
+    padding: 22px;
+  }
+
+  .modal-title {
+    font-size: 1.15rem;
+  }
+
+  .modal-features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .agent-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .action-btn-modern {
+    padding: 10px 8px;
+    font-size: 0.75rem;
+  }
+
+  .action-btn-modern svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-property-modal-bg {
+    padding: 8px;
+  }
+
+  .map-property-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 14px;
+  }
+
+  .modal-hero {
+    height: 220px;
+  }
+
+  .modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    top: 10px;
+    right: 10px;
+  }
+
+  .modal-badges {
+    top: 10px;
+    left: 10px;
+    gap: 6px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+  }
+
+  .modal-price-card {
+    bottom: 8px;
+    right: 8px;
+    padding: 8px 12px;
+  }
+
+  .price-wrapper {
+    gap: 6px;
+  }
+
+  .price-current .amount {
+    font-size: 1rem;
+  }
+
+  .modal-content.enhanced {
+    padding: 18px;
+  }
+
+  .modal-title {
+    font-size: 1rem;
+  }
+
+  .modal-location {
+    font-size: 0.85rem;
+  }
+
+  .modal-description {
+    font-size: 0.9rem;
+  }
+
+  .modal-features {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .feature-label {
+    font-size: 0.7rem;
+  }
+
+  .feature-value {
+    font-size: 0.95rem;
+  }
+
+  .agent-card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .agent-avatar-large {
+    width: 48px;
+    height: 48px;
+  }
+
+  .agent-name {
+    font-size: 0.95rem;
+  }
+
+  .agent-phone-display {
+    font-size: 0.8rem;
+  }
+
+  .agent-actions {
+    gap: 8px;
+  }
+
+  .action-btn-modern {
+    padding: 8px 6px;
+    font-size: 0.7rem;
+  }
+
+  .action-btn-modern svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .modal-visit-btn.enhanced {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Leaflet customization */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+.leaflet-control-zoom {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  border: none;
+}
+
+/* Reserved Status Badge */
+.reserved-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  animation: slideInUp 0.3s ease-out;
+}
+
+.reserved-status-badge svg {
+  flex-shrink: 0;
+  animation: checkmark 0.5s ease-out;
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}

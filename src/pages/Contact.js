@@ -37,12 +37,12 @@ const Contact = () => {
         {
             icon: <FaPhoneAlt size={24} />,
             title: "Téléphone",
-            details: ["+243 900 000 000", "+243 900 000 001"],
+            details: ["+243 979 371 51"],
         },
         {
             icon: <FaEnvelope size={24} />,
             title: "Email",
-            details: ["contact@ndaku.cd", "support@ndaku.cd"],
+            details: ["jasongachaba1@.gmail", "sheriajason343@gmail.com"],
         },
         {
             icon: <FaClock size={24} />,
@@ -81,13 +81,13 @@ const Contact = () => {
 
             {/* Hero Section */}
             <section className="position-relative" style={{
-                background: `linear-gradient(135deg, var(--ndaku-primary) 0%, #0ea67e 100%)`,
+                background: `#0db3cc`,
                 color: 'white'
             }}>
                 <div className="container py-5">
                     <div className="row justify-content-center text-center">
                         <div className="col-lg-8">
-                            <h1 className="display-4 fw-bold mb-4">Contactez-nous</h1>
+                            <h1 className="display-4 fw-bold mb-4 ">Contactez-nous</h1>
                             <p className="lead mb-0" style={{ fontSize: '1.2rem' }}>
                                 Notre équipe est à votre disposition pour répondre à toutes vos questions 
                                 et vous accompagner dans vos projets immobiliers.
@@ -95,11 +95,7 @@ const Contact = () => {
                         </div>
                     </div>
                 </div>
-                <div className="position-absolute bottom-0 start-0 w-100 overflow-hidden" style={{ height: '4rem' }}>
-                    <svg viewBox="0 0 2880 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0 48h2880V0h-720C1442.5 52 720 0 720 0H0v48z" fill="currentColor"></path>
-                    </svg>
-                </div>
+                
             </section>
 
             {/* Contact Info Cards */}

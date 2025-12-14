@@ -392,6 +392,7 @@
    ======================================== */
 .promo-actions {
   display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -776,4 +777,405 @@
     box-shadow: none;
     border: 1px solid #999;
   }
+}
+
+/* ==============================
+   Additional styles for new PromoCard structure
+   - grid layout (3 per row)
+   - full cover image with bottom overlay
+   - agent + actions + comments layout
+   ============================== */
+.promo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%}
+.promo-cover{position:relative;width:100%;padding-top:56%;background-size:cover;background-position:center}
+.promo-cover-overlay{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);color:#fff}
+.promo-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.promo-desc{margin:0;color:var(--promo-text-dark);font-size:13px}
+.promo-meta{display:flex;justify-content:space-between;align-items:center}
+.agent-info{display:flex;gap:12px; flex-direction: column;}
+.agent-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover}
+.agent-text{display:flex;flex-direction:column}
+.agent-name{font-weight:600}
+.agent-role{font-size:12px;color:var(--promo-text-light)}
+.promo-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{display:inline-flex;gap:6px;align-items:center;padding:6px 8px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--promo-text-dark);cursor:pointer}
+
+/* ========================================
+   Hover Overlay (promotion highlight)
+   Appears on hover and rises above the card
+   ======================================== */
+.promo-hover-overlay{
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  bottom:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  pointer-events:none;
+  z-index:5;
+  transition: transform 0.36s cubic-bezier(.2,.9,.2,1), opacity 0.28s ease;
+  transform: translateY(110%);
+  opacity: 0;
+}
+
+.promo-card:hover .promo-hover-overlay{
+  transform: translateY(0%);
+  opacity: 1;
+  z-index:60; /* sit above other card parts */
+  pointer-events:auto;
+}
+
+.promo-hover-inner{
+  width:100%;
+  max-width: calc(100% - 32px);
+  margin: 0 16px 18px 16px;
+  padding: 18px 18px 16px 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(9,10,12,0.12), rgba(9,10,12,0.6));
+  box-shadow: 0 18px 40px rgba(6, 11, 26, 0.45);
+  color: #fff;
+  backdrop-filter: blur(6px) saturate(1.1);
+  transform: translateY(8px);
+  transition: transform 0.36s cubic-bezier(.2,.9,.2,1), opacity 0.32s ease;
+}
+
+.promo-card:hover .promo-hover-inner{
+  transform: translateY(0);
+}
+
+.promo-hover-top{ display:flex; flex-direction:column; gap:8px }
+.promo-hover-title{ margin:0; font-size:1.05rem; font-weight:900; letter-spacing:-0.5px; opacity:0; transform:translateY(8px); transition: all 0.36s cubic-bezier(.2,.9,.2,1); }
+.promo-hover-old{ font-size:0.95rem; color:rgba(255,255,255,0.75); text-decoration:line-through; opacity:0; transform:translateY(8px); transition: all 0.38s cubic-bezier(.2,.9,.2,1) 0.04s; }
+.promo-hover-price{ font-weight:900; font-size:1.4rem; margin-top:4px; color:#ffd54f; opacity:0; transform:translateY(8px); transition: all 0.38s cubic-bezier(.2,.9,.2,1) 0.08s; }
+.promo-hover-desc{ margin:0; color:rgba(255,255,255,0.9); font-size:0.95rem; line-height:1.35; opacity:0; transform:translateY(8px); transition: all 0.38s cubic-bezier(.2,.9,.2,1) 0.12s; }
+.promo-hover-ctas{ display:flex; gap:10px; margin-top:10px; opacity:0; transform:translateY(8px); transition: all 0.38s cubic-bezier(.2,.9,.2,1) 0.16s }
+.promo-hover-cta{ padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer }
+
+/* Reveal children when overlay active */
+.promo-card:hover .promo-hover-title,
+.promo-card:hover .promo-hover-old,
+.promo-card:hover .promo-hover-price,
+.promo-card:hover .promo-hover-desc,
+.promo-card:hover .promo-hover-ctas{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* small screens: reduce sizes */
+@media (max-width: 480px){
+  .promo-hover-inner{ padding:12px; margin:0 10px 12px 10px }
+  .promo-hover-price{ font-size:1.1rem }
+  .promo-hover-title{ font-size:1rem }
+}
+
+/* Portal overlay styles - renders in document.body, positioned over the card */
+.promo-portal-overlay{
+  position: absolute;
+  z-index: 9999;
+  pointer-events: auto;
+  transform: translateY(10%);
+  transition: transform 0.36s cubic-bezier(.2,.9,.2,1), opacity .28s ease;
+  opacity: 0;
+}
+.promo-portal-overlay .promo-hover-inner{
+  transform: translateY(10px) scale(.98);
+  transition: transform 0.36s cubic-bezier(.2,.9,.2,1), opacity .28s ease;
+  border-radius: 14px;
+}
+/* when created it should pop up - use a small timer to let React mount then animate via a class; fallback: animate on mount */
+.promo-portal-overlay[style] { /* match when inline style present */ }
+.promo-portal-overlay{ opacity:1; transform: translateY(0); }
+.promo-portal-overlay .promo-hover-inner{ transform: translateY(0) scale(1); }
+
+/* ========================================
+   Modern redesign: override previous styles for a modern card UI
+   ======================================== */
+.promo-card{
+  border-radius:20px !important;
+  overflow: visible !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+  box-shadow: 0 8px 30px rgba(8,15,36,0.18);
+  transition: transform .36s cubic-bezier(.2,.9,.2,1), box-shadow .36s ease;
+  position: relative;
+}
+.promo-card:hover{ transform: translateY(-10px) scale(1.01); box-shadow: 0 28px 60px rgba(8,15,36,0.24); }
+
+.property-image{ height:220px; background-size:cover; background-position:center; position:relative; border-top-left-radius:20px; border-top-right-radius:20px; overflow:hidden; }
+.property-image::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.45) 100%); pointer-events:none; }
+
+.badges .status-badge{ background:linear-gradient(90deg,#ff7a59,#ff3d6b); color:white; padding:8px 12px; border-radius:999px; font-weight:800; box-shadow:0 6px 18px rgba(255,77,106,0.18); position:absolute; left:14px; top:14px; z-index:8; }
+.price-badge{ position:absolute; right:14px; top:14px; z-index:8; display:flex; flex-direction:column; gap:6px; align-items:flex-end }
+.price-badge > div:last-child{ background:linear-gradient(90deg,#ffe082,#ffd600); color:#1f2937; padding:8px 12px; border-radius:999px; font-weight:900; box-shadow:0 8px 22px rgba(255,214,11,0.14); }
+
+.card-body{ padding:16px 18px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
+.card-title{ font-size:1.05rem; font-weight:900; margin:0; color:#0f172a }
+.promo-description-block{ color: rgba(15,23,42,0.7); font-size:0.95rem }
+
+.property-agent{ position:relative}
+
+/* CTA and small icon buttons updated */
+.icon-btn{ background: rgba(255,255,255,0.04); padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); color:#fff }
+
+/* modern overlay specifics */
+.promo-portal-overlay{ border-radius:16px; }
+.promo-hover-inner{ background: linear-gradient(180deg, rgba(3,7,18,0.7), rgba(7,13,24,0.85)); color: #fff; border-radius:12px; }
+.promo-hover-title{ font-size:1.05rem; color:#fff; }
+.promo-hover-old{ color:rgba(255,255,255,0.7); text-decoration:line-through }
+.promo-hover-price{ color:#ffec99; font-weight:900 }
+.promo-hover-desc{ color:rgba(255,255,255,0.9) }
+.promo-hover-ctas .promo-hover-cta{ border: none; padding:10px 14px; border-radius:12px; font-weight:800 }
+.promo-hover-ctas .view-btn{ background: transparent; border: 2px solid rgba(255,255,255,0.12); color:#fff }
+.promo-hover-ctas .btn-success{ background: linear-gradient(90deg,#16a34a,#059669); color:white }
+
+/* subtle entrance: slide + fade */
+.promo-portal-overlay{ transform: translateY(14px) scale(.995); opacity:0; transition: transform .32s cubic-bezier(.2,.9,.2,1), opacity .28s ease; }
+.promo-portal-overlay.show{ transform: translateY(0) scale(1); opacity:1 }
+.promo-portal-overlay .promo-hover-inner{ transform: translateY(8px) scale(.99); opacity:0; transition: transform .32s cubic-bezier(.2,.9,.2,1), opacity .28s ease .04s }
+.promo-portal-overlay.show .promo-hover-inner{ transform: translateY(0) scale(1); opacity:1 }
+
+@media (max-width:768px){ .property-image{ height:160px } .promo-portal-overlay{ left:8px !important; right:8px !important; width: auto !important } }
+
+/* Agent section styles - Contact icons visibility */
+.property-agent-inner{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; }
+.agent-left{ display:flex; align-items:center; gap:10px; flex:1; }
+.agent-avatar-wrapper{ width:44px; height:44px; border-radius:50%; overflow:hidden; }
+.agent-thumb{ width:100%; height : 60px; object-fit:cover; }
+.agent-meta{ display:flex; flex-direction:column; gap:2px; }
+.agent-name{ margin:0; font-size:0.9rem; }
+.agent-phone{ margin:0; font-size:0.8rem; }
+.agent-right{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.contact-icon{ display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; min-width:32px; padding:0 !important; border-radius:8px; cursor:pointer; transition:all 0.2s ease; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2) !important; color:#0f172a !important; }
+.contact-icon:hover{ background:rgba(102,126,234,0.15); border-color:rgba(102,126,234,0.3) !important; transform:scale(1.08); }
+.contact-icon svg{ width:16px; height:16px; display:block; }
+.btn-outline-success{ color:#0f5132 !important; border-color:#198754 !important; background:transparent; }
+.btn-outline-success:hover{ background:#198754 !important; color:white !important; }
+.btn-outline-primary{ color:#0c63e4 !important; border-color:#0c63e4 !important; background:transparent; }
+.btn-outline-primary:hover{ background:#0c63e4 !important; color:white !important; }
+.btn-outline-dark{ color:#212529 !important; border-color:#212529 !important; background:transparent; }
+.btn-outline-dark:hover{ background:#212529 !important; color:white !important; }
+.reserved-dot{ display:inline-block; width:10px; height:10px; border-radius:50%; background:linear-gradient(90deg,#16a34a,#059669); }
+.btn-success{ background:linear-gradient(90deg,#16a34a,#059669) !important; color:white !important; border:none !important; }
+
+.icon-btn svg{font-size:16px}
+
+/* Inline old price shown beside the title */
+.promo-old-price-inline{
+  font-size:0.95rem;
+  color:var(--promo-text-light);
+  text-decoration:line-through;
+  text-decoration-thickness:2px;
+  margin-left:8px;
+}
+
+/* Short promotion description under the title */
+.promo-description-block{
+  font-size:0.95rem;
+  color:var(--promo-text-light);
+  line-height:1.25;
+  max-height:3.6rem;
+  overflow:hidden;
+}
+.icon-btn.active{color:var(--promo-accent);background:rgba(215,38,61,0.06)}
+.icon-btn:hover{transform:translateY(-3px);transition:var(--promo-transition)}
+.icon-btn:active{transform:translateY(-1px) scale(0.99)}
+.promo-cta{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.reserve-btn{background:var(--promo-primary);color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+.reserve-btn{transition:var(--promo-transition)}
+.reserve-btn:hover{transform:translateY(-4px);box-shadow:var(--promo-shadow-md)}
+.agent-link{color:var(--promo-primary);text-decoration:none;font-weight:600}
+.promo-comments{margin-top:8px}
+.promo-comments{animation:fadeInUp .28s cubic-bezier(.2,.9,.3,1)}
+.comment-input-row{display:flex;gap:8px}
+.comment-input-row input{flex:1;padding:8px;border-radius:8px;border:1px solid var(--promo-border)}
+.send-btn{background:var(--promo-primary);color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.comment-list{display:flex;flex-direction:column;gap:8px;max-height:180px;overflow:auto}
+.comment-item{display:flex;gap:10px;align-items:flex-start}
+.comment-avatar{width:36px;height:36px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-weight:700}
+.comment-author{font-weight:700}
+.no-comments{color:var(--promo-text-light)}
+
+@media (max-width:1000px){.promo-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Lightbox styles */
+.promo-lightbox{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:9999;padding:20px
+}
+.promo-lightbox-inner{position:relative;display:flex;align-items:center;justify-content:center}
+.promo-lightbox-close{position:absolute;top:-18px;right:-18px;background:#fff;border-radius:50%;width:36px;height:36px;border:none;font-size:18px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.3)}
+
+/* Ensure promo-cover clickable area shows pointer */
+.promo-image-btn{display:block}
+@media (max-width:640px){.promo-grid{grid-template-columns:1fr;gap:12px}.promo-cover{padding-top:62%}}
+
+/* make sure grid items fill and have consistent card heights */
+.promo-grid-item{display:flex}
+.promo-grid-item .promo-card{width:100%;display:flex;flex-direction:column}
+
+/* ========================================
+   PromoCard - Gallery & Lightbox
+   ======================================== */
+
+/* Image Section - Property Image */
+.property-image {
+  position: relative;
+  width: 100%;
+  padding-top: 56%;
+  overflow: hidden;
+  border-radius: var(--promo-radius);
+  cursor: pointer;
+  transition: var(--promo-transition);
+}
+
+.property-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--promo-transition);
+}
+
+/* Gallery Navigation (Prev/Next) */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--promo-transition);
+  z-index: 10;
+}
+
+.gallery-nav-prev {
+  left: 12px;
+}
+
+.gallery-nav-next {
+  right: 12px;
+}
+
+.gallery-nav:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Gallery Indicator (Dots) */
+.gallery-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+}
+
+.gallery-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--promo-transition);
+}
+
+.gallery-dot.active {
+  background: var(--promo-primary);
+}
+
+/* Lightbox Styles */
+.promo-lightbox {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  padding: 0;
+}
+
+.promo-lightbox-inner {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.promo-lightbox img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: var(--promo-radius);
+}
+
+.promo-lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--promo-transition);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.promo-lightbox-close:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Lightbox Navigation (Prev/Next) */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--promo-transition);
+  z-index: 10;
+}
+
+.lightbox-nav-prev {
+  left: 12px;
+}
+
+.lightbox-nav-next {
+  right: 12px;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Hide default browser context menu on images */
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Prevent double-tap to zoom on mobile Safari */
+body {
+  touch-action: manipulation;
 }
