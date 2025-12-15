@@ -1,36 +1,6 @@
 // Données factices pour tests
 export const properties = [
-  {
-    id: 1,
-    name: "Toyota RAV4",
-    title: "Toyota RAV4",
-    description: "SUV moderne, fiable et spacieux, idéal pour la famille ou les voyages d'affaires. Disponible à la location ou à la vente.",
-    type: "VEHICULES",
-    marque: "Toyota",
-    price: 15000,
-    prix: 15000,
-    status: "location",
-    statut: "location",
-    address: "Gombe, Kinshasa",
-    commune: "Gombe",
-    ville: "Kinshasa",
-    pays: "RDC",
-    images: [
-      require('../img/Toyota RAV4.jpg'),
-      require('../img/Toyota Yaris Cross -2024.jpg'),
-      require('../img/Toyota car.jpg'),
-    ],
-    agentId: 1,
-    agent: 1,
-    visitFee: 2000,
-    couleur: "Gris, métallisé",
-    kilometrage: 42000,
-    annee: 2022,
-    carburant: "Essence",
-    transmission: "Automatique",
-    places: 5,
-    geoloc: { lat: -4.322447, lng: 15.313572 },
-  }
+ 
 ];
 
 export const agents = [
@@ -38,15 +8,6 @@ export const agents = [
 export const reservation = [];
 
 export const owners = [
-  {
-    id: 1,
-    name: 'Propriétaire Démo',
-    email: 'owner@demo.local',
-    phone: '+243 810 000 010',
-    preferredAgents: [1, 2], // favoris : utilisera ces agents en priorité dans la sélection
-    types: ['Appartement', 'Maison'],
-    properties: [],
-  }
 ];
 
 export const messages = [
@@ -86,14 +47,7 @@ export const messages = [
 ];
 
 export const users = [
-  {
-    id: 1,
-    name: "Client Test",
-    email: "client@test.com",
-    role: "user",
-    properties: [],
-    subscription: "basic",
-  },
+
 ];
 
 export const subscriptions = [
