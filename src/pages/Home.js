@@ -178,6 +178,10 @@ const Home = () => {
 
         }
     }, []);
+    function tronquerTexte(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
 
     // Configuration des catégories et filtres
     const propertyConfig = React.useMemo(() => ({
@@ -369,12 +373,12 @@ const Home = () => {
 
     // demo promotions to show when server data is not available
     const demoPromos = React.useMemo(() => ([
-        { id: 'demo-1', title: 'Appartement moderne 2ch', subtitle: 'Centre-ville, proche commerces', image: img6, likes: 12, oldPrice: 120000, newPrice: 99000, discount: 18, agent: { name: 'Jean K.', avatar: img6, rating: 4.7 } },
-        { id: 'demo-2', title: 'Villa familiale', subtitle: 'Quartier résidentiel calme', image: img6, likes: 9, oldPrice: 250000, newPrice: 219000, discount: 12, agent: { name: 'Aline M.', avatar: img6, rating: 4.9 } },
-        { id: 'demo-3', title: 'Terrain constructible', subtitle: 'Emplacement stratégique', image: img6, likes: 6, oldPrice: 80000, newPrice: 72000, discount: 10, agent: { name: 'Paul D.', avatar: img6, rating: 4.5 } },
-        { id: 'demo-4', title: 'Boutique commerciale', subtitle: 'Rue passante', image: img6, likes: 4, oldPrice: 60000, newPrice: 54000, discount: 10, agent: { name: 'Marie T.', avatar: img6, rating: 4.4 } },
-        { id: 'demo-5', title: 'Salle de fête', subtitle: 'Capacité 200 personnes', image: img6, likes: 3, oldPrice: 40000, newPrice: 28000, discount: 30, agent: { name: 'Lucie R.', avatar: img6, rating: 4.6 } },
-        { id: 'demo-6', title: 'Studio cosy', subtitle: 'Idéal pour étudiant', image: img6, likes: 7, oldPrice: 45000, newPrice: 39500, discount: 12, agent: { name: 'Jean K.', avatar: img6, rating: 4.2 } }
+        { id: 'demo-1', title: 'Appartement moderne 2ch', subtitle: 'Centre-ville, proche commerces', image: img6, likes: 12, price: 120000, originalPrice: 99000, discount: 18, agent: { name: 'Jean K.', avatar: img6, rating: 4.7 } },
+        { id: 'demo-2', title: 'Villa familiale', subtitle: 'Quartier résidentiel calme', image: img6, likes: 9, price: 250000, originalPrice: 219000, discount: 12, agent: { name: 'Aline M.', avatar: img6, rating: 4.9 } },
+        { id: 'demo-3', title: 'Terrain constructible', subtitle: 'Emplacement stratégique', image: img6, likes: 6, price: 80000, originalPrice: 72000, discount: 10, agent: { name: 'Paul D.', avatar: img6, rating: 4.5 } },
+        { id: 'demo-4', title: 'Boutique commerciale', subtitle: 'Rue passante', image: img6, likes: 4, price: 60000, originalPrice: 54000, discount: 10, agent: { name: 'Marie T.', avatar: img6, rating: 4.4 } },
+        { id: 'demo-5', title: 'Salle de fête', subtitle: 'Capacité 200 personnes', image: img6, likes: 3, price: 40000, originalPrice: 28000, discount: 30, agent: { name: 'Lucie R.', avatar: img6, rating: 4.6 } },
+        { id: 'demo-6', title: 'Studio cosy', subtitle: 'Idéal pour étudiant', image: img6, likes: 7, price: 45000, originalPrice: 39500, discount: 12, agent: { name: 'Jean K.', avatar: img6, rating: 4.2 } }
     ]), []);
 
     const displayedPromotions = (promotions && promotions.length > 0) ? promotions : demoPromos;
@@ -402,7 +406,7 @@ const Home = () => {
                         title: first.title || first.name || first.label || 'Mobilier en vedette',
                         description: first.description || first.subtitle || first.excerpt || '',
                         image: (first.images && first.images[0]) || first.image || img6,
-                        price: first.price || first.prix || first.newPrice || first.oldPrice || null,
+                        price: first.price || first.prix || first.originalPrice || first.price || null,
                         agent: first.agent || first.owner || null,
                         meta: first.meta || {}
                     };
@@ -423,6 +427,7 @@ const Home = () => {
     React.useEffect(() => {
         setCarouselItems(displayedPromotions.map((p, idx) => ({ ...p, __uid: p.id || `d-${idx}` })));
         lastAppendedRef.current = displayedPromotions.length - 1;
+        console.log('Reset carousel items', displayedPromotions);
     }, [displayedPromotions]);
 
     // Autoplay: scroll right every few seconds through existing items only (no appends)
@@ -685,16 +690,17 @@ const Home = () => {
                     <button className="promo-control-left" aria-label="Précédent" onClick={() => scrollPromos('prev')}>◀</button>
                     <div ref={promoRef} className="promo-carousel" role="region" aria-label="carrousel promotions">
                         {carouselItems.map((p, i) => (
+                            
                             <div className="promo-item" key={p.__uid || p.id || i}>
                                 <article className="promo-pro-card">
                                     <div className="promo-pro-inner">
                                         <div className="promo-pro-top">
                                             <img src={p.image || img6} className="promo-pro-img" alt={p.title} />
-                                            {p.discount ? <div className="promo-ribbon">-{p.discount}%</div> : null}
+                                            {p.price ? <div className="promo-ribbon">-{Math.floor((p.price*100)/p.originalPrice)}%</div> : null}
                                         </div>
                                         <div className="promo-pro-body">
-                                            <h4 className="promo-pro-title">{p.title}</h4>
-                                            <p className="promo-pro-sub">{p.subtitle || p.excerpt || p.description}</p>
+                                            <h4 className="promo-pro-title"> {p.title}</h4>
+                                            <p className="promo-pro-sub">{ tronquerTexte(p.promoComment?p.promoComment: '', 50) +'...' || p.excerpt || p.description}</p>
                                             { (p.address || p.location || p.adresse || p.city) && (
                                                 <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.9rem' }}>
                                                     <small>Adresse: {p.address || p.location || p.adresse || p.city}</small>
@@ -702,11 +708,11 @@ const Home = () => {
                                             ) }
                                             <div className="promo-pro-meta">
                                                 <div className="promo-prices">
-                                                    {p.oldPrice ? <div className="promo-old">€{Number(p.oldPrice).toLocaleString()}</div> : null}
-                                                    {p.newPrice ? <div className="promo-new">€{Number(p.newPrice).toLocaleString()}</div> : null}
+                                                    {p.originalPrice ? <div className="promo-old">€{Number(p.originalPrice).toLocaleString()}</div> : null}
+                                                    {p.price ? <div className="promo-new">€{Number(p.price).toLocaleString()}</div> : null}
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <Button variant="contained" size="small" onClick={() => handleVisitOrView(p, i)}>Voir</Button>
+                                                    <Button variant="contained" size="small" onClick={() => navigate(`/properties/${p.id}`)}>Voir</Button>
                                                     <Button variant="outlined" size="small" onClick={() => openContact(p.agent || p.owner)}>Contact</Button>
                                                 </div>
                                             </div>
@@ -1108,8 +1114,8 @@ const Home = () => {
                                         )}
                                         <div className="promo-pro-meta">
                                             <div className="promo-prices">
-                                                {promo.oldPrice ? <div className="promo-old">€{Number(promo.oldPrice).toLocaleString()}</div> : null}
-                                                {promo.newPrice ? <div className="promo-new">€{Number(promo.newPrice).toLocaleString()}</div> : null}
+                                                {promo.price ? <div className="promo-old">€{Number(promo.price).toLocaleString()}</div> : null}
+                                                {promo.originalPrice ? <div className="promo-new">€{Number(promo.originalPrice).toLocaleString()}</div> : null}
                                             </div>
                                             <div style={{ display: 'flex', gap: 8 }}>
                                                 <Button variant="contained" color="primary" onClick={() => handleVisitOrView(promo)}>Voir</Button>
