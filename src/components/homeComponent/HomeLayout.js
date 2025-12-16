@@ -245,7 +245,7 @@ export default function HomeLayout({ children }) {
   }, [isMobile]);
 
   return (
-    <Box sx={{ mt: '10px', mb : '10px', display: 'flex', bgcolor: theme.palette.grey[100] }}>
+    <Box sx={{ mt: '10px', mb : '10px', display: 'flex', bgcolor: "#83a49e08" }}>
       <AppBar
         position="fixed"
         sx={{
@@ -317,7 +317,7 @@ export default function HomeLayout({ children }) {
                 color={['/voitures', '/terrain', '/appartement', '/salle'].includes(location.pathname) ? 'primary' : 'inherit'}
                 className="kn-menu-text animated-link"
                 sx={{ textTransform: 'none', gap : '0px' }}
-                endIcon={<FaChevronDown />}
+                
               >
                 Immobilier
               </Button>
@@ -325,8 +325,8 @@ export default function HomeLayout({ children }) {
               <Button className="kn-menu-text animated-link" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none', color: "#0f888880", marginLeft: "6px" }}>Contact</Button>
 
               {/* Owner / Login CTAs on desktop */}
-              <Button className="kn-menu-text animated-link" component={Link} to="/owner/onboard" variant="outlined" color="primary" sx={{ ml: 1, fontWeight: 400 }}>
-                Propriétaire
+              <Button className="kn-menu-text animated-link" component={Link} to="/owner/onboard"  color="primary" >
+                vendez ou louez votre bien ici!
               </Button>
 
             </Box>
@@ -633,7 +633,7 @@ export default function HomeLayout({ children }) {
           // attach ref to the Paper element so we can detect relatedTarget containment
           ref: menuPaperRef,
           onMouseEnter: () => { if (!isMobile) { clearTimeout(hoverCloseTimer.current); } },
-          onMouseLeave: () => { if (!isMobile) { hoverCloseTimer.current = setTimeout(() => setAnchorProp(null), 20000); } }
+          onMouseLeave: () => { if (!isMobile) { hoverCloseTimer.current =  setAnchorProp(null); } }
         }}
       >
         {/* Rich mega-menu for Immobilier: two columns with detailed descriptions and example articles */}

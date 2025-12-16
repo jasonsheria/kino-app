@@ -2,7 +2,7 @@ import React from 'react';
 
 // AutoReveal: attach scroll reveal classes to multiple elements on the page
 // Selectors chosen to cover sections, groups, cards and common blocks.
-export default function AutoReveal({ selector = 'section, .container > .row > .col, .animate-card, .agency-clean, .agent-card, .property-card, .service-card, .feature-card, .promo-salle-card' }) {
+export default function AutoReveal({ selector = 'section, .container > .row > .col, .animate-card, .agency-clean, .agent-card, .property-card, .service-card, .feature-card, .promo-pro-card' }) {
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     const root = document;

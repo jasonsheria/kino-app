@@ -72,14 +72,12 @@ const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL).replace(/\/$/, '');
         if (!r.ok) {
           let bodyText = null;
           try { bodyText = await r.text(); } catch (e) { bodyText = null; }
-          console.warn(`ndaku:fakedata - non-ok response from ${u}: ${r.status} ${r.statusText}`, bodyText ? { bodyText } : null);
           continue;
         }
         // try parse json
         try { propsResp = await r.json(); } catch (e) { propsResp = null; }
         if (propsResp) break;
       } catch (e) {
-        console.warn(`ndaku:fakedata - fetch failed for ${u}:`, e?.message || e);
         propsResp = null;
       }
     }
@@ -108,13 +106,11 @@ const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL).replace(/\/$/, '');
       try { window.dispatchEvent(new CustomEvent('ndaku:properties-updated', { detail: { fakeAppointments: mapped } })); } catch (e) { }
     } else {
       // No properties received - log and notify UI with tried urls
-      const errMsg = `ndaku:fakedata - no appointment returned (tried ${tryUrls.join(', ')})`;
       // don't block UI with alert by default; keep console and event for app to show toast
     }
 
   } catch (err) {
     // silent
-    console.warn('ndaku:fakedata - could not fetch live data', err?.message || err);
   }
 })();
 

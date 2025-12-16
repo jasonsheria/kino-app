@@ -1,7 +1,7 @@
 import React from 'react';
 import MessengerWidget from '../components/common/Messenger';
 import { useTheme } from '@mui/material/styles';
-import { FaUserTie, FaFilter, FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools } from 'react-icons/fa';
+import { FaUserTie, FaFilter, FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools, FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart, FaEye, FaShoppingCart } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -54,6 +54,59 @@ const Home = () => {
     const [infoMsg, setInfoMsg] = React.useState('');
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const parallaxRef = React.useRef(null);
+    const heroLeftRef = React.useRef(null);
+    const promoRef = React.useRef(null);
+    const [likedMap, setLikedMap] = React.useState({});
+
+    const toggleLike = (id) => {
+        setLikedMap(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const getLikes = (p) => {
+        const base = Number(p.likes || 0);
+        const extra = likedMap[p.id] ? 1 : 0;
+        return base + extra;
+    };
+
+    const renderStars = (rating) => {
+        const out = [];
+        if (!rating && rating !== 0) return null;
+        let r = Math.max(0, Math.min(5, Number(rating)));
+        for (let i = 1; i <= 5; i++) {
+            if (r >= 1) { out.push(<FaStar key={i} style={{ color: '#f6c343' }} />); r -= 1; }
+            else if (r > 0.4) { out.push(<FaStarHalfAlt key={i} style={{ color: '#f6c343' }} />); r = 0; }
+            else { out.push(<FaRegStar key={i} style={{ color: '#f6c343' }} />); }
+        }
+        return <span className="star-rating" aria-hidden>{out}</span>;
+    };
+
+    React.useEffect(() => {
+        const onScroll = () => {
+            try {
+                if (!parallaxRef.current || !heroLeftRef.current) return;
+                const rect = parallaxRef.current.getBoundingClientRect();
+                const windowH = window.innerHeight || 800;
+                const pct = Math.min(Math.max((windowH - rect.top) / (windowH + rect.height), 0), 1);
+                const img = parallaxRef.current.querySelector('.parallax-img');
+                if (img) img.style.transform = `translateY(${(1 - pct) * 28}px)`;
+                heroLeftRef.current.style.transform = `translateY(${-(1 - pct) * 10}px)`;
+            } catch (e) { /* ignore */ }
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    const scrollPromos = (dir = 'next') => {
+        const node = promoRef.current;
+        if (!node) return;
+        const card = node.querySelector('.promo-item');
+        const step = (card ? card.offsetWidth : Math.min(360, node.clientWidth)) + 16;
+        node.scrollBy({ left: dir === 'next' ? step : -step, behavior: 'smooth' });
+    };
+
+
     React.useEffect(() => {
         // Preloader now driven by data loads. We'll keep a safety timeout of 6s to avoid stuck UI
         const safety = setTimeout(() => setLoading(false), 6000);
@@ -111,7 +164,7 @@ const Home = () => {
                 if (Array.isArray(items) && items.length) {
                     setServerVehicles(items);
                     // Use recommender over server items if desired; for now feed recommender with server items
-                    const recs = await recService.getRecommendations(items.slice(0, 50), { kind: 'vehicles', limit: 12, promotion:false });
+                    const recs = await recService.getRecommendations(items.slice(0, 50), { kind: 'vehicles', limit: 12, promotion: false });
                     setRecommendedVehicles(recs);
                 } else {
                     const recs = await recService.getRecommendations(vehicles.slice(0, 50), { kind: 'vehicles', limit: 12 });
@@ -250,7 +303,7 @@ const Home = () => {
         const all = properties.map(p => {
             // Extraction simple: on prend le dernier mot de l'adresse comme commune (ex: "Gombe, Kinshasa")
             const parts = p.commune;
-             return parts;
+            return parts;
         }).filter(Boolean);
         return Array.from(new Set(all));
     }, [properties]);
@@ -313,6 +366,75 @@ const Home = () => {
     const [promotionsOffset, setPromotionsOffset] = React.useState(0);
     const [loadingPromotions, setLoadingPromotions] = React.useState(false);
     const [promotionsHasMore, setPromotionsHasMore] = React.useState(true);
+
+    // demo promotions to show when server data is not available
+    const demoPromos = React.useMemo(() => ([
+        { id: 'demo-1', title: 'Appartement moderne 2ch', subtitle: 'Centre-ville, proche commerces', image: img6, likes: 12, oldPrice: 120000, newPrice: 99000, discount: 18, agent: { name: 'Jean K.', avatar: img6, rating: 4.7 } },
+        { id: 'demo-2', title: 'Villa familiale', subtitle: 'Quartier résidentiel calme', image: img6, likes: 9, oldPrice: 250000, newPrice: 219000, discount: 12, agent: { name: 'Aline M.', avatar: img6, rating: 4.9 } },
+        { id: 'demo-3', title: 'Terrain constructible', subtitle: 'Emplacement stratégique', image: img6, likes: 6, oldPrice: 80000, newPrice: 72000, discount: 10, agent: { name: 'Paul D.', avatar: img6, rating: 4.5 } },
+        { id: 'demo-4', title: 'Boutique commerciale', subtitle: 'Rue passante', image: img6, likes: 4, oldPrice: 60000, newPrice: 54000, discount: 10, agent: { name: 'Marie T.', avatar: img6, rating: 4.4 } },
+        { id: 'demo-5', title: 'Salle de fête', subtitle: 'Capacité 200 personnes', image: img6, likes: 3, oldPrice: 40000, newPrice: 28000, discount: 30, agent: { name: 'Lucie R.', avatar: img6, rating: 4.6 } },
+        { id: 'demo-6', title: 'Studio cosy', subtitle: 'Idéal pour étudiant', image: img6, likes: 7, oldPrice: 45000, newPrice: 39500, discount: 12, agent: { name: 'Jean K.', avatar: img6, rating: 4.2 } }
+    ]), []);
+
+    const displayedPromotions = (promotions && promotions.length > 0) ? promotions : demoPromos;
+
+    // Featured mobilier: try to fetch one mobilier from backend, fallback to demo
+    const [featuredMobilier, setFeaturedMobilier] = React.useState(null);
+    React.useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const base = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/+$/, '');
+                const url = base ? `${base}/api/mobilier?limit=1` : '/api/mobilier?limit=1';
+                const res = await axios.get(url).catch(() => null);
+                const items = res && res.data && (Array.isArray(res.data) ? res.data : res.data.data) ? (Array.isArray(res.data) ? res.data : res.data.data) : (Array.isArray(res) ? res : null);
+                let first = null;
+                if (items && Array.isArray(items) && items.length) first = items[0];
+                if (!first) {
+                    // fallback to demo promo as mobilier sample
+                    first = demoPromos && demoPromos.length ? demoPromos[0] : null;
+                }
+                if (!mounted) return;
+                if (first) {
+                    const mapped = {
+                        id: first._id || first.id || first.__uid || first.id || 'demo-mob',
+                        title: first.title || first.name || first.label || 'Mobilier en vedette',
+                        description: first.description || first.subtitle || first.excerpt || '',
+                        image: (first.images && first.images[0]) || first.image || img6,
+                        price: first.price || first.prix || first.newPrice || first.oldPrice || null,
+                        agent: first.agent || first.owner || null,
+                        meta: first.meta || {}
+                    };
+                    setFeaturedMobilier(mapped);
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
+        return () => { mounted = false; };
+    }, [demoPromos]);
+
+    // Carousel runtime items (used for autoplay append/rotate). We keep a mutable ref to the
+    // index of last appended demo so we can append different items and avoid unbounded growth.
+    const [carouselItems, setCarouselItems] = React.useState(displayedPromotions);
+    const lastAppendedRef = React.useRef(displayedPromotions.length - 1);
+
+    React.useEffect(() => {
+        setCarouselItems(displayedPromotions.map((p, idx) => ({ ...p, __uid: p.id || `d-${idx}` })));
+        lastAppendedRef.current = displayedPromotions.length - 1;
+    }, [displayedPromotions]);
+
+    // Autoplay: scroll right every few seconds through existing items only (no appends)
+    React.useEffect(() => {
+        if (!promoRef.current) return;
+        const interval = setInterval(() => {
+            try {
+                scrollPromos('next');
+            } catch (e) { /* ignore */ }
+        }, 4200);
+        return () => clearInterval(interval);
+    }, [promoRef, displayedPromotions]);
 
     // per-promo comment open state to view older comments
     const [commentsOpen, setCommentsOpen] = React.useState({});
@@ -521,91 +643,109 @@ const Home = () => {
             {/* attach auto reveal to many page blocks for scroll animations */}
             <AutoReveal />
             {/* Navbar Bootstrap custom réutilisée */}
-            {/* Nouveau Hero : spotlight Immobilier (SVG découpé, stats animées) */}
-            <section className="landing-hero">
-                <div className="container hero-inner d-grid">
-                    <div className="hero-left hero-fade-up">
-                        <h1 className="hero-title  text-center">Ndaku — La plateforme immobilière de Kinshasa</h1>
-                        <p className="hero-sub">Trouvez, louez ou vendez des maisons, appartements, terrains et salles — confiance, transparence et agents certifiés. Inspirez-vous des expériences modernes de marketplaces internationales pour une navigation fluide.</p>
+            {/* Nouveau Hero v2 : section commerciale avec CTA et parallax image */}
+            <section className="hero-v2" aria-label="Hero commercial">
+                <div className="hero-v2-inner">
+                    <div className="hero-v2-left" ref={heroLeftRef}>
+                        <h1 className="hero-title">Boostez vos ventes avec <span className="hero-highlight">Ndaku</span></h1>
+                        <p className="hero-desc">Annoncez vos produits et services immobiliers auprès de milliers de visiteurs chaque mois. Profitez d'une mise en avant professionnelle, d'agents certifiés et d'outils marketing pour convertir plus rapidement.</p>
 
-
-                        {/* ajouter une image visible uniquemen tpour le mobile */}
-                        <div className='banniere-mobile mb-4'>
-                            <img src={img6} alt="bannier" style={{ marginBotton: '2vh', width: '100%', height: '400px' }} />
-
+                        <div className="hero-features" aria-hidden>
+                            <div className="feature"><FaBullhorn /> <span>Visibilité ciblée</span></div>
+                            <div className="feature"><FaCertificate /> <span>Agents certifiés</span></div>
+                            <div className="feature"><FaBuilding /> <span>Marketing pro</span></div>
                         </div>
-                        <div className="hero-ctas" style={{ justifyContent: 'space-between' }}>
-                            <Button onClick={() => scrollToId('biens')} variant="" sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir les biens </Button>
-                            <Button variant="" onClick={() => scrollToId('agents')} sx={{ textTransform: 'none', borderRadius: 1, paddingTop: '10px', paddingBottom: '10px', border: "1px solid #00a8a7", color: '#00a8a7' }}> Voir agents </Button>
-                        </div>
-                        {/* stats removed from hero - moved to standalone section below for clearer UX */}
-                    </div>
 
-                    <div className="hero-right hero-fade-up">
-                        <HeroSlider />
-                    </div>
-                </div>
-            </section>
-
-            {/* Detached statistics section - separate from hero with scroll-triggered counters */}
-            <section id="stats" className="stats-section" aria-labelledby="stats-heading" style={{ padding: '48px 0', background: 'linear-gradient(180deg, rgba(250,250,252,1) 0%, rgba(243,247,250,1) 100%)' }}>
-                <div className="container">
-                    <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                        <h3 id="stats-heading" style={{ margin: 0, fontWeight: 700 }}>Statistiques des données disponibles</h3>
-                        <p style={{ color: '#666', marginTop: 8 }}>Un aperçu rapide des biens, agents et activité — les chiffres se lancent quand vous arrivez sur cette section.</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', justifyContent: 'space-between', maxWidth: 980, margin: '0 auto', flexWrap: 'wrap' }}>
-                        <StatCardPro icon={<FaHome />} label="Biens listés" value={properties.length} accent="#00cdf2" />
-                        <StatCardPro icon={<FaUserTie />} label="Agents certifiés" value={agents.length} accent="#764ba2" />
-                        <StatCardPro icon={<FaHandshake />} label="Visites planifiées" value={Math.max(12, Math.floor(properties.length * 0.18))} accent="#d7263d" />
-                    </div>
-                </div>
-            </section>
-
-            {/* Bannière choix agent/propriétaire - improved with background image and glass CTA */}
-            <section className="container-fluid agent-banner py-5 animate__animated animate__fadeInDown" aria-label="Bannière agent ou propriétaire" style={{ color: isDark ? theme.palette.text.primary : '#fff' }}>
-                <div className="agent-banner-inner container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
-                    <div className="d-flex align-items-center gap-3">
-                        <FaUserTie className="agent-banner-icon text-white" size={44} />
-                        <div>
-                            <div className="fw-bold fs-4 agent-title">Vous êtes agent ou propriétaire ?</div>
-                            <div className="agent-subtext text-white-80">Publiez vos annonces ou rejoignez notre réseau d'agents certifiés — simple et sécurisé.</div>
+                        <div className="hero-ctas">
+                            <MuiButton variant="contained" color="primary" className="hero-btn" onClick={() => scrollToId('biens')}>Voir les offres</MuiButton>
+                            <Button variant="outlined" className="hero-btn-outline" onClick={() => navigate('/owner/onboard')}>Vendre / Louer</Button>
                         </div>
                     </div>
 
-                    <div className="d-flex gap-2 mt-3 mt-md-0">
-                        <Link to="#" style={{ textDecoration: 'none' }}>
-                            <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Immobilier </MuiButton>
-                        </Link>
-                        <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
-                            <Button variant="outlined" color="inherit" sx={{ px: 3 }} startIcon={<FaHandshake />} className='owner-btn-outline'> Propriétaire </Button>
-                        </Link>
+                    <div className="hero-v2-right">
+                        <div className="parallax-wrap" ref={parallaxRef}>
+                            <img src={img6} alt="Produit en destaque" className="parallax-img" />
+                            <div className="floating-card">
+                                Promo du jour
+                                <small>Jusqu'à -15% sur certaines annonces</small>
+                            </div>
+                        </div>
                     </div>
-
                 </div>
             </section>
 
-            {/* Map Section - Browse properties on interactive map */}
-            <section className="map-section py-5" style={{ background: '#f8fafc' }}>
-              <div className="container">
-                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                  <span className="icon-circle text-white me-3"><FaMapMarkerAlt size={28} /></span>
-                  <span className="fw-bold">Explorez nos biens sur la carte</span>
+            {/* Promotions section - mise en avant des produits */}
+            <section aria-label="Promotions" className="container py-5">
+                <div className="section-title text-center mb-3">
+                    <span className="icon-circle text-white me-3"><FaBullhorn size={24} /></span>
+                    <span className="fw-bold">Promotions & Offres spéciales</span>
                 </div>
-                <p className="text-center text-muted mb-4">Visualisez tous les biens disponibles à Kinshasa, interagissez avec les marqueurs et réservez une visite directement depuis la carte.</p>
-                
-                <div style={{ height: '500px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(17,25,40,0.12)' }}>
-                  <MapPropertyViewer 
-                    properties={filteredResults && filteredResults.length > 0 ? filteredResults : properties}
-                    onVisitRequest={(data) => {
-                      openBooking(data.property, data.agent);
-                    }}
-                    defaultCenter={[-4.325, 15.322]}
-                    defaultZoom={13}
-                  />
+                <p className="text-center text-muted mb-4">Découvrez nos meilleures offres et promotions sélectionnées pour vous.</p>
+                <div className="promo-carousel-wrap" style={{ position: 'relative' }}>
+                    <button className="promo-control-left" aria-label="Précédent" onClick={() => scrollPromos('prev')}>◀</button>
+                    <div ref={promoRef} className="promo-carousel" role="region" aria-label="carrousel promotions">
+                        {carouselItems.map((p, i) => (
+                            <div className="promo-item" key={p.__uid || p.id || i}>
+                                <article className="promo-pro-card">
+                                    <div className="promo-pro-inner">
+                                        <div className="promo-pro-top">
+                                            <img src={p.image || img6} className="promo-pro-img" alt={p.title} />
+                                            {p.discount ? <div className="promo-ribbon">-{p.discount}%</div> : null}
+                                        </div>
+                                        <div className="promo-pro-body">
+                                            <h4 className="promo-pro-title">{p.title}</h4>
+                                            <p className="promo-pro-sub">{p.subtitle || p.excerpt || p.description}</p>
+                                            { (p.address || p.location || p.adresse || p.city) && (
+                                                <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.9rem' }}>
+                                                    <small>Adresse: {p.address || p.location || p.adresse || p.city}</small>
+                                                </div>
+                                            ) }
+                                            <div className="promo-pro-meta">
+                                                <div className="promo-prices">
+                                                    {p.oldPrice ? <div className="promo-old">€{Number(p.oldPrice).toLocaleString()}</div> : null}
+                                                    {p.newPrice ? <div className="promo-new">€{Number(p.newPrice).toLocaleString()}</div> : null}
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <Button variant="contained" size="small" onClick={() => handleVisitOrView(p, i)}>Voir</Button>
+                                                    <Button variant="outlined" size="small" onClick={() => openContact(p.agent || p.owner)}>Contact</Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <footer className="promo-pro-footer">
+                                            <div className="promo-agent">
+                                                <img src={(p.agent && p.agent.avatar) || img6} alt={(p.agent && p.agent.name) || 'Agent'} />
+                                                <div>
+                                                    <div className="agent-name">{(p.agent && p.agent.name) || 'Agent Ndaku'}</div>
+                                                    <div className="agent-rating">{renderStars((p.agent && p.agent.rating) || 0)}</div>
+                                                </div>
+                                            </div>
+                                            <div className="promo-cta-group">
+                                                <button className="promo-like-btn" onClick={() => toggleLike(p.id || `promo-${i}`)} aria-pressed={!!likedMap[p.id]} aria-label="Like">
+                                                    {likedMap[p.id] ? <FaHeart style={{ color: '#e63946' }} /> : <FaRegHeart style={{ color: '#e63946' }} />}
+                                                    <span style={{ marginLeft: 6, fontWeight: 700, color: '#d7263d' }}>{getLikes(p)}</span>
+                                                </button>
+                                            </div>
+                                        </footer>
+                                    </div>
+                                    <div className="promo-overlay" aria-hidden>
+                                        <div className="overlay-inner">
+                                            <button className="overlay-btn" onClick={() => handleVisitOrView(p, i)}><FaEye /> Voir</button>
+                                            <button className="overlay-btn" onClick={() => openBooking(p)}><FaShoppingCart /> Réserver</button>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        ))}
+                    </div>
+                    <button className="promo-control-right" aria-label="Suivant" onClick={() => scrollPromos('next')}>▶</button>
                 </div>
-              </div>
+                <div style={{ textAlign: 'center', marginTop: 14 }}>
+                    <Button variant="contained" color="primary" onClick={() => navigate('/promotions')}>Voir toutes les offres</Button>
+                </div>
             </section>
+
+         
+
 
             {/* Cleaned Agency section: concise, airy, professional */}
             <section className="services-section-modern" id="agence" aria-labelledby="agence-heading">
@@ -650,7 +790,7 @@ const Home = () => {
 
                         <div className="services-cta-group">
                             <button className="services-cta-btn services-cta-primary" onClick={() => scrollToId('biens')}>
-                                Voir les biens 
+                                Voir les biens
                             </button>
                             <button className="services-cta-btn services-cta-secondary" onClick={() => scrollToId('agents')}>
                                 Contact agent
@@ -675,46 +815,40 @@ const Home = () => {
                 <p className="text-center text-muted mb-4 ">Appartements, maisons, terrains, boutiques, magasins : trouvez le bien qui vous correspond vraiment.<br /><span className="text-success">Tala ndako, lopango, biloko nyonso ya sika na Kinshasa !</span></p>
                 {/* Filtres intelligents */}
                 <div className="filter-cards-container mb-4">
-                    <div className="row g-3 justify-content-center">
-                        {[
-                            { name: 'Tous', icon: <FaHome size={24} /> },
-                            { name: 'Résidentiel', icon: <FaHouseUser size={24} /> },
-                            { name: 'Commerciaux', icon: <FaStore size={24} /> },
-                            { name: 'Terrains', icon: <FaTree size={24} /> },
-                            { name: 'Salles de fêtes', icon: <FaGlassCheers size={24} /> },
-                            { name: 'Locations', icon: <FaKey size={24} /> }
-                        ].map((cat) => (
-                            <div className="col-6 col-md-4 col-lg-2" key={cat.name}>
+                    <div className="compact-filter-bar-wrap">
+                        <div className="compact-filter-bar d-flex justify-content-center flex-wrap" role="tablist" aria-label="Filtres de biens">
+                            {[
+                                { name: 'Tous', icon: <FaHome size={16} /> },
+                                { name: 'Résidentiel', icon: <FaHouseUser size={16} /> },
+                                { name: 'Commerciaux', icon: <FaStore size={16} /> },
+                                { name: 'Terrains', icon: <FaTree size={16} /> },
+                                { name: 'Salles de fêtes', icon: <FaGlassCheers size={16} /> },
+                                { name: 'Locations', icon: <FaKey size={16} /> }
+                            ].map(cat => (
                                 <Button
-                                    className="filter-card-button"
+                                    key={cat.name}
                                     variant={cat.name === filter ? 'contained' : 'outlined'}
-                                    color={cat.name === filter ? 'primary' : 'secondary'}
+                                    size="small"
                                     onClick={() => setFilter(cat.name)}
-                                    fullWidth
                                     sx={{
-                                        height: '100%',
-                                        p: 2,
-                                        display: 'flex',
-                                        flexDirection: 'column',
+                                        minWidth: 120,
+                                        borderRadius: 20,
+                                        px: 2,
+                                        py: 0.6,
+                                        display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: 1,
-                                        borderRadius: 2,
-                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        transform: cat.name === filter ? 'translateY(-4px)' : 'none',
-                                        '&:hover': {
-                                            transform: 'translateY(-4px)',
-                                            bgcolor: cat.name === filter ? 'var(--ndaku-primary)' : 'var(--ndaku-primary-100)'
-                                        }
+                                        fontSize: '0.9rem'
                                     }}
+                                    aria-pressed={cat.name === filter}
+                                    role="tab"
                                 >
-                                    <div className={`icon-wrapper ${cat.name === filter ? 'active' : ''}`}>
-                                        {cat.icon}
-                                    </div>
-                                    <div className="filter-card-title">{cat.name}</div>
-                                    <div className="filter-card-count">{categoryCounts[cat.name]} biens</div>
+                                    <span className="filter-icon" aria-hidden>{cat.icon}</span>
+                                    <span className="filter-label">{cat.name}</span>
+                                    <span className="filter-count">{` (${categoryCounts[cat.name] || 0})`}</span>
                                 </Button>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
 
                     {/* Debug info - à supprimer en production */}
@@ -781,7 +915,7 @@ const Home = () => {
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                background: var(--ndaku-primary-100);
+                                background: #e7e7e7;
                                 border-radius: 10px;
                                 font-size: 1.2rem;
                             }
@@ -878,48 +1012,22 @@ const Home = () => {
                 </div>
 
                 <style jsx>{`
-                    .filter-cards-container {
-                        margin-top: 1rem;
-                    }
-                    .filter-card-button {
-                        background: white;
-                    }
-                    .icon-wrapper {
-                        width: 48px;
-                        height: 48px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        border-radius: 12px;
-                        background: var(--ndaku-primary-100);
-                        color: var(--ndaku-primary);
-                        transition: all 0.3s ease;
-                    }
-                    .icon-wrapper.active {
-                        background: var(--ndaku-primary);
-                        color: white;
-                    }
-                    .filter-card-title {
-                        font-weight: 600;
-                        font-size: 0.95rem;
-                        margin-top: 0.5rem;
-                        text-align: center;
-                    }
-                    .filter-card-count {
-                        font-size: 0.85rem;
-                        color: #64748b;
-                    }
-                    .custom-select:focus {
-                        border-color: var(--ndaku-primary);
-                        box-shadow: 0 0 0 2px var(--ndaku-primary-33);
-                    }
+                    .filter-cards-container { margin-top: 0.6rem; }
+                    .compact-filter-bar-wrap { width: 100%; display:flex; justify-content:center; }
+                    .compact-filter-bar { gap: 8px; row-gap: 10px; }
+                    .compact-filter-bar .filter-icon { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; }
+                    .compact-filter-bar .filter-label { font-weight:600; margin-left:4px; }
+                    .compact-filter-bar .filter-count { margin-left:6px; color: #64748b; font-size:0.85rem; }
+                    .compact-filter-bar button { box-shadow: none; }
+                    .compact-filter-bar button[aria-pressed="true"] { box-shadow: 0 6px 20px rgba(102,126,234,0.12); }
+                    .custom-select:focus { border-color: var(--ndaku-primary); box-shadow: 0 0 0 2px var(--ndaku-primary-33); }
                 `}</style>
                 <div className="row justify-content-center">
-                    {filteredResults.filter(p=> p.promotion!==true).slice(0, 6).map((property, idx) => (
+                    {filteredResults.filter(p => p.promotion !== true).slice(0, 6).map((property, idx) => (
                         <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
-                            
-                               <PropertyCard property={property} onOpenBooking={openBooking} />
-                               
+
+                            <PropertyCard property={property} onOpenBooking={openBooking} />
+
                         </ScrollReveal>
                     ))}
                     {filteredResults.length === 0 && (
@@ -934,32 +1042,16 @@ const Home = () => {
                         <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
                     </Link>
                 </div>
-                {/* Publicité pour appartements/bureaux récemment construits */}
-                <div className="container py-4">
-                    <div className="card shadow-sm border-0 p-3" style={{ borderRadius: 12 }}>
-                        <div className="row align-items-center g-3">
-                            <div className="col-auto" style={{ maxWidth: 350, width: '100%' }}>
-                                <img src={require('../img/property-4.jpg')} alt="Appartements neufs" style={{ width: '100%', maxWidth: 350, height: 'auto', objectFit: 'cover', borderRadius: 8 }} />
-                            </div>
-                            <div className="col">
-                                <h5 className="card-title fw-bold text-primary mb-1">Nouveaux appartements & bureaux en ville</h5>
-                                <p className="mb-1 text-muted">Promotion exclusive: appartements neufs et espaces de bureaux disponibles en pré-lancement au centre-ville — réservations ouvertes.</p>
-                                <div className="d-flex gap-2 mt-2">
-                                    <Link to="/appartement" className="btn btn-success btn-sm"> Appartements </Link>
-                                    <Link to="/commercials" className="btn btn-outline-secondary btn-sm"> Bureaux </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            
             </div>
 
             {/* Section Véhicules à louer ou à vendre */}
             <div className="container py-5" id="vehicules">
-                <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
-                    <span className="icon-circle  text-white me-3"><FaCar size={28} /></span>
-                    <span >Véhicules à louer ou à vendre</span>
+                  <div className="section-title text-center mb-3">
+                    <span className="icon-circle text-white me-3"><FaCar size={28} /></span>
+                    <span className="fw-bold">Véhicules à louer ou à vendre</span>
                 </div>
+               
                 <p className="text-center text-muted mb-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span>Location ou achat, tout est possible sur Ndaku !</span></p>
                 <VehicleList vehicles={
                     (recommendedVehicles && recommendedVehicles.length)
@@ -974,65 +1066,83 @@ const Home = () => {
                     </Link>
                 </div>
 
-                {/* Publicité produit voiture (ex: constructeur) */}
-                <div className="container py-4">
-                    <div className="card shadow-sm border-0 p-3 d-flex align-items-center gap-3 card-vehicule" style={{ borderRadius: 12 }}>
-                        <img src={require('../img/Toyota car.jpg')} alt="Annonce constructeur" style={{ width: '100%', maxWidth: 350, height: 'auto', objectFit: 'cover', borderRadius: 8 }} />
-                        <div className="flex-grow-1">
-                            <h5 className="fw-bold mb-1">Promotion constructeur: Toyota RAV4</h5>
-                            <p className="mb-1 text-muted">Offre spéciale concession — facilités de financement et garanties incluses. Découvrez le nouveau RAV4 aujourd'hui.</p>
-                            <div className="d-flex gap-3 mt-3">
-                                <Link to="/voitures" style={{ textDecoration: 'none' }}>
-                                    <Button
-                                        variant="contained"
-                                        sx={{
-                                            bgcolor: 'var(--ndaku-primary)',
-                                            color: 'white',
-                                            '&:hover': {
-                                                bgcolor: '#0ea67e',
-                                                transform: 'translateY(-2px)',
-                                                boxShadow: '0 4px 12px var(--ndaku-primary-33)'
-                                            },
-                                            transition: 'all 0.2s ease',
-                                            borderRadius: '12px',
-                                            padding: '8px 20px',
-                                            fontSize: '0.95rem',
-                                            fontWeight: 600,
-                                            textTransform: 'none'
-                                        }}
-                                    >
-                                        Voir l'offre
-                                    </Button>
-                                </Link>
-                                <Button
-                                    variant="outlined"
-                                    component="a"
-                                    href="#contact"
-                                    sx={{
-                                        borderColor: '#9ca3af',
-                                        color: '#4b5563',
-                                        '&:hover': {
-                                            borderColor: '#6b7280',
-                                            backgroundColor: 'rgba(107, 114, 128, 0.04)',
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-                                        },
-                                        transition: 'all 0.2s ease',
-                                        borderRadius: '12px',
-                                        padding: '8px 20px',
-                                        fontSize: '0.95rem',
-                                        fontWeight: 600,
-                                        textTransform: 'none'
-                                    }}
-                                >
-                                    Contacter le concessionnaire
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
+
+            {/* Modal de réservation: monté au niveau page pour plein écran */}
+            <VisitBookingModal
+                open={bookingOpen}
+                onClose={closeBooking}
+                onSuccess={handleBookingSuccess}
+                property={bookingProperty}
+                agent={bookingAgent}
+            />
+
+
+
+            {/* Promotion publicitaire unique */}
+            <section className="container py-4" aria-label="Promotion salle de fête">
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                    <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d' }}>
+                        <span style={{ background: '#ffe066', color: '#d7263d', borderRadius: 8, padding: '0.2em 0.7em', fontWeight: 800, fontSize: '1.1rem', marginRight: 12 }}>PROMO -30%</span>
+                        Salle de fête à Kinshasa
+                    </h3>
+                </div>
+                <div className="row g-3" style={{ flexDirection: 'row' }}>
+                    {promotions.slice(0, 10).map(promo => (
+                        <div key={promo.id} className="col-4 col-md-4 col-lg-3">
+                            <article className="promo-pro-card" style={{ borderRadius: 18 }}>
+                                <div className="promo-pro-inner">
+                                    <div className="promo-pro-top">
+                                        <img src={promo.image} className="promo-pro-img" alt={promo.title} />
+                                        <div className="promo-ribbon">-{promo.discount || 30}%</div>
+                                    </div>
+                                    <div className="promo-pro-body">
+                                        <h3 className="promo-pro-title" style={{ color: '#d7263d' }}>{promo.title}</h3>
+                                        <p className="promo-pro-sub">{promo.excerpt}</p>
+                                        {(promo.address || promo.location || promo.adresse || promo.city) && (
+                                            <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.95rem' }}>
+                                                Adresse: {promo.address || promo.location || promo.adresse || promo.city}
+                                            </div>
+                                        )}
+                                        <div className="promo-pro-meta">
+                                            <div className="promo-prices">
+                                                {promo.oldPrice ? <div className="promo-old">€{Number(promo.oldPrice).toLocaleString()}</div> : null}
+                                                {promo.newPrice ? <div className="promo-new">€{Number(promo.newPrice).toLocaleString()}</div> : null}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <Button variant="contained" color="primary" onClick={() => handleVisitOrView(promo)}>Voir</Button>
+                                                <Button variant="outlined" onClick={() => openContact(promo.agent || promo.owner)}>Contact</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <footer className="promo-pro-footer">
+                                        <div className="promo-agent">
+                                            <img src={(promo.agent && promo.agent.avatar) || img6} alt={(promo.agent && promo.agent.name) || 'Agent'} />
+                                            <div>
+                                                <div className="agent-name">{(promo.agent && promo.agent.name) || 'Annonceur'}</div>
+                                                <div className="agent-rating">{renderStars((promo.agent && promo.agent.rating) || 0)}</div>
+                                            </div>
+                                        </div>
+                                        <div className="promo-cta-group">
+                                            <Button variant="outlined" onClick={() => toggleLikePromo(promo.id)} sx={{ borderRadius: 12 }}>
+                                                👍 {promo.likes || 0} J'aime
+                                            </Button>
+                                        </div>
+                                    </footer>
+                                </div>
+                                <div className="promo-overlay" aria-hidden>
+                                    <div className="overlay-inner">
+                                        <button className="overlay-btn" onClick={() => handleVisitOrView(promo)}><FaEye /> Voir</button>
+                                        <button className="overlay-btn" onClick={() => openBooking(promo)}><FaShoppingCart /> Réserver</button>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    ))}
+                </div>
+            </section>
             {/* Section Agents moderne */}
             <div className="bg-light py-5" id="agents">
                 <div className="container">
@@ -1041,7 +1151,7 @@ const Home = () => {
                         <span className="fw-bold" >Rencontrez nos agents experts et certifiés à Kinshasa</span>
                     </div>
                     <p className="text-center text-muted mb-5">Des professionnels passionnés, prêts à vous guider et sécuriser chaque étape de votre projet immobilier.<br /><span>Bato ya ndaku oyo bazali na motema!</span></p>
-                   
+
                     <div className="d-flex justify-content-center mt-3">
                         <Link to="/agents" style={{ textDecoration: 'none' }}>
                             <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus d'agents</Button>
@@ -1054,16 +1164,51 @@ const Home = () => {
             {/* Modal de messagerie / contact agent */}
             <AgentContactModal agent={selectedAgent} open={contactOpen} onClose={closeContact} />
 
-            {/* Modal de réservation: monté au niveau page pour plein écran */}
-            <VisitBookingModal
-                open={bookingOpen}
-                onClose={closeBooking}
-                onSuccess={handleBookingSuccess}
-                property={bookingProperty}
-                agent={bookingAgent}
-            />
+            {/* Témoignages util {/* Bannière choix agent/propriétaire - improved with background image and glass CTA */}
 
-            {/* Témoignages utilisateurs — compact, 3 visibles, navigation */}
+
+            {/* Map Section - Browse properties on interactive map */}
+            <section className="map-section py-5" style={{ background: '#f8fafc' }}>
+                <div className="container">
+                    <div className="section-title text-center mb-4 animate__animated animate__fadeInDown">
+                        <span className="icon-circle text-white me-3"><FaMapMarkerAlt size={28} /></span>
+                        <span className="fw-bold">Explorez nos biens sur la carte</span>
+                    </div>
+                    <p className="text-center text-muted mb-4">Visualisez tous les biens disponibles à Kinshasa, interagissez avec les marqueurs et réservez une visite directement depuis la carte.</p>
+
+                    <div style={{ height: '500px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(17,25,40,0.12)' }}>
+                        <MapPropertyViewer
+                            properties={filteredResults && filteredResults.length > 0 ? filteredResults : properties}
+                            onVisitRequest={(data) => {
+                                openBooking(data.property, data.agent);
+                            }}
+                            defaultCenter={[-4.325, 15.322]}
+                            defaultZoom={13}
+                        />
+                    </div>
+                </div>
+            </section>
+            <section className="container-fluid agent-banner py-5 animate__animated animate__fadeInDown" aria-label="Bannière agent ou propriétaire" style={{ color: isDark ? theme.palette.text.primary : '#fff' }}>
+                <div className="agent-banner-inner container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                    <div className="d-flex align-items-center gap-3">
+                        <FaUserTie className="agent-banner-icon text-white" size={44} />
+                        <div>
+                            <div className="fw-bold fs-4 agent-title">Vous êtes agent ou propriétaire ?</div>
+                            <div className="agent-subtext text-white-80">Publiez vos annonces ou rejoignez notre réseau d'agents certifiés — simple et sécurisé.</div>
+                        </div>
+                    </div>
+
+                    <div className="d-flex gap-2 mt-3 mt-md-0">
+                        <Link to="#" style={{ textDecoration: 'none' }}>
+                            <MuiButton variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaBuilding />} className='owner-btn-primary'> Immobilier </MuiButton>
+                        </Link>
+                        <Link to="/owner/onboard" style={{ textDecoration: 'none' }}>
+                            <Button variant="contained" color="primary" sx={{ px: 3 }} startIcon={<FaHandshake color='white' />} className='owner-btn-outline'> Propriétaire </Button>
+                        </Link>
+                    </div>
+
+                </div>
+            </section>
             <section className="container py-4" aria-label="Avis utilisateurs">
                 <div className="d-flex align-items-center justify-content-between mb-3">
                     <h3 className="fw-bold mb-0" style={{ fontSize: '1.4rem' }}>Avis des utilisateurs</h3>
@@ -1093,206 +1238,6 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Promotion publicitaire unique */}
-            <section className="container py-4" aria-label="Promotion salle de fête">
-                <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d' }}>
-                        <span style={{ background: '#ffe066', color: '#d7263d', borderRadius: 8, padding: '0.2em 0.7em', fontWeight: 800, fontSize: '1.1rem', marginRight: 12 }}>PROMO -30%</span>
-                        Salle de fête à Gombe
-                    </h3>
-                </div>
-                <div className="row g-3">
-                    {promotions.slice(0, 1).map(promo => (
-                        <div key={promo.id} className="col-12">
-                            <div className="promo-salle-card animate-card position-relative d-flex flex-lg-row flex-column align-items-stretch shadow-lg border-0" style={{ background: 'linear-gradient(90deg, #fff 60%, #ffe06622 100%)', borderRadius: 18, overflow: 'hidden', minHeight: 260 }}>
-                                <div className="promo-salle-img-wrap flex-shrink-0" style={{ minWidth: 0, width: '100%', maxWidth: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff8e1' }}>
-                                    <img src={promo.image} className="promo-salle-img" alt={promo.title} style={{ width: '100%', maxWidth: 340, height: 220, objectFit: 'cover', borderRadius: 16, boxShadow: '0 2px 16px #d7263d22' }} />
-                                </div>
-                                <div className="promo-salle-body d-flex flex-column justify-content-between p-4" style={{ flex: 1, minWidth: 0 }}>
-                                    <div>
-                                        <h4 className="promo-salle-title mb-2" style={{ color: '#d7263d', fontWeight: 800, fontSize: '1.25rem' }}>{promo.title}</h4>
-                                        <p className="promo-salle-desc mb-3" style={{ fontSize: '1.08rem', color: '#333', fontWeight: 500 }}>{promo.excerpt}</p>
-                                        <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                                            <span className="promo-salle-oldprice text-muted" style={{ fontSize: '1.1rem', textDecoration: 'line-through' }}>{promo.oldPrice} $</span>
-                                            <span className="promo-salle-newprice" style={{ fontSize: '2rem', color: 'var(--ndaku-primary)', fontWeight: 900 }}>{promo.newPrice} $</span>
-                                            <span className="badge bg-danger" style={{ fontSize: '1rem', fontWeight: 700 }}>-30%</span>
-                                        </div>
-                                        <div className="mb-3">
-                                            <span className="badge bg-warning text-dark" style={{ fontSize: '1rem', fontWeight: 600 }}>Offre limitée : réservez avant la fin du mois !</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => toggleLikePromo(promo.id)}
-                                                sx={{
-                                                    borderColor: '#d7263d',
-                                                    color: '#d7263d',
-                                                    '&:hover': {
-                                                        borderColor: '#d7263d',
-                                                        backgroundColor: 'rgba(215, 38, 61, 0.04)',
-                                                        transform: 'translateY(-2px)',
-                                                        boxShadow: '0 4px 12px rgba(215, 38, 61, 0.15)'
-                                                    },
-                                                    transition: 'all 0.2s ease',
-                                                    borderRadius: '12px',
-                                                    padding: '8px 16px',
-                                                    fontSize: '0.95rem',
-                                                    fontWeight: 600,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px'
-                                                }}
-                                            >
-                                                <span style={{ fontSize: '1.2rem' }}>👍</span>
-                                                <span>{promo.likes} J'aime</span>
-                                            </Button>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <span className="badge" style={{
-                                                    backgroundColor: 'rgba(75, 85, 99, 0.1)',
-                                                    color: '#4b5563',
-                                                    padding: '8px 12px',
-                                                    borderRadius: '10px',
-                                                    fontSize: '0.9rem',
-                                                    fontWeight: 500
-                                                }}>
-                                                        {Array.isArray(promo.promoComment) ? promo.promoComment.length : (promo.promoComment ? 1 : 0)} commentaires
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="comments-section" style={{
-                                            maxHeight: '180px',
-                                            overflowY: 'auto',
-                                            borderRadius: '12px',
-                                            background: 'rgba(251, 249, 251, 0.8)',
-                                            padding: '12px',
-                                            marginBottom: '16px'
-                                        }}>
-                                            <ul className="list-unstyled mb-2">
-                                                    {(() => {
-                                                        const promoComments = Array.isArray(promo.promoComment)
-                                                            ? promo.promoComment
-                                                            : (promo.promoComment ? [{ id: 'inline', author: 'Annonceur', text: String(promo.promoComment) }] : []);
-                                                        if (promoComments.length === 0) return (<li className="text-muted" style={{ fontSize: '0.9rem' }}>Pas encore de commentaires. Soyez le premier à commenter !</li>);
-                                                        return promoComments.map(c => (
-                                                            <li key={c.id || c._id || Math.random()} className="comment-item" style={{
-                                                                padding: '8px 12px',
-                                                                marginBottom: '8px',
-                                                                borderRadius: '8px',
-                                                                background: 'white',
-                                                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                                                            }}>
-                                                                <strong style={{ color: '#374151' }}>{c.author || 'Anonyme'}:</strong>
-                                                                <span style={{ color: '#6b7280', marginLeft: '8px' }}>{c.text || ''}</span>
-                                                            </li>
-                                                        ));
-                                                    })()}
-                                            </ul>
-                                        </div>
-                                        <CommentInput onAdd={(author, text) => addCommentPromo(promo.id, author || 'Anonyme', text)} />
-                                    </div>
-                                </div>
-                                <div className="position-absolute top-0 end-0 m-3" style={{ zIndex: 2 }}>
-                                    <span className="badge bg-danger" style={{ fontSize: '1.1rem', fontWeight: 700, padding: '0.7em 1.2em', boxShadow: '0 2px 8px #d7263d33' }}>-30%</span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* Promotions section avec PromoCard - Design professionnel */}
-            <section className="container py-4" aria-label="Promotions">
-                <div className="d-flex align-items-center justify-content-center mb-4">
-                    <div>
-                        <h3 className="fw-bold mb-0" style={{ fontSize: '1.6rem', color: '#d7263d', display: "center", justifyContent: 'center' }}>
-                            🔥 Offres en promotion
-                        </h3>
-                        <p className="text-muted mt-2 mb-0">Les meilleures réductions du moment</p>
-                    </div>
-                </div>
-                <div className="promo-grid">
-                    {promotions && promotions.length > 0 ? promotions.map((p, i) => {
-                        const promoKey = ensurePromoKey(p, i);
-                        const agent = p.agent || p.owner || null;
-                        const imageSrc = p.image || (p.images && p.images[0]) || require('../img/property-1.jpg');
-                        const price = p.price || p.newPrice || p.amount || null;
-
-                        return (
-                            <div key={promoKey} className="promo-grid-item">
-                                <PromoCard
-                                    id={p.id || promoKey}
-                                    title={p.title || p.name || 'Offre spéciale'}
-                                    description={p.address || p.excerpt || p.description || ''}
-                                    image={imageSrc}
-                                    agent={agent}
-                                    price={price}
-                                    initialLikes={p.likes || 0}
-                                    initialComments={p.comments || []}
-                                    isHot={i === 0}
-                                    isTrending={i % 2 === 0}
-                                    onReserve={() => openBooking({ id: p.id || promoKey, title: p.title || p.name || 'Offre spéciale', image: imageSrc, price }, agent)}
-                                    onViewAgent={(ag) => openBooking(null, ag)}
-                                    styles={{ margin : 10 }}
-                                />
-                            </div>
-                        );
-                    }) : (
-                        <div className="col-12 text-center py-5">
-                            <div className="text-muted" style={{ fontSize: '1.1rem' }}>
-                                🎉 Aucune offre en promotion pour le moment. Revenez bientôt !
-                            </div>
-                        </div>
-                    )}
-                </div>
-                {/* Load more button */}
-                <div className="d-flex justify-content-center mt-5">
-                    {promotionsHasMore ? (
-                        <Button
-                            className="btn btn-lg btn-success fw-bold px-5"
-                            variant='outlined'
-                            onClick={() => { loadMorePromotions(); }}
-                            disabled={loadingPromotions}
-                        style={{
-
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '14px 40px',
-                            fontSize: '1.05rem',
-                            color: 'white',
-                            fontWeight: 700,
-                            letterSpacing: '0.5px',
-                            boxShadow: '0 6px 20px rgba(15, 81, 50, 0.3)',
-                            transition: 'all 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.transform = 'translateY(-3px)';
-                            e.target.style.boxShadow = '0 8px 28px rgba(15, 81, 50, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.transform = 'translateY(0)';
-                            e.target.style.boxShadow = '0 6px 20px rgba(15, 81, 50, 0.3)';
-                        }}
-                        >
-                            {loadingPromotions ? 'Chargement…' : '⬇️ Voir plus d\'offres'}
-                        </Button>
-                    ) : (
-                        <div className="text-muted small" style={{ padding: '14px 40px', borderRadius: 12 }}>
-                            ✅ Plus de résultats disponibles
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* Carte interactive des biens et position utilisateur */}
-            <div className="container" style={{ paddingBottom: "3vh" }}>
-                <div className="section-title text-center mb-3 animate__animated animate__fadeInDown">
-                    <span className="icon-circle  text-white me-3"><FaMapMarkerAlt size={28} /></span>
-                    <span className="fw-bold" style={{ fontSize: '2rem', color: theme.palette.text.primary }}>Carte des biens à Kinshasa</span>
-                </div>
-                <MapView />
-            </div>
 
             {/* Call to action */}
             {/* <div className=" text-white text-center py-5" style={{
@@ -1492,6 +1437,69 @@ function CommentInput({ onAdd, replyingTo, onCancelReply }) {
                 }}
             />
             <Button className="btn btn-sm btn-success" onClick={() => { if (text.trim()) { onAdd(text, replyingTo?.id || null); setText(''); } }}>Envoyer</Button>
+        </div>
+    );
+}
+
+// MapStatCard: professional stats card with RDC-shaped SVG and legend
+function MapStatCard({ vendors = 0, products = 0, visits = 0, purchases = 0 }) {
+    const [drcUrl, setDrcUrl] = React.useState(null);
+
+    React.useEffect(() => {
+        // Try loading a user-provided SVG from public assets (public/assets/images/drc.svg)
+        // If present, we'll use it; otherwise keep using the inline path.
+        const candidate = '/assets/images/drc.svg';
+        fetch(candidate, { method: 'HEAD' }).then(res => {
+            if (res.ok) setDrcUrl(candidate);
+        }).catch(() => { /* ignore */ });
+    }, []);
+
+    return (
+        <div className="map-stat-card animate-card">
+            <div className="map-stat-left">
+                <h4 className="map-stat-title">Aperçu national</h4>
+                <p className="map-stat-sub">Répartition des activités sur la République Démocratique du Congo</p>
+                <ul className="map-legend">
+                    <li className="map-legend-item"><span className="map-count">{vendors}</span><span className="map-label">Vendeurs</span></li>
+                    <li className="map-legend-item"><span className="map-count">{products}</span><span className="map-label">Produits</span></li>
+                    <li className="map-legend-item"><span className="map-count">{visits}</span><span className="map-label">Visites</span></li>
+                    <li className="map-legend-item"><span className="map-count">{purchases}</span><span className="map-label">Achats</span></li>
+                </ul>
+            </div>
+            <div className="map-stat-right" aria-hidden>
+                <svg className="map-svg" viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="g1" x1="0" x2="1">
+                            <stop offset="0%" stopColor="#00cdf2" />
+                            <stop offset="100%" stopColor="#764ba2" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="0" y="0" width="100%" height="100%" rx="14" fill="url(#g1)" opacity="0.06" />
+                    {drcUrl ? (
+                        <image href={drcUrl} x="24" y="18" width="272" height="256" preserveAspectRatio="xMidYMid meet" />
+                    ) : (
+                        <path d="M42 38 C70 18 118 14 154 36 C180 52 210 66 232 96 C252 132 246 174 216 204 C188 232 150 244 110 232 C82 222 66 200 56 176 C46 150 36 118 42 88 C40 64 38 50 42 38 Z" fill="#ffffff" stroke="#e6eef6" strokeWidth="1.5" />
+                    )}
+
+                    {/* Highlighted central point with pulse and multi-line tooltip */}
+                    <g className="map-point" transform="translate(0,0)">
+                        <circle className="map-pulse" cx="86" cy="178" r="10" fill="#ff6b6b" opacity="0.28" />
+                        <circle className="map-center-dot" cx="86" cy="178" r="8" fill="#ff6b6b" stroke="#fff" strokeWidth="2" />
+                        <g className="map-tooltip" transform="translate(-4,110)">
+                            <rect x="0" y="0" width="180" height="74" rx="8" fill="#07212a" opacity="0.96" />
+                            <text className="tt-header" x="12" y="18" fill="#fff" fontSize="13" fontWeight="800">Statistiques</text>
+                            <text className="tt-line tt-vendors" x="12" y="36" fill="#fff" fontSize="12"><tspan fontWeight="800">{vendors}</tspan> vendeurs</text>
+                            <text className="tt-line tt-products" x="12" y="52" fill="#fff" fontSize="12"><tspan fontWeight="700">{products}</tspan> produits</text>
+                            <text className="tt-line tt-views" x="12" y="68" fill="#fff" fontSize="12"><tspan fontWeight="700">{visits}</tspan> visites · <tspan fontWeight="700">{purchases}</tspan> achats</text>
+                        </g>
+                    </g>
+
+                    <g className="map-decor" transform="translate(12,210)">
+                        <circle cx="60" cy="20" r="6" fill="#ffd166" opacity="0.9" />
+                        <circle cx="36" cy="28" r="4" fill="#06b6d4" opacity="0.9" />
+                    </g>
+                </svg>
+            </div>
         </div>
     );
 }

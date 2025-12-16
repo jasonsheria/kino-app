@@ -90,14 +90,12 @@ export const subscriptions = [
             // capture body text to help debugging 404/500
             let bodyText = null;
             try { bodyText = await r.text(); } catch (e) { bodyText = null; }
-            console.warn(`ndaku:fakedata - non-ok response from ${u}: ${r.status} ${r.statusText}`, bodyText ? { bodyText } : null);
             continue;
           }
           // try parse json
           try { propsResp = await r.json(); } catch (e) { propsResp = null; }
           if (propsResp) break;
         } catch (e) {
-          console.warn(`ndaku:fakedata - fetch failed for ${u}:`, e?.message || e);
           propsResp = null;
         }
       }
@@ -140,9 +138,6 @@ export const subscriptions = [
         try { window.dispatchEvent(new CustomEvent('ndaku:properties-updated', { detail: { properties: mapped } })); } catch (e) { }
       } else {
         // No properties received - log and notify UI with tried urls
-        const errMsg = `ndaku:fakedata - no properties returned (tried ${tryUrls.join(', ')})`;
-        try { console.error(errMsg, { triedUrl, response: propsResp }); } catch (e) { /* ignore */ }
-        try { window.dispatchEvent(new CustomEvent('ndaku:properties-error', { detail: { message: errMsg, triedUrl, triedUrls: tryUrls, response: propsResp } })); } catch (e) { }
         // don't block UI with alert by default; keep console and event for app to show toast
       }
       // reservation endpoint api/reservation
@@ -154,7 +149,6 @@ export const subscriptions = [
           const r = reservationsResp;
           // Log 401/403 explicitly to help debug missing/expired tokens
           if (r.status === 401 || r.status === 403) {
-            console.warn(`ndaku:fakedata - reservations fetch unauthorized (${r.status}) for ${reservationsUrl}. Token present? ${!!token}`);
             // do not throw to allow app to continue with fake data
             throw new Error(`Unauthorized ${r.status}`);
           }
@@ -181,7 +175,6 @@ export const subscriptions = [
         }
       } catch (err) {
         // silent
-        console.warn('ndaku:fakedata - could not fetch live reservations data', err?.message || err);
       }
 
       // agents endpoint may also be under /api/agents; prefer user-scoped /api/agents/me using auth token
@@ -223,16 +216,10 @@ export const subscriptions = [
         agents.splice(0, agents.length, ...mappedAgents);
         console.log("fakedata.js - loaded live agents:", mappedAgents);
         try { window.dispatchEvent(new CustomEvent('ndaku:agents-updated', { detail: { agents: mappedAgents } })); } catch (e) { }
-      } else {
-        const errMsg = `ndaku:fakedata - no agents returned (tried ${tryAgentUrls.join(', ')})`;
-        try { console.error(errMsg, { triedAgentUrl, response: agentsResp }); } catch (e) { }
-        try { window.dispatchEvent(new CustomEvent('ndaku:agents-error', { detail: { message: errMsg, triedUrl: triedAgentUrl, triedUrls: tryAgentUrls, response: agentsResp } })); } catch (e) { }
-      }
+      } 
     } catch (err) {
       // silent
-      console.warn('ndaku:fakedata - could not fetch live data', err?.message || err);
     }
-    console.log('ndaku:fakedata - live data fetch attempt completed agents', agents);
   })();
 
   // Set current user from localStorage if available

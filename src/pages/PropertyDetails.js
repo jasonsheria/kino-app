@@ -536,11 +536,7 @@ const PropertyDetails = () => {
                 <AgentProfileCard agent={resolvedAgent} property={property} isReserved={isReserved} onContactClick={(t) => { if (t === 'whatsapp') setShowContact(true); }} />
               </div>
 
-              <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-                <button className="btn pd-primary" style={{ flex: 1 }} onClick={() => { try { window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId: resolvedAgent?.id } })); } catch (e) { /* ignore */ } }}>message</button>
-                <button className="btn" style={{ flex: 1, background: 'var(--ndaku-primary)', color: '#fff' }} onClick={() => { if (resolvedAgent?.phone) window.location.href = `tel:${resolvedAgent.phone}`; }}>Appeler</button>
-              </div>
-              <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 12, width : '90%', marginLeft: 'auto', marginRight: 'auto'}}>
                 <button className="btn-reserve-visite btn pd-primary" style={{ width: '100%' }} onClick={() => setShowBooking(true)}>
                   Réserver une visite
                 </button>

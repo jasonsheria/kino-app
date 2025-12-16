@@ -43,7 +43,6 @@ const Footer = () => {
       component="footer"
       sx={{
         mt: 'auto',
-        backgroundColor: isDark ? 'gray' : '#0db1c6',
         position: 'relative',
         '&::before': {
           content: '""',
@@ -77,7 +76,7 @@ const Footer = () => {
                 <Typography 
                   variant="subtitle2"
                   sx={{
-                    color: isDark ? 'var(--ndaku-primary)' : '#fff',
+                    color: isDark ? 'var(--ndaku-primary)' : 'black',
                     letterSpacing: 3,
                     textTransform: 'uppercase'
                   }}
@@ -88,7 +87,7 @@ const Footer = () => {
               <Typography 
                 variant="body2"
                 sx={{ 
-                  color: 'white',
+                  color: 'black',
                   lineHeight: 1.8,
                   mb: 2
                 }}
@@ -101,7 +100,7 @@ const Footer = () => {
                 startIcon={<FaHome />}
                   sx={{
                   bgcolor: 'var(--ndaku-primary)',
-                  color: 'white',
+                  color: 'black',
                   alignSelf: 'flex-start',
                   textTransform: 'none',
                   px: 3,
@@ -124,7 +123,7 @@ const Footer = () => {
               sx={{ 
                 fontWeight: 600,
                 mb: 3,
-                color: isDark ? '#fff' : '#fff'
+                color: isDark ? 'black' : 'black'
               }}
             >
               Navigation rapide
@@ -138,7 +137,7 @@ const Footer = () => {
                     sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    color: 'white',
+                    color: 'black',
                     transition: 'all 0.2s',
                     '&:hover': {
                       color: 'var(--ndaku-primary)',
@@ -160,7 +159,7 @@ const Footer = () => {
               sx={{ 
                 fontWeight: 600,
                 mb: 3,
-                color: isDark ? '#fff' : '#fff'
+                color: isDark ? 'black' : 'black'
               }}
             >
               Contactez-nous
@@ -191,7 +190,7 @@ const Footer = () => {
                     </Box>
                     <Typography 
                       variant="body2"
-                      sx={{ color: '#fff' }}
+                      sx={{ color: 'black' }}
                     >
                       {info.text}
                     </Typography>
@@ -235,7 +234,7 @@ const Footer = () => {
           >
             <Typography 
               variant="body2" 
-              sx={{ color: '#fff' }}
+              sx={{ color: 'black' }}
             >
               © {new Date().getFullYear()} Ndaku Immobilier · Tous droits réservés
             </Typography>
@@ -249,7 +248,7 @@ const Footer = () => {
                   key={i}
                   size={isMobile ? "small" : "medium"}
                       sx={{
-                    color: '#fff',
+                    color: 'black',
                     transition: 'all 0.3s',
                     '&:hover': {
                       color: 'var(--ndaku-primary)',

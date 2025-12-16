@@ -1,11 +1,9 @@
 /* New modern, minimal agent card styles */
 
 .agent-card-modern {
-  background: var(--ndaku-light, #fff);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: var(--shadow-md, 0 8px 26px rgba(2,6,23,0.06));
-  border: 1px solid rgba(16,24,40,0.04);
+ 
 }
 
 .agent-image {

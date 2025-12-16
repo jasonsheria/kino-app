@@ -904,7 +904,7 @@
 .property-image{ height:220px; background-size:cover; background-position:center; position:relative; border-top-left-radius:20px; border-top-right-radius:20px; overflow:hidden; }
 .property-image::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.45) 100%); pointer-events:none; }
 
-.badges .status-badge{ background:linear-gradient(90deg,#ff7a59,#ff3d6b); color:white; padding:8px 12px; border-radius:999px; font-weight:800; box-shadow:0 6px 18px rgba(255,77,106,0.18); position:absolute; left:14px; top:14px; z-index:8; }
+.badges .status-badge{ background:linear-gradient(90deg,#ff7a59,#ff3d6b); color:white; padding:8px 12px; border-radius:999px; font-weight:800; box-shadow:0 6px 18px rgba(255,77,106,0.18); position:absolute; left:14px; top:30vh; z-index:8; }
 .price-badge{ position:absolute; right:14px; top:14px; z-index:8; display:flex; flex-direction:column; gap:6px; align-items:flex-end }
 .price-badge > div:last-child{ background:linear-gradient(90deg,#ffe082,#ffd600); color:#1f2937; padding:8px 12px; border-radius:999px; font-weight:900; box-shadow:0 8px 22px rgba(255,214,11,0.14); }
 
