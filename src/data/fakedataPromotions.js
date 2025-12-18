@@ -1,5 +1,5 @@
 // Promotions utilitaires — extrait et formate les biens marqués `promotion: true`
-import { properties } from './fakedata';
+import { properties, agents } from './fakedata';
 
 const PLACEHOLDER_IMG = require('../img/property-1.jpg');
 
@@ -21,7 +21,12 @@ function formatPromo(p) {
     promoStart: p.promoStart || null,
     promoEnd: p.promoEnd || null,
     promoComment: p.promoComment || p.promo_comment || '',
+    adresse : p.adresse || p.address || 'Adresse non disponible',
+    commune : p.commune || p.city || '',
+    location : p.location || '',
+    quartier : p.quartier || '',
     raw: p
+
   };
   } catch (err) {
     // log and return null so callers can filter it out
@@ -42,7 +47,7 @@ export function getLocalPromotions({ limit = 10, offset = 0 } = {}) {
 }
 
 // Attempt to fetch more promotions from backend; fallback to local data if the server is not available.
-export async function fetchMorePromotionsFromServer({ offset = 0, limit = 10, noFallback = false } = {}) {
+export async function fetchMorePromotionsFromServer({ offset = 0, limit = 20, noFallback = false } = {}) {
   const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/$/, '');
   if (!API_BASE) {
     // no backend configured — return local slice or nothing depending on noFallback
@@ -71,27 +76,39 @@ export async function fetchMorePromotionsFromServer({ offset = 0, limit = 10, no
     return items.map(i => {
       // map server object to our promo format conservatively
       const p = i.property || i; // some endpoints may wrap
-      // eslint-disable-next-line no-console
-      console.debug('[fetchMorePromotionsFromServer] mapping item', { id: p._id || p.id || null });
-      console.log("card promotion",p);
-      return formatPromo({
+   
+      const agent = agents.filter(a =>a.id === (p.agentId || p.agent || null))
+    
+      console.log('promotion in fakdataPromotions',p);
+      const dat= formatPromo({
         id: p._id || p.id,
         titre: p.titre || p.title || p.name,
         images: p.images || p.photos || p.imagesArray || [],
-        agent: p.agent || p.agentId || null,
+        agent: agent[0],
         prix: p.prix || p.price || 0,
         promoPrice: p.promoPrice || p.promo_price || null,
         promotion: p.promotion === true || i.promotion === true,
         promoStart: p.promoStart || p.promo_start || null,
         promoEnd: p.promoEnd || p.promo_end || null,
-        promoComment: p.promoComment || p.promo_comment || i.comment || []
+        promoComment: p.promoComment || p.promo_comment || i.comment || [],
+        adresse : p.adresse || p.address || 'Adresse non disponible',
+        commune : p.commune || p.city || '',
+        location : p.location || '',
+        quartier : p.quartier || '',
+        
+
       });
+      console.log("formatted promotion",dat);
+      return dat;
+      
     }).filter(Boolean).slice(0, limit);
+    
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('[fetchMorePromotionsFromServer] fetch failed', { error: err && err.message });
     return noFallback ? [] : getLocalPromotions({ offset, limit });
   }
+  
 }
 
 // Convenience default export

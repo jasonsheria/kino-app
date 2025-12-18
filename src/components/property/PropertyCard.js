@@ -197,7 +197,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
   const imgs = Array.isArray(property.images) && property.images.length
     ? property.images.map(i => (typeof i === 'string' ? i : (i && i.url) ? i.url : require('../../img/property-1.jpg')))
     : (property.image ? [ (typeof property.image === 'string' ? property.image : (property.image && property.image.url) ? property.image.url : require('../../img/property-1.jpg')) ] : [require('../../img/property-1.jpg')]);
-  const displayName = safeStr(property.titre || property.name || property.title || property.nom) || 'Bien immobilier';
+  const displayName = safeStr(property.type || property.name || property.title || property.nom) || 'Bien immobilier';
 
   // Suggestions (autres biens, exclure le courant)
   const suggestions = properties.filter(p => String(p.id) !== String(property.id)).slice(0, 3);
@@ -338,7 +338,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         {/* Booking modal is now mounted at page-level (Home) to allow full-screen presentation */}
       </div>
       {agentResolved && (
-        <div className={`property-agent d-flex align-items-center p-2 rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
+        <div className={`property-agent d-flex align-items-center rounded-3 bg-light animate__animated animate__fadeIn animate__delay-1s ${!isReserved ? 'agent-muted' : ''}`}>
           <div className="property-agent-inner">
             <div className="agent-left">
               <div className="agent-avatar-wrapper">

@@ -1,7 +1,7 @@
 import React from 'react';
 import MessengerWidget from '../components/common/Messenger';
 import { useTheme } from '@mui/material/styles';
-import { FaUserTie, FaFilter, FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools, FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart, FaEye, FaShoppingCart } from 'react-icons/fa';
+import { FaUserTie, FaFilter, FaListUl, FaBuilding, FaArrowRight, FaHandshake, FaMapMarkerAlt, FaEnvelope, FaPhoneAlt, FaHome, FaUserFriends, FaCommentDots, FaCar, FaHouseUser, FaStore, FaTree, FaGlassCheers, FaKey, FaCertificate, FaBullhorn, FaTools, FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart, FaEye, FaShoppingCart, FaLocationArrow } from 'react-icons/fa';
 import Navbar from '../components/common/Navbar';
 import InfoModal from '../components/common/InfoModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -179,9 +179,9 @@ const Home = () => {
         }
     }, []);
     function tronquerTexte(text, maxLength) {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  }
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
 
     // Configuration des catégories et filtres
     const propertyConfig = React.useMemo(() => ({
@@ -428,6 +428,7 @@ const Home = () => {
         setCarouselItems(displayedPromotions.map((p, idx) => ({ ...p, __uid: p.id || `d-${idx}` })));
         lastAppendedRef.current = displayedPromotions.length - 1;
         console.log('Reset carousel items', displayedPromotions);
+
     }, [displayedPromotions]);
 
     // Autoplay: scroll right every few seconds through existing items only (no appends)
@@ -484,7 +485,7 @@ const Home = () => {
             setLoadingPromotions(true);
             try {
                 // Request promotions from server only (no local fallback)
-                const items = await fetchMorePromotionsFromServer({ offset: 0, limit: 10, noFallback: true });
+                const items = await fetchMorePromotionsFromServer({ offset: 0, limit: 20, noFallback: true });
                 if (!mounted) return;
                 // log what we received for debugging
                 // eslint-disable-next-line no-console
@@ -690,38 +691,35 @@ const Home = () => {
                     <button className="promo-control-left" aria-label="Précédent" onClick={() => scrollPromos('prev')}>◀</button>
                     <div ref={promoRef} className="promo-carousel" role="region" aria-label="carrousel promotions">
                         {carouselItems.map((p, i) => (
-                            
+
                             <div className="promo-item" key={p.__uid || p.id || i}>
                                 <article className="promo-pro-card">
                                     <div className="promo-pro-inner">
                                         <div className="promo-pro-top">
                                             <img src={p.image || img6} className="promo-pro-img" alt={p.title} />
-                                            {p.price ? <div className="promo-ribbon">-{Math.floor((p.price*100)/p.originalPrice)}%</div> : null}
+                                            {p.price ? <div className="promo-ribbon">-{Math.floor((p.price * 100) / p.originalPrice)}%</div> : null}
                                         </div>
                                         <div className="promo-pro-body">
-                                            <h4 className="promo-pro-title"> {p.title}</h4>
-                                            <p className="promo-pro-sub">{ tronquerTexte(p.promoComment?p.promoComment: '', 50) +'...' || p.excerpt || p.description}</p>
-                                            { (p.address || p.location || p.adresse || p.city) && (
-                                                <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.9rem' }}>
-                                                    <small>Adresse: {p.address || p.location || p.adresse || p.city}</small>
-                                                </div>
-                                            ) }
-                                            <div className="promo-pro-meta">
+                                            <div className="promo-pro-category text-muted d-flex justify-content-between align-items-center" style={{borderBottom:"1px solid rgba(128, 128, 128, 0.12)", padding: 10}}>
+                                                <h4 className="promo-pro-title text-capitalize"> {tronquerTexte(p.title, 20)}</h4>
                                                 <div className="promo-prices">
-                                                    {p.originalPrice ? <div className="promo-old">€{Number(p.originalPrice).toLocaleString()}</div> : null}
-                                                    {p.price ? <div className="promo-new">€{Number(p.price).toLocaleString()}</div> : null}
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <Button variant="contained" size="small" onClick={() => navigate(`/properties/${p.id}`)}>Voir</Button>
-                                                    <Button variant="outlined" size="small" onClick={() => openContact(p.agent || p.owner)}>Contact</Button>
+                                                    {p.originalPrice ? <div className="promo-old">${Number(p.originalPrice).toLocaleString()}</div> : null}
+                                                    {p.price ? <div className="promo-new">${Number(p.price).toLocaleString()}</div> : null}
                                                 </div>
                                             </div>
+                                            <p className="promo-pro-sub" style={{padding : 10}}> {tronquerTexte(p.promoComment ? p.promoComment : '', 50) + '...' || p.excerpt || p.description}</p>
+                                            {(p.address || p.location || p.adresse || p.city) && (
+                                                <div className="promo-address text-muted align-text-right" style={{ fontSize: '0.9rem', padding : 10  }}>
+                                                    <small> <FaLocationArrow/></small><small style={{paddingLeft : 10}}> <strong style={{ color: '#e63946' }} > Adresse </strong>: {p.address || p.location || p.adresse || p.city}</small>
+                                                </div>
+                                            )}
+
                                         </div>
                                         <footer className="promo-pro-footer">
                                             <div className="promo-agent">
-                                                <img src={(p.agent && p.agent.avatar) || img6} alt={(p.agent && p.agent.name) || 'Agent'} />
+                                                <img src={(p.agent?.image)} alt={(p.agent?.avatar && p.agent?.prenom) || 'Agent'} />
                                                 <div>
-                                                    <div className="agent-name">{(p.agent && p.agent.name) || 'Agent Ndaku'}</div>
+                                                    <div className="agent-name">{(p.agent && p.agent.prenom) || 'Agent Ndaku'}</div>
                                                     <div className="agent-rating">{renderStars((p.agent && p.agent.rating) || 0)}</div>
                                                 </div>
                                             </div>
@@ -735,7 +733,7 @@ const Home = () => {
                                     </div>
                                     <div className="promo-overlay" aria-hidden>
                                         <div className="overlay-inner">
-                                            <button className="overlay-btn" onClick={() => handleVisitOrView(p, i)}><FaEye /> Voir</button>
+                                            <button className="overlay-btn" onClick={() => navigate(`/properties/${p.id}`)}><FaEye /> Voir</button>
                                             <button className="overlay-btn" onClick={() => openBooking(p)}><FaShoppingCart /> Réserver</button>
                                         </div>
                                     </div>
@@ -750,7 +748,7 @@ const Home = () => {
                 </div>
             </section>
 
-         
+
 
 
             {/* Cleaned Agency section: concise, airy, professional */}
@@ -1028,7 +1026,7 @@ const Home = () => {
                     .compact-filter-bar button[aria-pressed="true"] { box-shadow: 0 6px 20px rgba(102,126,234,0.12); }
                     .custom-select:focus { border-color: var(--ndaku-primary); box-shadow: 0 0 0 2px var(--ndaku-primary-33); }
                 `}</style>
-                <div className="row justify-content-center">
+                <div className="row ">
                     {filteredResults.filter(p => p.promotion !== true).slice(0, 6).map((property, idx) => (
                         <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
 
@@ -1048,16 +1046,16 @@ const Home = () => {
                         <Button variant="outlined" color="success" sx={{ px: 4 }}>Voir plus de biens</Button>
                     </Link>
                 </div>
-            
+
             </div>
 
             {/* Section Véhicules à louer ou à vendre */}
             <div className="container py-5" id="vehicules">
-                  <div className="section-title text-center mb-3">
+                <div className="section-title text-center mb-3">
                     <span className="icon-circle text-white me-3"><FaCar size={28} /></span>
                     <span className="fw-bold">Véhicules à louer ou à vendre</span>
                 </div>
-               
+
                 <p className="text-center text-muted mb-5">Toyota, SUV, berlines, et plus encore : trouvez le véhicule idéal pour vos besoins à Kinshasa.<br /><span>Location ou achat, tout est possible sur Ndaku !</span></p>
                 <VehicleList vehicles={
                     (recommendedVehicles && recommendedVehicles.length)
@@ -1095,9 +1093,9 @@ const Home = () => {
                         Salle de fête à Kinshasa
                     </h3>
                 </div>
-                <div className="row g-3" style={{ flexDirection: 'row' }}>
+                <div className="row">
                     {promotions.slice(0, 10).map(promo => (
-                        <div key={promo.id} className="col-4 col-md-4 col-lg-3">
+                        <div key={promo.id} className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp">
                             <article className="promo-pro-card" style={{ borderRadius: 18 }}>
                                 <div className="promo-pro-inner">
                                     <div className="promo-pro-top">

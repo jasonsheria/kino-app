@@ -191,7 +191,7 @@
 .badge{padding:6px 10px;border-radius:8px;color:#fff;font-weight:700;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12)}
 .status-badge{background:#667eea}
 .type-badge{background:var(--ndaku-primary)}
-.price-badge{background: brown; position:absolute;bottom:12px;left:12px;background:linear-gradient(90deg, var(--ndaku-primary), var(--ndaku-primary-hover));color:#fff;padding:8px 12px;border-radius:999px;font-weight:800;box-shadow:0 12px 32px rgba(15,23,42,0.12)}
+.price-badge{background: brown; position:absolute;bottom:12px;left:12px;color:#fff;padding:8px 12px;font-weight:800;box-shadow:0 12px 32px rgba(15,23,42,0.12)}
 .card-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;opacity:0;transform:translateY(-6px);transition:all .25s}
 .property-image:hover .card-actions{opacity:1;transform:none}
 .action-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.95);display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(2,6,23,0.06)}
@@ -264,7 +264,7 @@
 }
 
 .feature svg {
-  color: var(--ndaku-primary);
+  color: #929399;
   width: 18px;
   height: 18px;
 }
@@ -317,7 +317,9 @@
 
 /* Agent block (preserved) */
 .property-agent{box-shadow:0 2px 8px #0001;position:relative}
-.property-agent-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+.property-agent-inner{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%; background : #fff; padding : 10px;
+}
 .agent-left {
   display: flex;
   align-items: center;
