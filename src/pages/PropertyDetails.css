@@ -3,7 +3,7 @@
    ============================================ */
 
 :root {
-  --ndaku-primary: var(--color-primary, #138f6b);
+  --ndaku-primary: var(--color-primary, #0daebe);
   --ndaku-secondary: var(--color-primary-dark, #0d5543);
   --ndaku-success: var(--color-success, #10b981);
   --ndaku-danger: var(--color-error, #ef4444);
@@ -125,7 +125,7 @@
 
 .property-page-header .display-6 {
   font-size: clamp(1.8rem, 5vw, 2.8rem);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0daebe 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -146,7 +146,7 @@
   gap: 8px;
   font-weight: 500;
   letter-spacing: 0.3px;
-  color: #667eea;
+  color: #0daebe;
   text-transform: uppercase;
   font-size: 0.85rem;
   margin-bottom: 12px;
@@ -205,32 +205,8 @@
   letter-spacing: -0.5px;
 }
 
-/* Bouton Réserver visite - Style spécial */
-.btn-reserve-visite {
-  background: linear-gradient(135deg, var(--ndaku-primary) 0%, rgba(4,80,60,0.95) 100%);
-  border: none;
-  box-shadow: 0 4px 16px rgba(15, 81, 50, 0.2);
-  font-size: clamp(0.95rem, 2vw, 1.1rem);
-  padding: clamp(12px, 2vh, 16px) clamp(20px, 4vw, 32px) !important;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  width: 100%;
-  margin-top: 16px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  color: white;
-}
 
-.btn-reserve-visite:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(15, 81, 50, 0.3);
-  background: linear-gradient(135deg, #083822 0%, #061f17 100%);
-  color: white;
-}
 
-.btn-reserve-visite:active {
-  transform: translateY(-1px) scale(0.99);
-}
 
 /* ============================================
    PROGRESS BAR ENHANCEMENT
@@ -244,7 +220,7 @@
 
 .progress-bar {
   transition: width 0.6s ease;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #0daebe 0%, #764ba2 100%);
   position: relative;
 }
 
@@ -408,15 +384,26 @@
 /* Clean minimal styles for the stripped page */
 .pd-clean-root { color: var(--ndaku-dark, #111827); }
 .pd-clean-container { padding-top: 12px; padding-bottom: 40px; }
-.pd-hero { display: grid; grid-template-columns: 1fr 220px; gap: 20px; align-items: start; }
-.pd-hero-main img { width: 100%; height: 520px; object-fit: cover; border-radius: 12px; box-shadow: 0 12px 36px rgba(2,6,23,0.06); }
+.pd-hero { display: grid; grid-template-columns: 1fr 220px; align-items: start; }
+.pd-hero-main img { width: 98%; height: 445px; object-fit: cover; border-radius: 12px; box-shadow: 0 12px 36px rgba(2,6,23,0.06); }
 .pd-hero-thumbs { display: flex; flex-direction: column; gap: 16px; }
-.pd-thumb img { width: 100%; height: 240px; object-fit: cover; border-radius: 10px; }
+.pd-thumb img { width: 100%; height: 216px; object-fit: cover; border-radius: 10px; }
 .pd-main { margin-top: 20px; }
 .pd-title { font-size: 1.9rem; margin: 8px 0 6px; font-weight: 700; }
-.pd-meta-row { display:flex; justify-content: space-between; align-items:center; gap: 12px; margin-bottom: 12px; }
-.pd-price { font-size: 1.25rem; font-weight: 800; color:#0e3a66; }
-.pd-type { font-size: 0.95rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.6px; }
+/* Compact metadata grid with purple accents */
+.pd-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; align-items: center; }
+.pd-meta-item { background: #fff; padding: 8px; border-radius: 10px; box-shadow: 0 6px 18px rgba(106,70,247,0.06); border: 1px solid rgba(106,70,247,0.06); }
+.pd-meta-item .meta-label { font-size: 0.75rem; color: var(--pd-primary); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+.pd-meta-item .meta-value { margin-top: 6px; font-weight: 800; color: #111827; font-size: 0.98rem; }
+.pd-meta-item .meta-value.price-value { font-size: 1.15rem; color: var(--pd-primary); }
+.meta-media-btn { padding: 6px 10px; border-radius: 8px; font-weight:700; font-size:0.85rem }
+@media (max-width: 768px) {
+  .pd-meta-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}
+
+.pd-price-hero .pd-price-big { font-size: 1.5rem; font-weight: 900; color: var(--pd-primary); }
+.pd-view-media { position: absolute; left: 16px; top: 16px; background: linear-gradient(90deg, var(--pd-primary), #0daebe); color: #fff; border: none; padding: 8px 12px; border-radius: 999px; font-weight:700; box-shadow: 0 8px 24px rgba(106,70,247,0.14); z-index: 60; }
+.pd-view-media:hover { transform: translateY(-2px); }
 .pd-desc { color: #374151; line-height: 1.6; }
 .pd-agent { margin-top: 20px; }
 .pd-map { margin-top: 18px; border-radius: 10px; overflow: hidden; }
@@ -436,7 +423,7 @@
 .pd-breadcrumb { font-size: 0.95rem; color: #6b7280; margin-bottom: 10px; }
 .pd-actions { display:flex; gap:8px; align-items:center; margin-bottom: 14px; }
 .pd-actions .btn { border-radius: 8px; padding: 6px 10px; font-size: 0.9rem; }
-.pd-primary { background: linear-gradient(180deg, #7C5CFF 0%, #6A46F7 100%); color: #fff; border: 0; }
+.pd-primary { background: linear-gradient(180deg, #7C5CFF 0%, #0daebe 100%); color: #fff; border: 0; }
 .pd-secondary { background: rgba(0,0,0,0.04); color: #111; border: 0; }
 .pd-star-row { display:flex; gap:6px; align-items:center; color: #fbbf24; }
 .pd-facilities { display:flex; gap: 10px; flex-wrap:wrap; margin: 14px 0; }
@@ -453,12 +440,23 @@
 
 /* Palette and improved button styles */
 :root {
-  --pd-primary: #6a46f7; /* purple accent */
+  --pd-primary: #0daebe; /* purple accent */
   --pd-accent-2: #7C5CFF;
   --pd-muted: #6b7280;
 }
 
 .pd-primary { background: #95a6a8; color: #fff; }
+
+/* Safety tips card styling */
+.safety-tips-card { background: #fff; border-radius: 12px; border: 1px solid rgba(106,70,247,0.04); box-shadow: 0 8px 24px rgba(12,10,30,0.02); }
+.safety-tips-card ul { margin-top: 6px; }
+.safety-tips-card li { margin-bottom: 8px; line-height: 1.45; color: #374151; }
+.safety-tips-card li::marker { color: brown; }
+.safety-tips-card .contact-link { display:inline-block; margin-left: 6px; font-weight:700; color: 'brown'; text-decoration: none; }
+.safety-tips-card .contact-link:hover { text-decoration: underline; }
+
+.card-separator { border-radius: 6px; height: 12px; background: linear-gradient(180deg, rgba(106,70,247,0.04), rgba(106,70,247,0.01)); margin: 12px 0; }
+
 
 /* Video button overlay on hero */
 .pd-hero-main { position: relative; }
@@ -591,7 +589,7 @@
   left: 0;
   height: 3px;
   width: 40px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #0daebe 0%, #764ba2 100%);
   border-radius: 2px;
 }
 
@@ -605,7 +603,7 @@ a, button {
 }
 
 a:focus, button:focus {
-  outline: 2px solid #667eea;
+  outline: 2px solid #0daebe;
   outline-offset: 2px;
 }
 

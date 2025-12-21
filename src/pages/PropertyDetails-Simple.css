@@ -4,7 +4,7 @@
    ============================================================ */
 
 :root {
-  --ndaku-primary: var(--color-primary, #138f6b);
+  --ndaku-primary: var(--color-primary, #0daebe);
   --ndaku-secondary: var(--color-primary-dark, #0d5543);
   --ndaku-success: var(--color-success, #10b981);
   --ndaku-danger: var(--color-error, #ef4444);

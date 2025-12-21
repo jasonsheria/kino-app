@@ -674,7 +674,6 @@ export default function OwnerProperties() {
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
                 borderRadius: 0,
-                border: `1px solid ${theme.palette.primary.dark}`,
                 display: 'flex',
                 alignItems: 'center',
               }}
@@ -701,7 +700,6 @@ export default function OwnerProperties() {
                   alignItems: 'center',
                   gap: 2,
                   borderRadius: 0,
-                  border: `1px solid ${theme.palette.divider}`,
                 }}
               >
                 <Box sx={{ 
@@ -711,7 +709,6 @@ export default function OwnerProperties() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: `1px solid ${theme.palette.divider}`,
                 }}>
                   {getPropertyIcon(t)}
                 </Box>

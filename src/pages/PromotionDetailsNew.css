@@ -4,7 +4,7 @@
 
 /* Root Variables */
 :root {
-  --primary: #667eea;
+  --primary: #0daebe;
   --secondary: #764ba2;
   --accent: #d7263d;
   --success: #0f5132;
@@ -278,7 +278,7 @@ body {
 .promo-title {
   font-size: 1.5rem;
   font-weight: 700;
-  background: #138f6b;
+  background: #0daebe;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -494,7 +494,7 @@ body {
 }
 
 .stat-value {
-  font-size: 1.6rem;
+  font-size: 0.6rem;
   font-weight: 900;
   color: var(--primary);
 }

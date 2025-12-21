@@ -111,7 +111,7 @@ const PromotionDetailsNew = () => {
   if (loading) {
     return (
       <div className="promo-details-container">
-        <div style={{ textAlign: 'center', padding: '60px 20px', fontSize: '1.2rem', color: '#667eea' }}>
+        <div style={{ textAlign: 'center', padding: '60px 20px', fontSize: '1.2rem', color: '#0daebe' }}>
           Chargement...
         </div>
       </div>

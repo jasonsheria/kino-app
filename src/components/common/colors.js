@@ -3,7 +3,7 @@
 // NOTE: MUI utilities require concrete color formats (hex/rgb) rather than CSS variables.
 // Expose both a hex value for MUI and the CSS variable string for pure-CSS usage.
 const CSS_PRIMARY = 'var(--ndaku-primary)';
-const PRIMARY_HEX = '#667eea';
+const PRIMARY_HEX = '#0daebe';
 const PRIMARY_LIGHT_APPROX = '#eaf9f4'; // visual approximation of rgba(19,194,150,0.08)
 const colors = {
   primary: {

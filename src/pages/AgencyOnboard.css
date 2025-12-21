@@ -4,7 +4,7 @@
 
 :root {
   /* Colors - Keeping existing brand colors */
-  --primary: #138f6b;
+  --primary: #0daebe;
   --primary-light: #1aad7e;
   --primary-dark: #0f6b52;
   --secondary: #f4fbf9;
@@ -13,7 +13,7 @@
   --text-light: #64748b;
   --text-lighter: #94a3b8;
   --border-color: #e2e8f0;
-  --success: #667eea;
+  --success: #0daebe;
   --error: #ef4444;
   --warning: #f59e0b;
   --background: #f8fafc;
@@ -782,7 +782,7 @@
   width: 100px;
   height: 100px;
   margin: 0 auto var(--spacing-lg);
-  background: linear-gradient(135deg, var(--success) 0%, #667eea 100%);
+  background: linear-gradient(135deg, var(--success) 0%, #0daebe 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;

@@ -371,14 +371,33 @@ const Home = () => {
     const [loadingPromotions, setLoadingPromotions] = React.useState(false);
     const [promotionsHasMore, setPromotionsHasMore] = React.useState(true);
 
+    // When agents are updated globally, try to resolve missing agent objects on promotions
+    React.useEffect(() => {
+        const handleAgentsUpdated = () => {
+            if (!promotions || promotions.length === 0) return;
+            let didUpdate = false;
+            const resolved = promotions.map(p => {
+                if (p && !p.agent) {
+                    const raw = p.raw || {};
+                    const aid = raw.agentId || raw.agent || p.agent || null;
+                    if (aid) {
+                        const found = agents.find(a => a && (a.id === aid || a._id === aid));
+                        if (found) {
+                            didUpdate = true;
+                            return { ...p, agent: found };
+                        }
+                    }
+                }
+                return p;
+            });
+            if (didUpdate) setPromotions(resolved);
+        };
+
+        return () => window.removeEventListener('ndaku:agents-updated', handleAgentsUpdated);
+    }, [promotions]);
+
     // demo promotions to show when server data is not available
     const demoPromos = React.useMemo(() => ([
-        { id: 'demo-1', title: 'Appartement moderne 2ch', subtitle: 'Centre-ville, proche commerces', image: img6, likes: 12, price: 120000, originalPrice: 99000, discount: 18, agent: { name: 'Jean K.', avatar: img6, rating: 4.7 } },
-        { id: 'demo-2', title: 'Villa familiale', subtitle: 'Quartier résidentiel calme', image: img6, likes: 9, price: 250000, originalPrice: 219000, discount: 12, agent: { name: 'Aline M.', avatar: img6, rating: 4.9 } },
-        { id: 'demo-3', title: 'Terrain constructible', subtitle: 'Emplacement stratégique', image: img6, likes: 6, price: 80000, originalPrice: 72000, discount: 10, agent: { name: 'Paul D.', avatar: img6, rating: 4.5 } },
-        { id: 'demo-4', title: 'Boutique commerciale', subtitle: 'Rue passante', image: img6, likes: 4, price: 60000, originalPrice: 54000, discount: 10, agent: { name: 'Marie T.', avatar: img6, rating: 4.4 } },
-        { id: 'demo-5', title: 'Salle de fête', subtitle: 'Capacité 200 personnes', image: img6, likes: 3, price: 40000, originalPrice: 28000, discount: 30, agent: { name: 'Lucie R.', avatar: img6, rating: 4.6 } },
-        { id: 'demo-6', title: 'Studio cosy', subtitle: 'Idéal pour étudiant', image: img6, likes: 7, price: 45000, originalPrice: 39500, discount: 12, agent: { name: 'Jean K.', avatar: img6, rating: 4.2 } }
     ]), []);
 
     const displayedPromotions = (promotions && promotions.length > 0) ? promotions : demoPromos;
@@ -587,9 +606,6 @@ const Home = () => {
     // Hero slider component: multiple SVG-clipped images with captions and zoom animation
     const HeroSlider = () => {
         const slides = [
-            { img: require('../img/about.jpg'), title: 'Annonces vérifiées', subtitle: 'Agents certifiés' },
-            { img: require('../img/property-4.jpg'), title: 'Appartements récents', subtitle: 'Qualité & emplacement' },
-            { img: require('../img/salles/promo1.jpg'), title: 'Offres spéciales', subtitle: 'Réductions limitées' }
         ];
         const [index, setIndex] = React.useState(0);
         const [paused, setPaused] = React.useState(false);
@@ -700,14 +716,14 @@ const Home = () => {
                                             {p.price ? <div className="promo-ribbon">-{Math.floor((p.price * 100) / p.originalPrice)}%</div> : null}
                                         </div>
                                         <div className="promo-pro-body">
-                                            <div className="promo-pro-category text-muted d-flex justify-content-between align-items-center" style={{borderBottom:"1px solid rgba(128, 128, 128, 0.12)", padding: 10}}>
+                                            <div className="promo-pro-category text-muted d-flex justify-content-between align-items-center" style={{borderBottom:"1px solid rgba(128, 128, 128, 0.12)", padding: 10, paddingBottom : 0}}>
                                                 <h4 className="promo-pro-title text-capitalize"> {tronquerTexte(p.title, 20)}</h4>
                                                 <div className="promo-prices">
                                                     {p.originalPrice ? <div className="promo-old">${Number(p.originalPrice).toLocaleString()}</div> : null}
                                                     {p.price ? <div className="promo-new">${Number(p.price).toLocaleString()}</div> : null}
                                                 </div>
                                             </div>
-                                            <p className="promo-pro-sub" style={{padding : 10}}> {tronquerTexte(p.promoComment ? p.promoComment : '', 50) + '...' || p.excerpt || p.description}</p>
+                                            <p className="promo-pro-sub" style={{padding : 10, paddingTop:0}}> {tronquerTexte(p.promoComment ? p.promoComment : '', 50) + '...' || p.excerpt || p.description}</p>
                                             {(p.address || p.location || p.adresse || p.city) && (
                                                 <div className="promo-address text-muted align-text-right" style={{ fontSize: '0.9rem', padding : 10  }}>
                                                     <small> <FaLocationArrow/></small><small style={{paddingLeft : 10}}> <strong style={{ color: '#e63946' }} > Adresse </strong>: {p.address || p.location || p.adresse || p.city}</small>
@@ -1027,11 +1043,11 @@ const Home = () => {
                     .custom-select:focus { border-color: var(--ndaku-primary); box-shadow: 0 0 0 2px var(--ndaku-primary-33); }
                 `}</style>
                 <div className="row ">
-                    {filteredResults.filter(p => p.promotion !== true).slice(0, 6).map((property, idx) => (
-                        <ScrollReveal className="col-12 col-md-6 col-lg-4 mb-4 animate-card" key={property.id}>
-
-                            <PropertyCard property={property} onOpenBooking={openBooking} />
-
+                    {filteredResults.filter(p => p.promotion !== true).slice(0, 8).map((property, idx) => (
+                        <ScrollReveal className="col-12 col-md-6 col-lg-3 mb-4 animate-card" key={property.id}>
+                            <div className="h-100">
+                                <PropertyCard property={property} onOpenBooking={openBooking} />
+                            </div>
                         </ScrollReveal>
                     ))}
                     {filteredResults.length === 0 && (
@@ -1094,57 +1110,66 @@ const Home = () => {
                     </h3>
                 </div>
                 <div className="row">
-                    {promotions.slice(0, 10).map(promo => (
-                        <div key={promo.id} className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp">
-                            <article className="promo-pro-card" style={{ borderRadius: 18 }}>
-                                <div className="promo-pro-inner">
-                                    <div className="promo-pro-top">
-                                        <img src={promo.image} className="promo-pro-img" alt={promo.title} />
-                                        <div className="promo-ribbon">-{promo.discount || 30}%</div>
-                                    </div>
-                                    <div className="promo-pro-body">
-                                        <h3 className="promo-pro-title" style={{ color: '#d7263d' }}>{promo.title}</h3>
-                                        <p className="promo-pro-sub">{promo.excerpt}</p>
-                                        {(promo.address || promo.location || promo.adresse || promo.city) && (
-                                            <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.95rem' }}>
-                                                Adresse: {promo.address || promo.location || promo.adresse || promo.city}
+                    {promotions.slice(0, 10).map(promo => {
+                        // Resolve agent robustly: prefer promo.agent (object), else try promo.raw.agentId/raw.agent or promo.agentId
+                        const resolvedAgent = promo.agent || (promo.raw ? (Array.isArray(promo.raw.agents) && promo.raw.agents.length ? promo.raw.agents[0] : null) : null) ||
+                            (promo.raw && (promo.raw.agentId || promo.raw.agent) ? agents.find(a => a && (String(a.id) === String(promo.raw.agentId || promo.raw.agent) || String(a._id) === String(promo.raw.agentId || promo.raw.agent))) : null) ||
+                            (promo.agentId ? agents.find(a => a && (String(a.id) === String(promo.agentId) || String(a._id) === String(promo.agentId))) : null);
+
+                        return (
+                            <div key={promo.id} className="col-12 col-md-6 col-lg-3 mb-4">
+                                <div className="h-100">
+                                    <article className="promo-pro-card h-100" style={{ borderRadius: 18 }}>
+                                        <div className="promo-pro-inner">
+                                            <div className="promo-pro-top">
+                                                <img src={promo.image} className="promo-pro-img" alt={promo.title} />
+                                                <div className="promo-ribbon">-{promo.discount || 30}%</div>
                                             </div>
-                                        )}
-                                        <div className="promo-pro-meta">
-                                            <div className="promo-prices">
-                                                {promo.price ? <div className="promo-old">€{Number(promo.price).toLocaleString()}</div> : null}
-                                                {promo.originalPrice ? <div className="promo-new">€{Number(promo.originalPrice).toLocaleString()}</div> : null}
+                                            <div className="promo-pro-body">
+                                                <h3 className="promo-pro-title" style={{ color: '#d7263d' }}>{promo.title}</h3>
+                                                <p className="promo-pro-sub">{promo.excerpt}</p>
+                                                {(promo.address || promo.location || promo.adresse || promo.city) && (
+                                                    <div className="promo-address text-muted" style={{ marginTop: 6, fontSize: '0.95rem' }}>
+                                                        Adresse: {promo.address || promo.location || promo.adresse || promo.city}
+                                                    </div>
+                                                )}
+                                                <div className="promo-pro-meta">
+                                                    <div className="promo-prices">
+                                                        {promo.price ? <div className="promo-old">${Number(promo.price).toLocaleString()}</div> : null}
+                                                        {promo.originalPrice ? <div className="promo-new">${Number(promo.originalPrice).toLocaleString()}</div> : null}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: 8 }}>
+                                                        <Button variant="contained" color="primary" onClick={() => handleVisitOrView(promo)}>Voir</Button>
+                                                        <Button variant="outlined" onClick={() => openContact(resolvedAgent || promo.owner)}>Contact</Button>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div style={{ display: 'flex', gap: 8 }}>
-                                                <Button variant="contained" color="primary" onClick={() => handleVisitOrView(promo)}>Voir</Button>
-                                                <Button variant="outlined" onClick={() => openContact(promo.agent || promo.owner)}>Contact</Button>
+                                            <footer className="promo-pro-footer">
+                                                <div className="promo-agent">
+                                                    <img src={(resolvedAgent && (resolvedAgent.image || resolvedAgent.avatar)) || img6} alt={(resolvedAgent && (resolvedAgent.name || resolvedAgent.prenom)) || 'Agent'} />
+                                                    <div>
+                                                        <div className="agent-name">{(resolvedAgent && (resolvedAgent.name || resolvedAgent.prenom)) || 'Annonceur'}</div>
+                                                        <div className="agent-rating">{renderStars((resolvedAgent && resolvedAgent.rating) || 0)}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="promo-cta-group">
+                                                    <Button variant="outlined" onClick={() => toggleLikePromo(promo.id)} sx={{ borderRadius: 12 }}>
+                                                        👍 {promo.likes || 0} J'aime
+                                                    </Button>
+                                                </div>
+                                            </footer>
+                                        </div>
+                                        <div className="promo-overlay" aria-hidden>
+                                            <div className="overlay-inner">
+                                                <button className="overlay-btn" onClick={() => navigate("/properties/"+promo.id)}><FaEye /> Voir</button>
+                                                <button className="overlay-btn" onClick={() => openBooking(promo, resolvedAgent)}><FaShoppingCart /> Réserver</button>
                                             </div>
                                         </div>
-                                    </div>
-                                    <footer className="promo-pro-footer">
-                                        <div className="promo-agent">
-                                            <img src={(promo.agent && promo.agent.avatar) || img6} alt={(promo.agent && promo.agent.name) || 'Agent'} />
-                                            <div>
-                                                <div className="agent-name">{(promo.agent && promo.agent.name) || 'Annonceur'}</div>
-                                                <div className="agent-rating">{renderStars((promo.agent && promo.agent.rating) || 0)}</div>
-                                            </div>
-                                        </div>
-                                        <div className="promo-cta-group">
-                                            <Button variant="outlined" onClick={() => toggleLikePromo(promo.id)} sx={{ borderRadius: 12 }}>
-                                                👍 {promo.likes || 0} J'aime
-                                            </Button>
-                                        </div>
-                                    </footer>
+                                    </article>
                                 </div>
-                                <div className="promo-overlay" aria-hidden>
-                                    <div className="overlay-inner">
-                                        <button className="overlay-btn" onClick={() => handleVisitOrView(promo)}><FaEye /> Voir</button>
-                                        <button className="overlay-btn" onClick={() => openBooking(promo)}><FaShoppingCart /> Réserver</button>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    ))}
+                            </div>
+                        );
+                    })}
                 </div>
             </section>
             {/* Section Agents moderne */}

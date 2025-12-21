@@ -236,7 +236,7 @@ const AgentCard = ({ agent }) => {
           <Box sx={{ position: 'relative' }}>
             <Avatar src={agent.image || agent.photo} alt={agent.name} sx={{ width: 64, height: 64, boxShadow: 2 }} />
             {agent.isCertified && (
-              <Box sx={{ position: 'absolute', right: -4, bottom: -4, background: 'linear-gradient(135deg,#667eea,#667eea)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', color: 'white' }} title="Agent certifié">
+              <Box sx={{ position: 'absolute', right: -4, bottom: -4, background: 'linear-gradient(135deg,#0daebe,#0daebe)', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', color: 'white' }} title="Agent certifié">
                 <FaCheckCircle size={14} />
               </Box>
             )}

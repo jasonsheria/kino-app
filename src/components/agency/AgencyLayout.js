@@ -81,7 +81,7 @@ export default function AgencyLayout({ children }){
             width: drawerWidth,
             boxSizing: 'border-box',
             border: 'none',
-            background: 'linear-gradient(180deg, #667eea)',
+            background: 'linear-gradient(180deg, #0daebe)',
             color: 'white',
             transition: theme.transitions.create(['width'], {
               easing: theme.transitions.easing.sharp,

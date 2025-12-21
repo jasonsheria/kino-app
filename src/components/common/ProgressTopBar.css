@@ -1,0 +1,37 @@
+.progress-topbar{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:6px;
+  z-index:13000;
+  pointer-events:none;
+}
+.progress-topbar .progress-bar{
+  height:100%;
+  width:0;
+  background: linear-gradient(90deg,var(--ndaku-primary), #0daebe);
+  box-shadow: 0 6px 18px rgba(13,174,190,0.12);
+  transition: width 0.22s ease;
+}
+.progress-topbar .progress-percent{
+  position:absolute;
+  right:12px;
+  top:8px;
+  font-size:11px;
+  color:var(--ndaku-text);
+  background: rgba(255,255,255,0.9);
+  padding:4px 6px;
+  border-radius:6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  pointer-events:none;
+}
+
+/* Blur class applied to body during loading */
+.app-loading .App-main{
+  filter: blur(6px) saturate(.98);
+  transition: filter 0.35s ease;
+}
+
+/* Make sure topbar sits above fixed header if present */
+.header-offset .progress-topbar{ top:56px; }

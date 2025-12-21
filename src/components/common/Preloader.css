@@ -26,21 +26,20 @@ min-width: 240px;
   align-items:center;
   justify-content:center;
   font-size:34px;
-  background: linear-gradient(135deg,var(--ndaku-primary),#667eea);
+  background: linear-gradient(135deg,var(--ndaku-primary),#0daebe);
   color: white;
   transform: translateZ(0);
-  animation: logoFloat 2.4s ease-in-out infinite;
+  /* animation removed for static preloader */
 }
-@keyframes logoFloat { 0%{ transform: translateY(0);}50%{ transform: translateY(-6px);}100%{ transform: translateY(0);} }
 .preloader-spinner-ring {
   width: 54px;
   height: 54px;
   border-radius: 50%;
   border: 5px solid rgba(16,185,129,0.12);
   border-top-color: var(--ndaku-primary);
-  animation: spin 1s linear infinite;
+  /* spinner animation removed */
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
 .preloader-text { color:#0f172a; font-weight:600; font-size:0.98rem; }
 
 @media (max-width:540px){ .preloader-card{ min-width:200px; padding:18px } .preloader-logo{width:68px;height:68px} }

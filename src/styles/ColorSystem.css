@@ -4,7 +4,7 @@
    
    Système de couleurs unifié pour l'ensemble du projet:
    - Background: BLANC (#ffffff)
-   - Couleur primaire: VERT (#138f6b)
+   - Couleur primaire: VERT (#0daebe)
    - Couleurs dérivées: Variations du vert pour les états
    - Texte: Noir et gris standard
 */
@@ -15,7 +15,7 @@
      ============================================================ */
   
   /* PRIMARY - Vert principal (Boutons, Titres, CTA) */
-  --color-primary: #138f6b;
+  --color-primary: #0daebe;
   --color-primary-light: #1aad7e;
   --color-primary-dark: #0d5543;
   --color-primary-lighter: #e8f5f1;
@@ -57,8 +57,8 @@
      ============================================================ */
   
   /* Primary Gradient */
-  --gradient-primary: linear-gradient(135deg, #138f6b 0%, #0d5543 100%);
-  --gradient-primary-light: linear-gradient(135deg, #1aad7e 0%, #138f6b 100%);
+  --gradient-primary: linear-gradient(135deg, #0daebe 0%, #0d5543 100%);
+  --gradient-primary-light: linear-gradient(135deg, #1aad7e 0%, #0daebe 100%);
   
   /* Subtle Gradient Background */
   --gradient-bg-subtle: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);

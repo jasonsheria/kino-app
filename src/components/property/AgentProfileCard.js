@@ -1,14 +1,11 @@
 import React from 'react';
-import { FaPhone, FaWhatsapp, FaFacebook, FaEnvelope, FaCheckCircle } from 'react-icons/fa';
+import { FaPhone, FaWhatsapp, FaFacebook, FaEnvelope, FaCheckCircle, FaListAlt, FaUsers, FaClock, FaRegMoneyBillAlt, FaUserPlus } from 'react-icons/fa';
 import './AgentProfileCard.css';
 
 /**
- * AgentProfileCard - completely new, modern design
- * - Large full-bleed avatar
- * - Name overlay on image
- * - Short bio and two primary actions (Message, Call)
+ * AgentProfileCard - modern profile card adjusted to show stats and CTAs
  */
-const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
+const AgentProfileCard = ({ setShowBooking, agent, onContactClick = () => { } }) => {
   if (!agent) return null;
 
   const name = agent?.prenom || agent?.name || 'Agent';
@@ -20,11 +17,9 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
 
   const openMessengerForAgent = (agentId) => {
     try {
-      // legacy event that primary messenger listens to
       window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId } }));
     } catch (e) {
-      // fallback: if the messenger expects request event, send a generic one too
-      try { window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { detail: { sourceId: 'agent-card', agentId } })); } catch(e){}
+      try { window.dispatchEvent(new CustomEvent('ndaku-request-open-messenger', { detail: { sourceId: 'agent-card', agentId } })); } catch (e) { }
     }
   };
 
@@ -35,7 +30,6 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
 
   const normalizePhone = (raw) => {
     if (!raw) return null;
-    // remove non-digits and plus
     const digits = String(raw).replace(/[^+0-9]/g, '');
     return digits.replace(/^\+/, '');
   };
@@ -43,12 +37,8 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
   const handleWhatsApp = () => {
     const phone = agent.whatsapp || agent.phone || agent.telephone || agent.tel;
     const normalized = normalizePhone(phone);
-    if (!normalized) {
-      // fallback: open messenger
-      handleMessageClick();
-      return;
-    }
-  const text = `Bonjour ${name}, je suis intéressé par votre bien.`;
+    if (!normalized) { handleMessageClick(); return; }
+    const text = `Bonjour ${name}, je suis intéressé par votre bien.`;
     const url = `https://wa.me/${normalized}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
     onContactClick('whatsapp');
@@ -67,8 +57,17 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
     onContactClick('email');
   };
 
+  const formattedMemberSince = (() => {
+    const when = agent.memberSince || agent.joinedAt || agent.createdAt || agent.created_at;
+    if (!when) return null;
+    try {
+      const d = new Date(when);
+      return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) { return null; }
+  })();
+
   return (
-    <div className="agent-card-modern">
+    <div className="agent-card-modern agent-card-v2">
       <div className="agent-image" style={{ backgroundImage: `url(${photo})` }}>
         <div className="agent-overlay">
           <div className="agent-name-wrap">
@@ -77,36 +76,34 @@ const AgentProfileCard = ({ agent, onContactClick = () => {} }) => {
           </div>
           <div className="agent-sub">{title}{location ? ` • ${location}` : ''}</div>
         </div>
+        <div className="agent-avatar" style={{ backgroundImage: `url(${photo})` }} aria-hidden="true" />
       </div>
 
       <div className="agent-info">
         <p className="agent-bio">{agent?.bio || agent?.description || 'Agent dédié pour vous accompagner dans votre recherche. Réponse rapide et conseils personnalisés.'}</p>
 
-        <div className="agent-actions">
-          <button className="icon-btn btn-primary" onClick={handleMessageClick} aria-label="Messagerie">
-            <FaEnvelope />
-          </button>
-          <div className="action-icons">
-            { (agent?.whatsapp || agent?.phone) && (
-              <button className="icon-btn btn-whatsapp" onClick={handleWhatsApp} aria-label="WhatsApp">
-                <FaWhatsapp />
-              </button>
-            ) }
-            { (agent?.phone) && (
-              <button className="icon-btn btn-phone" onClick={handlePhone} aria-label="Appeler">
-                <FaPhone />
-              </button>
-            ) }
-            { agent?.email && (
-              <button className="icon-btn btn-email" onClick={handleEmail} aria-label="Email">
-                <FaEnvelope />
-              </button>
-            ) }
-            { agent?.facebook && (
-              <a className="icon-btn btn-facebook" href={agent.facebook} target="_blank" rel="noreferrer" aria-label="Facebook">
-                <FaFacebook />
-              </a>
-            ) }
+        <div className="agent-stats-grid">
+          <div className="stat-item"><div className="stat-icon"><FaListAlt /></div><div className="stat-value">{agent.listings || agent.annonces || 0} annonces</div></div>
+          <div className="stat-item"><div className="stat-icon"><FaUsers /></div><div className="stat-value">{agent.followers || agent.abonnes || 0} abonnés</div></div>
+          <div className="stat-item"><div className="stat-icon"><FaClock /></div><div className="stat-value">Actif {agent.lastActive || agent.lastSeenText || 'il y a 1 j'}</div></div>
+        </div>
+
+        {formattedMemberSince && (
+          <div className="member-badge"><FaUserPlus style={{ marginRight: 8 }} /> Membre depuis Le {formattedMemberSince}</div>
+        )}
+
+        <div className="">
+          <div className="d-flex flex-column gap-2" >
+            {/* <div className="d-flex flex-row gap-2 flex-wrap">
+              <div className="" title="WhatsApp" onClick={handleWhatsApp}><FaWhatsapp color='white' /></div>
+              <div className="" title="Message" onClick={handleMessageClick}><FaEnvelope color='white' /></div>
+              <div className="" title="Facebook Messenger" onClick={() => { openMessengerForAgent(agent.id || agent._id || agent.agentId); }}><FaFacebook color='white' /></div>  
+            </div> */}
+
+            <div className="btn-agent" title="WhatsApp" onClick={handleWhatsApp} style={{background: 'azure', color :'cadetblue' }}><FaEnvelope color='cadetblue' />WhatsApp</div>
+            <div className="btn-agent" title="Message" onClick={handleMessageClick} style={{background: 'azure', color :'cadetblue' }}><FaEnvelope color='cadetblue' />Message</div>
+
+            <div className="btn-agent" title="Faire une offre" onClick={() => setShowBooking(true)}><FaRegMoneyBillAlt color='white' />Faire une offre</div>
           </div>
         </div>
       </div>

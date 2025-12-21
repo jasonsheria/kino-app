@@ -11,40 +11,36 @@ export const owners = [
 ];
 
 export const messages = [
+];
+
+export const articles = [
   {
-    id: 1001,
-    fromId: 1,
-    from: 'Client Test',
-    toId: 1, // owner id
-    to: 'Propriétaire Démo',
-    text: 'Bonjour, je suis intéressé par votre appartement moderne. Est-il toujours disponible ?',
-    time: Date.now() - 1000 * 60 * 60 * 24,
-    read: false,
-    channel: 'web'
+    id: 'a1',
+    slug: 'guide-achat-immobilier',
+    title: "Guide d'achat immobilier",
+    excerpt: "6 conseils pour acheter un bien à Kinshasa",
+    image: require('../img/property-1.jpg'),
+    publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 10
   },
   {
-    id: 1002,
-    fromId: 2,
-    from: 'Marie Mbala',
-    toId: 1,
-    to: 'Propriétaire Démo',
-    text: 'Pouvez-vous partager plus de photos de la villa ?',
-    time: Date.now() - 1000 * 60 * 60 * 2,
-    read: false,
-    channel: 'web'
+    id: 'a2',
+    slug: 'mettre-en-vente',
+    title: "Comment mettre en vente rapidement",
+    excerpt: "Astuce et checklist pour une mise en vente efficace",
+    image: require('../img/property-1.jpg'),
+    publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 20
   },
   {
-    id: 1003,
-    fromId: 3,
-    from: 'Patrick Ilunga',
-    toId: 2,
-    to: 'Autre propriétaire',
-    text: 'Test message qui ne concerne pas ce propriétaire',
-    time: Date.now() - 1000 * 60 * 30,
-    read: true,
-    channel: 'web'
+    id: 'a3',
+    slug: 'choisir-un-agent',
+    title: "Choisir le bon agent immobilier",
+    excerpt: "Critères pour sélectionner un agent de confiance",
+    image: require('../img/property-1.jpg'),
+    publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 30
   }
 ];
+
+
 
 export const users = [
 
@@ -59,6 +55,32 @@ export const subscriptions = [
 // This module exports mutable arrays. On module load we try to fetch
 // real data from the backend and replace the arrays in-place so
 // other modules that imported these arrays see the updated values.
+
+export async function preloadAgents(timeoutMs = 4000) {
+  // Pre-load agents from backend with a timeout; resolve when agents arrive or timeout expires
+  return new Promise(resolve => {
+    if (agents && agents.length > 0) return resolve(agents); // already loaded
+    let done = false;
+    const timer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        resolve(agents);
+      }
+    }, timeoutMs);
+    // Check if agents have arrived periodically
+    const check = setInterval(() => {
+      if (agents && agents.length > 0) {
+        if (!done) {
+          done = true;
+          clearTimeout(timer);
+          clearInterval(check);
+          resolve(agents);
+        }
+      }
+    }, 200);
+  });
+}
+
 (() => {
   const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL).replace(/\/$/, '');
 
@@ -216,7 +238,34 @@ export const subscriptions = [
         agents.splice(0, agents.length, ...mappedAgents);
         console.log("fakedata.js - loaded live agents:", mappedAgents);
         try { window.dispatchEvent(new CustomEvent('ndaku:agents-updated', { detail: { agents: mappedAgents } })); } catch (e) { }
-      } 
+      }
+
+      // Try loading articles/posts from backend and replace exported `articles` when available
+      try {
+        const tryPostUrls = [`${API_BASE}/api/posts`, `${API_BASE}/api/articles`, `${API_BASE}/posts`];
+        let postsResp = null;
+        for (const u of tryPostUrls) {
+          try {
+            const r = await fetch(u, { credentials: 'include' });
+            if (!r.ok) continue;
+            try { postsResp = await r.json(); } catch (e) { postsResp = null; }
+          } catch (e) { postsResp = null; }
+          if (postsResp) break;
+        }
+        const rawPosts = postsResp && (Array.isArray(postsResp) ? postsResp : postsResp.data || postsResp.items) || null;
+        if (rawPosts && Array.isArray(rawPosts) && rawPosts.length > 0) {
+          const mappedPosts = rawPosts.slice(0, 10).map(p => ({
+            id: p._id || p.id,
+            slug: p.slug || p._id || p.id || String(Math.random()),
+            title: p.title || p.titre || p.name || '',
+            excerpt: p.excerpt || p.summary || p.description || '',
+            image: (p.image || (Array.isArray(p.images) && p.images[0]) || null),
+            publishedAt: p.publishedAt || p.createdAt || Date.now()
+          }));
+          articles.splice(0, articles.length, ...mappedPosts);
+          try { window.dispatchEvent(new CustomEvent('ndaku:articles-updated', { detail: { articles: mappedPosts } })); } catch (e) { }
+        }
+      } catch (e) { /* ignore */ }
     } catch (err) {
       // silent
     }
@@ -237,3 +286,138 @@ export const subscriptions = [
     // ignore
   }
 })();
+const PLACEHOLDER_IMG = require('../img/property-1.jpg');
+
+function formatPromo(p) {
+  try {
+    if (!p) return null;
+    const id = p.id || p._id || p.pid || String(Math.random());
+    const title = p.titre || p.title || p.name || p.nom || 'Annonce';
+  const image = (Array.isArray(p.images) && p.images.length && (typeof p.images[0] === 'string')) ? p.images[0] : (p.image && (typeof p.image === 'string') ? p.image : PLACEHOLDER_IMG);
+  const promoPrice = (p.promoPrice != null && p.promoPrice !== '') ? Number(p.promoPrice) : (p.prix || p.price || 0);
+  // Normalize agent field: accept p.agent (object or id), p.agentId, or p.agents (array)
+  let agentVal = null;
+  if (Array.isArray(p.agents) && p.agents.length) {
+    agentVal = p.agents[0];
+  } else if (p.agent != null) {
+    agentVal = p.agent;
+  } else if (p.agentId != null) {
+    agentVal = p.agentId;
+  }
+
+  // If agentVal is an id (string/number), try to resolve to an object from runtime `agents` array
+  let resolvedAgent = null;
+  if (agentVal && typeof agentVal === 'object') {
+    resolvedAgent = agentVal;
+  } else if (agentVal != null) {
+    const aid = String(agentVal);
+    resolvedAgent = agents.find(a => a && (String(a.id) === aid || String(a._id) === aid));
+  }
+
+  return {
+    id,
+    title,
+    image,
+    agent: resolvedAgent || null,
+    originalPrice: p.prix || p.price || 0,
+    price: promoPrice,
+    promotion: !!p.promotion,
+    promoStart: p.promoStart || null,
+    promoEnd: p.promoEnd || null,
+    promoComment: p.promoComment || p.promo_comment || '',
+    adresse : p.adresse || p.address || 'Adresse non disponible',
+    commune : p.commune || p.city || '',
+    location : p.location || '',
+    quartier : p.quartier || '',
+    raw: p
+
+  };
+  } catch (err) {
+    // log and return null so callers can filter it out
+    // eslint-disable-next-line no-console
+    console.error('[formatPromo] failed to format promo item', { error: err && err.message, item: p && (p._id || p.id) });
+    return null;
+  }
+}
+
+// Return up to `limit` promotions coming from local `properties` filtered by `promotion: true`.
+export function getLocalPromotions({ limit = 10, offset = 0 } = {}) {
+  try {
+    const promos = (properties || []).filter(p => p && (p.promotion === true)).slice(offset, offset + limit).map(formatPromo).filter(Boolean);
+    // eslint-disable-next-line no-console
+    console.debug('[getLocalPromotions] returning', { count: promos.length, offset, limit });
+    return promos;
+  } catch (e) { return []; }
+}
+
+// Attempt to fetch more promotions from backend; fallback to local data if the server is not available.
+export async function fetchMorePromotionsFromServer({ offset = 0, limit = 20, noFallback = false } = {}) {
+  const API_BASE = (process.env.REACT_APP_BACKEND_APP_URL || '').replace(/\/$/, '');
+  if (!API_BASE) {
+    // no backend configured — return local slice or nothing depending on noFallback
+    // eslint-disable-next-line no-console
+    console.debug('[fetchMorePromotionsFromServer] no API_BASE, noFallback=', noFallback);
+    return noFallback ? [] : getLocalPromotions({ offset, limit });
+  }
+
+  try {
+    const url = `${API_BASE}/api/mobilier/promotions?limit=${limit}&offset=${offset}`;
+    // eslint-disable-next-line no-console
+    console.debug('[fetchMorePromotionsFromServer] fetching', { url, offset, limit, noFallback });
+    const res = await fetch(url, { credentials: 'include' });
+    // eslint-disable-next-line no-console
+    console.debug('[fetchMorePromotionsFromServer] response', { status: res.status, ok: res.ok });
+    if (!res.ok) {
+      // eslint-disable-next-line no-console
+      console.warn('[fetchMorePromotionsFromServer] server returned non-ok', { status: res.status, url });
+      return noFallback ? [] : getLocalPromotions({ offset, limit });
+    }
+    const data = await res.json();
+    // backend may return array or { data: [] }
+    const items = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+    // eslint-disable-next-line no-console
+    console.debug('[fetchMorePromotionsFromServer] received items', { count: items.length, sample: items && items[0] ? (items[0]._id || items[0].id || items[0].pid || '(object)') : null });
+    // Ensure agents are loaded so we can resolve agent objects for promotions
+    try { await preloadAgents(3000); } catch (e) { /* ignore */ }
+    return items.map(i => {
+      // map server object to our promo format conservatively
+      const p = i.property || i; // some endpoints may wrap
+   
+      const agent = agents.filter(a =>a.id === (p.agentId || p.agent || null))
+    
+      console.log('promotion in fakdataPromotions',p);
+      const dat= formatPromo({
+        id: p._id || p.id,
+        titre: p.titre || p.title || p.name,
+        images: p.images || p.photos || p.imagesArray || [],
+        agent: agent[0],
+        prix: p.prix || p.price || 0,
+        promoPrice: p.promoPrice || p.promo_price || null,
+        promotion: p.promotion === true || i.promotion === true,
+        promoStart: p.promoStart || p.promo_start || null,
+        promoEnd: p.promoEnd || p.promo_end || null,
+        promoComment: p.promoComment || p.promo_comment || i.comment || [],
+        adresse : p.adresse || p.address || 'Adresse non disponible',
+        commune : p.commune || p.city || '',
+        location : p.location || '',
+        quartier : p.quartier || '',
+        
+
+      });
+      console.log("formatted promotion",dat);
+      return dat;
+      
+    }).filter(Boolean).slice(0, limit);
+    
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[fetchMorePromotionsFromServer] fetch failed', { error: err && err.message });
+    return noFallback ? [] : getLocalPromotions({ offset, limit });
+  }
+  
+}
+export default {
+  getLocalPromotions,
+  fetchMorePromotionsFromServer,
+  formatPromo
+};

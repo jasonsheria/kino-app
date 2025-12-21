@@ -70,8 +70,8 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   await new Promise(resolve => setTimeout(resolve, 1500));
   // notify parent with the raw booking data (legacy prop)
   onSubmit?.(bookingData);
-  // new standardized success callback to update reservation state
-      onSuccess?.(bookingData);
+  // new standardized success callback to update reservation state (include property & agent)
+      onSuccess?.({ bookingData, property: property || null, agent: agent || null });
       //  verifier d'abord si l'utilisateur est connecter avant de faire une reservation
       const user = localStorage.getItem('ndaku_auth_token') && localStorage.getItem('ndaku_user') ? JSON.parse(localStorage.getItem('ndaku_user')) : null;
       if(!user) {
@@ -82,20 +82,22 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
       }
       // dispatch a global event so other components (other cards) can react
       try {
-        const propId = property?.id ?? bookingData.propertyId ?? null;
-        if (propId != null) {
+        // canonical property id (prefer `id`, fallback `_id` and bookingData.propertyId)
+        const propId = property?.id ?? property?._id ?? bookingData.propertyId ?? null;
+        const canonicalId = propId != null ? String(propId) : null;
+        if (canonicalId) {
           // Try to sync reservations from server (best-effort). If sync succeeds use it, otherwise fall back to local persistence.
           try {
             const synced = await syncReservationsFromServer();
             let included = false;
             if (Array.isArray(synced)) {
-              included = synced.map(String).includes(String(propId));
+              included = synced.map(String).includes(canonicalId);
             } else {
               // fallback: write localStorage and assume reserved
               try {
                 const list = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-                if (!list.includes(String(propId))) {
-                  list.push(String(propId));
+                if (!list.includes(canonicalId)) {
+                  list.push(canonicalId);
                   localStorage.setItem('reserved_properties', JSON.stringify(list));
                 }
                 included = true;
@@ -105,18 +107,19 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
             }
 
             if (included) {
-              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(propId) } }));
+              // include both key variants and the raw property for maximum compatibility
+              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: canonicalId, property_id: property?._id ?? property?.id ?? canonicalId, property: property || null, agent: agent || null } }));
             }
           } catch (err) {
             console.warn('VisitBookingModal: failed to sync reservations', err);
             // fallback to legacy localStorage write + event
             try {
               const list = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-              if (!list.includes(String(propId))) {
-                list.push(String(propId));
+              if (!list.includes(canonicalId)) {
+                list.push(canonicalId);
                 localStorage.setItem('reserved_properties', JSON.stringify(list));
               }
-              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(propId) } }));
+              window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: canonicalId, property_id: property?._id ?? property?.id ?? canonicalId, property: property || null, agent: agent || null } }));
             } catch (e) { console.warn('VisitBookingModal: failed to dispatch property-reserved event', e); }
           }
         }
@@ -133,10 +136,12 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
+        // Use canonical id when sending to server
+        const payloadPropertyId = property?.id ?? property?._id ?? bookingData.propertyId ?? null;
         const resp = await fetch(url, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ propertyId: property?.id, date: bookingData.date, time: bookingData.time, phone: bookingData.phoneNumber, amount: VISIT_FEE, name : user.username || user.fullname || user.prenom  })
+          body: JSON.stringify({ propertyId: payloadPropertyId, date: bookingData.date, time: bookingData.time, phone: bookingData.phoneNumber, amount: VISIT_FEE, name: user.username || user.fullname || user.prenom })
         });
         if (resp.ok) {
           const created = await resp.json();
@@ -150,14 +155,14 @@ const { enqueueSnackbar, closeSnackbar } = useSnackbar();
               // Sync reservations (use the response to avoid double-fetch)
               try { await syncReservationsFromServer(listResp); } catch (e) { console.warn('Failed to sync reservations after create', e); }
               // Notify parent with server-created reservation and refreshed list
-              onSuccess?.({ bookingData, createdReservation: created, reservations });
+              onSuccess?.({ bookingData, property: property || null, agent: agent || null, createdReservation: created, reservations });
             } else {
               // Could not fetch list; still notify parent with created reservation
-              onSuccess?.({ bookingData, createdReservation: created, reservations: null });
+              onSuccess?.({ bookingData, property: property || null, agent: agent || null, createdReservation: created, reservations: null });
             }
           } catch (e) {
             console.warn('Failed to fetch reservations after create', e);
-            onSuccess?.({ bookingData, createdReservation: created, reservations: null });
+            onSuccess?.({ bookingData, property: property || null, agent: agent || null, createdReservation: created, reservations: null });
           }
         } else if (resp.status === 401 || resp.status === 403) {
           // Not authenticated — fall back to local persistence but inform the user

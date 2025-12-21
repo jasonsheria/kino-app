@@ -190,7 +190,7 @@ export default function OwnerDashboard() {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={12} md={6} sx={{ width: "100%" }}>
+                    {/* <Grid item xs={12} md={6} sx={{ width: "100%" }}>
                         <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#34D399 0%, #60A5FA 100%)', color: '#fff', boxShadow: 2 }}>
                             <CardContent sx={{ width: '100%' }}>
                                 <Box display="flex" flexDirection="column" alignItems="flex-start" sx={{ width: '100%' }}>
@@ -203,7 +203,7 @@ export default function OwnerDashboard() {
                                 </Box>
                             </CardContent>
                         </Card>
-                    </Grid>
+                    </Grid> */}
                     {/* Calendar Section */}
                     <Grid item xs={12} md={12} style={{ width: '100%' }}>
                         <Card>

@@ -10,9 +10,9 @@ import { createPortal } from 'react-dom';
 // Custom marker icon for properties
 const createPropertyMarker = (type = 'standard') => {
   const colors = {
-    standard: '#667eea',
+    standard: '#0daebe',
     featured: '#ff7a59',
-    reserved: '#16a34a',
+    reserved: '#0daebe',
   };
   
   return L.divIcon({
@@ -28,32 +28,98 @@ const createPropertyMarker = (type = 'standard') => {
   });
 };
 
+// Small red marker for user's current position
+const createUserMarker = () => L.divIcon({
+  html: `<div class="user-marker" style="background:#e63946;border:2px solid #fff;width:14px;height:14px;border-radius:50%;box-shadow:0 0 8px rgba(230,57,70,0.5)"></div>`,
+  className: 'user-marker-wrapper',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
+// Normalize various geolocation formats into { lat, lng } or null
+const normalizeGeoloc = (p) => {
+  if (!p) return null;
+  const g = p.geoloc || p.location || p.coords || null;
+
+  const toNum = v => {
+    const n = Number(v);
+    return Number.isNaN(n) ? null : n;
+  };
+
+  const isLat = v => typeof v === 'number' && v >= -90 && v <= 90;
+  const isLng = v => typeof v === 'number' && v >= -180 && v <= 180;
+
+  // Handle GeoJSON Point: { type: 'Point', coordinates: [lng, lat] }
+  if (g && typeof g === 'object' && Array.isArray(g.coordinates) && g.coordinates.length >= 2) {
+    const a0 = toNum(g.coordinates[0]);
+    const a1 = toNum(g.coordinates[1]);
+    if (a0 != null && a1 != null) {
+      // GeoJSON is [lng, lat]
+      if (isLat(a1) && isLng(a0)) return { lat: a1, lng: a0 };
+    }
+  }
+
+  // Array form: could be [lat, lng] or [lng, lat]
+  if (Array.isArray(g) && g.length >= 2) {
+    const a0 = toNum(g[0]);
+    const a1 = toNum(g[1]);
+    if (a0 != null && a1 != null) {
+      // Heuristic: if a0 looks like lat (-90..90) and a1 looks like lng (-180..180)
+      if (isLat(a0) && isLng(a1)) return { lat: a0, lng: a1 };
+      // Otherwise maybe [lng, lat]
+      if (isLat(a1) && isLng(a0)) return { lat: a1, lng: a0 };
+      // Last resort: assume [lat, lng]
+      return { lat: a0, lng: a1 };
+    }
+  }
+
+  if (g && typeof g === 'object') {
+    // Common fields
+    const lat = toNum(g.lat ?? g.latitude ?? (g[1] ?? null));
+    const lng = toNum(g.lng ?? g.longitude ?? (g[0] ?? null));
+    if (lat != null && lng != null && isLat(lat) && isLng(lng)) return { lat, lng };
+  }
+
+  // Top-level fields
+  const tlat = toNum(p.latitude ?? p.lat);
+  const tlng = toNum(p.longitude ?? p.lng);
+  if (tlat != null && tlng != null && isLat(tlat) && isLng(tlng)) return { lat: tlat, lng: tlng };
+
+  // no valid coords
+  return null;
+};
+
+
 // Map controller component to handle interactions
-const MapController = ({ center, zoom, properties, onMarkerClick }) => {
+// NOTE: Auto-zoom/auto-fit behavior removed per user request — we only pan to center now
+const MapController = ({ center, zoom, properties, onMarkerClick, userPosition, fitRequest, setFitRequestProp }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (map && center) {
-      map.setView(center, zoom);
-    }
-  }, [center, zoom, map]);
+    if (!map || !center) return;
+    // center may be [lat, lng] or { lat, lng }
+    let c = null;
+    if (Array.isArray(center) && center.length >= 2) c = center;
+    else if (center && typeof center === 'object' && center.lat != null && center.lng != null) c = [center.lat, center.lng];
 
+    if (c) {
+      try { map.panTo(c); } catch (e) { /* ignore */ }
+    }
+    // Intentionally do not call map.setView(center, zoom) or map.fitBounds to avoid changing zoom automatically
+  }, [center, map]);
+
+  // Perform fitBounds only when user explicitly requests it
   useEffect(() => {
-    if (!map || !properties || properties.length === 0) return;
-
-    // Calculate bounds to fit all markers
-    const markers = properties.filter(p => p.geoloc && p.geoloc.lat && p.geoloc.lng);
-    if (markers.length === 0) return;
-
-    const bounds = L.latLngBounds(markers.map(p => [p.geoloc.lat, p.geoloc.lng]));
-    
-    // Fit map to bounds with padding
-    if (markers.length === 1) {
-      map.setView([markers[0].geoloc.lat, markers[0].geoloc.lng], 15);
-    } else {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    if (!map || !fitRequest) return;
+    const markers = (properties || []).filter(p => p.geoloc && p.geoloc.lat != null && p.geoloc.lng != null).map(p => [p.geoloc.lat, p.geoloc.lng]);
+    if (markers.length === 0) {
+      if (typeof setFitRequestProp === 'function') setFitRequestProp(false);
+      return;
     }
-  }, [properties, map]);
+    const bounds = L.latLngBounds(markers);
+    try { map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 }); } catch (e) { console.warn('[MapController] fitBounds failed', e); }
+    if (typeof setFitRequestProp === 'function') setFitRequestProp(false);
+  }, [fitRequest, map, properties, setFitRequestProp]);
 
   return null;
 };
@@ -243,17 +309,24 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(defaultZoom);
+  const [userLocation, setUserLocation] = useState(null);
+  const [fitRequest, setFitRequest] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const mapRef = useRef(null);
     const navigate = useNavigate();
 
 
-  // Resolve agent for each property
+  // Resolve agent for each property and normalize geolocation
   const { agents } = require('../../data/fakedata');
   
-  const enrichedProperties = properties.map(p => ({
-    ...p,
-    agent: agents.find(a => String(a.id) === String(p.agentId))
-  }));
+  const enrichedProperties = properties.map(p => {
+    const geo = normalizeGeoloc(p);
+    return {
+      ...p,
+      geoloc: geo,
+      agent: agents.find(a => a && (String(a.id) === String(p.agentId) || String(a._id) === String(p.agentId)))
+    };
+  });
 
   const handleMarkerClick = (property) => {
     setSelectedProperty(property);
@@ -267,9 +340,55 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
   };
 
   // Filter properties with valid geolocation
-  const validProperties = enrichedProperties.filter(p => p.geoloc && p.geoloc.lat && p.geoloc.lng);
+  const validProperties = enrichedProperties.filter(p => p.geoloc && p.geoloc.lat != null && p.geoloc.lng != null);
 
-  if (validProperties.length === 0) {
+  // Debug summary when properties change: how many have geoloc
+  useEffect(() => {
+    try {
+      const total = (properties || []).length;
+      const valid = validProperties.length;
+      const missing = (properties || []).filter(p => !normalizeGeoloc(p)).slice(0, 8).map(p => (p.id || p._id || p.pid || p.title || '(obj)'));
+      console.debug('[MapPropertyViewer] properties summary', { total, valid, missingSample: missing });
+    } catch (e) { /* ignore */ }
+  }, [properties, validProperties.length]);
+
+  // get user's real location (initial and watch for updates)
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.debug('[MapPropertyViewer] Geolocation not available in this browser');
+      return;
+    }
+    let watchId = null;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        console.debug('[MapPropertyViewer] getCurrentPosition', { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      (err) => { console.warn('Geolocation error', err); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+    try {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          console.debug('[MapPropertyViewer] watchPosition update', { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy });
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        (err) => console.warn('watchPosition error', err),
+        { enableHighAccuracy: true, maximumAge: 5000 }
+      );
+    } catch (e) { console.warn('[MapPropertyViewer] failed to start geolocation watch', e); }
+    return () => { if (watchId != null && navigator.geolocation) navigator.geolocation.clearWatch(watchId); };
+  }, []);
+
+  // Log user location changes to help debug whether browser returns real coordinates
+  useEffect(() => {
+    if (userLocation) console.info('[MapPropertyViewer] userLocation state', userLocation);
+    else console.info('[MapPropertyViewer] userLocation cleared or not available');
+  }, [userLocation]);
+
+  // If there are no properties but we have a user location, still render the map centered on user.
+  const shouldRenderMap = validProperties.length > 0 || userLocation;
+  if (!shouldRenderMap) {
     return (
       <div className="map-empty-state">
         <FaMapMarkerAlt size={48} />
@@ -279,7 +398,38 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
   }
 
   return (
-    <div className="map-property-viewer">
+    <div className="map-property-viewer" style={{ position: 'relative' }}>
+      {/* quick control: center map on user's position */}
+      {userLocation && (
+        <button
+          aria-label="Me localiser"
+          title="Me localiser"
+          onClick={() => {
+            // center on user without forcing zoom
+            setMapCenter([userLocation.lat, userLocation.lng]);
+            // also log coordinates explicitly for easier copy/paste
+            console.info('[MapPropertyViewer] Me localiser clicked, userLocation:', userLocation);
+          }}
+          style={{ position: 'absolute', left: 12, top: 12, zIndex: 1200, background: '#fff', borderRadius: 8, padding: '8px 10px', boxShadow: '0 6px 18px rgba(2,6,23,0.08)', cursor: 'pointer' }}
+        >
+          Me localiser
+        </button>
+      )}
+
+      {/* Manual fit button (user-triggered only) */}
+      {validProperties.length > 0 && (
+        <button
+          aria-label="Afficher tous les biens"
+          title="Afficher tous les biens"
+          onClick={() => setFitRequest(prev => !prev)}
+          style={{ position: 'absolute', left: 12, top: 56, zIndex: 1200, background: '#fff', borderRadius: 8, padding: '8px 10px', boxShadow: '0 6px 18px rgba(2,6,23,0.08)', cursor: 'pointer' }}
+        >
+          Afficher tous les biens
+        </button>
+      )}
+
+     -++
+
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
@@ -297,6 +447,9 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
           zoom={mapZoom} 
           properties={validProperties}
           onMarkerClick={handleMarkerClick}
+          userPosition={userLocation}
+          fitRequest={fitRequest}
+          setFitRequestProp={setFitRequest}
         />
 
         {validProperties.map((property) => (
@@ -310,9 +463,9 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
           >
             <Popup closeButton={true} autoClose={false}>
               <div className="marker-popup">
-                <img src={property.images[0]} alt={property.title} className="popup-image" />
+                <img src={property.images && property.images[0]} alt={property.title} className="popup-image" />
                 <h4 className="popup-title">{property.title}</h4>
-                <p className="popup-price">{new Intl.NumberFormat().format(property.price)} $</p>
+                <p className="popup-price">{new Intl.NumberFormat().format(property.price || property.prix || 0)} $</p>
                 <button 
                   className="popup-btn"
                   onClick={() => {navigate(`/properties/${property.id}`);}}
@@ -323,7 +476,35 @@ const MapPropertyViewer = ({ properties = [], onVisitRequest, defaultCenter = [-
             </Popup>
           </Marker>
         ))}
+
+        {/* User position marker (red) */}
+        {userLocation && (
+          <Marker
+            key="__user_location"
+            position={[userLocation.lat, userLocation.lng]}
+            icon={createUserMarker()}
+          >
+            <Popup closeButton={false}>
+              <div style={{ fontWeight: 700 }}>Vous êtes ici</div>
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
+
+      {/* Debug panel showing properties and coordinates (toggleable) */}
+      {debugOpen && (
+        <div style={{ marginTop: 12, padding: 12, background: '#fff', borderRadius: 8, boxShadow: '0 6px 18px rgba(2,6,23,0.04)' }}>
+          <div style={{ fontWeight: 800, marginBottom: 8 }}>Liste des propriétés (id — lat, lng)</div>
+          <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+            {validProperties.map(p => (
+              <div key={p.id} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '0.95rem' }}><strong>{p.id || p._id || '(no id)'}</strong> — {p.geoloc.lat.toFixed(6)}, {p.geoloc.lng.toFixed(6)}</div>
+                <div style={{ color: '#64748b', fontSize: '0.85rem' }}>{p.title || p.name || ''}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <PropertyDetailModal
         property={selectedProperty}

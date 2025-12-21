@@ -81,13 +81,13 @@
   margin: 0 0 8px;
   font-size: 1rem;
   font-weight: 800;
-  color: #16a34a;
+  color: #0daebe;
 }
 
 .popup-btn {
   width: 100%;
   padding: 8px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #0daebe, #764ba2);
   color: white;
   border: none;
   border-radius: 6px;
@@ -223,7 +223,7 @@
 }
 
 .badge-discount {
-  background: linear-gradient(90deg, #16a34a, #059669);
+  background: linear-gradient(90deg, #0daebe, #0daebe);
   color: white;
 }
 
@@ -268,14 +268,14 @@
 .price-current .amount {
   font-size: 1.4rem;
   font-weight: 900;
-  color: #16a34a;
+  color: #0daebe;
   line-height: 1;
 }
 
 .price-current .currency {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #16a34a;
+  color: #0daebe;
   margin-top: 4px;
 }
 
@@ -356,7 +356,7 @@
 .feature-value {
   font-size: 1.1rem;
   font-weight: 900;
-  color: #667eea;
+  color: #0daebe;
 }
 
 /* Agent Section - Enhanced */
@@ -366,7 +366,7 @@
 }
 
 .modal-agent-section.enhanced {
-  background: linear-gradient(135deg, #667eea06 0%, #764ba206 100%);
+  background: linear-gradient(135deg, #0daebe06 0%, #764ba206 100%);
   padding: 16px;
   border-radius: 14px;
   border: 1px solid rgba(102, 126, 234, 0.1);
@@ -424,7 +424,7 @@
   margin: 6px 0 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #667eea;
+  color: #0daebe;
 }
 
 .agent-actions {
@@ -484,7 +484,7 @@
 }
 
 .action-btn-modern.call {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #0daebe, #764ba2);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
@@ -499,7 +499,7 @@
   width: 100%;
   padding: 14px;
   margin-top: 12px;
-  background: linear-gradient(135deg, #16a34a, #059669);
+  background: linear-gradient(135deg, #0daebe, #0daebe);
   color: white;
   border: none;
   border-radius: 12px;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './styles/ColorSystem.css';
 import './App.css';
 import { ThemeProvider, CssBaseline, IconButton, Tooltip } from '@mui/material';
+import ProgressTopBar from './components/common/ProgressTopBar';
 import { HashRouter } from 'react-router-dom';
 import getTheme from './theme';
 import AppRoutes from './routes';
@@ -98,37 +99,14 @@ function App() {
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <Tooltip title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}>
-                    {/* <IconButton
-                      onClick={() => setMode(prev => getValidMode(prev === 'dark' ? 'light' : 'dark'))}
-                      style={{
-                        position: 'fixed',
-                        bottom: 18,
-                        right: 71,
-                        zIndex: 9999,
-                        background: theme.palette.background.paper,
-                        color: "white",
-                        borderRadius: '50%',
-                        width: 47,
-                        height: 48,
-                        boxShadow: '0 2px 8px var(--ndaku-primary-22)',
-                        transition: 'background 0.3s, color 0.3s',
-                      }}
-                      sx={{
-                        '&:hover': {
-                          background: theme.palette.background.paper,
-                          color: "white",
-                        },
-                        bottom: 10
-                      }}
-                      aria-label="Changer le mode de couleur"
-                    >
-                      {mode === 'dark' ? <FaSun size={22} /> : <FaMoon size={22} />}
-                    </IconButton> */}
                     <MessengerWidget />
-
                   </Tooltip>
+                  {/* Global top progress bar and blurred transition during initial loading */}
+                  <ProgressTopBar />
                   <HashRouter>
-                    <AppRoutes />
+                    <div className="App-main">
+                      <AppRoutes />
+                    </div>
                   </HashRouter>
                   <CallModal />
                 </ThemeProvider>

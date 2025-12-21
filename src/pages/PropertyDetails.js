@@ -64,7 +64,20 @@ const PropertyDetails = () => {
   useEffect(() => {
     console.log("listes des agents", agents);
     console.log("listes de propriety", properties);
-    const refresh = () => setProperty(properties.find(p => String(p.id) === String(id)));
+    const refresh = () => {
+      const found = properties.find(p => String(p.id) === String(id));
+      if (!found) {
+        // if previously had a property, remove it, otherwise keep as-is
+        setProperty(prev => prev ? null : prev);
+        return;
+      }
+      setProperty(prev => {
+        const prevId = String(prev?.id || prev?._id || '');
+        const foundId = String(found?.id || found?._id || '');
+        if (prevId === foundId) return prev; // avoid setting same object
+        return found;
+      });
+    };
     // initial attempt
     refresh();
     window.addEventListener('ndaku:properties-updated', refresh);
@@ -82,6 +95,11 @@ const PropertyDetails = () => {
       return property ? agents.find(a => String(a.id) === String(property.agentId) || String(a._id) === String(property.agentId) || String(a.id) === String(property.agent) || String(a._id) === String(property.agent)) : null;
     } catch (e) { return null; }
   });
+  // keep a ref of current resolvedAgent to avoid including it in effect deps and causing ping-pong updates
+  const resolvedAgentRef = useRef(resolvedAgent);
+  useEffect(() => { resolvedAgentRef.current = resolvedAgent; }, [resolvedAgent]);
+
+
   const suggestions = property ? properties.filter(p => String(p.id) !== String(property.id)).slice(0, 2) : [];
 
   // Prefer new `property.videos` (array). Fall back to legacy virtualTour / virtualTourVideos.
@@ -99,6 +117,24 @@ const PropertyDetails = () => {
   const [showBooking, setShowBooking] = useState(false);
   // Track if property is already reserved
   const [isReserved, setIsReserved] = useState(false);
+
+  // === DEBUG: detect excessive renders and log useful state (remove this in prod) ===
+  const _renderCount = useRef(0);
+  _renderCount.current += 1;
+  useEffect(() => {
+    // reset count after a short idle so we only capture bursts
+    const t = setTimeout(() => { _renderCount.current = 0; }, 2500);
+    if (_renderCount.current > 30) {
+      console.warn('PropertyDetails: excessive renders detected', {
+        renders: _renderCount.current,
+        propertyId: property?.id || property?._id,
+        resolvedAgentId: resolvedAgentRef.current?.id || resolvedAgentRef.current?._id,
+        isReserved
+      });
+    }
+    return () => clearTimeout(t);
+  }, [property, isReserved]);
+  // === end debug ===
 
   // Map and user geolocation state (declared unconditionally)
   const mapRef = useRef(null);
@@ -143,11 +179,11 @@ const PropertyDetails = () => {
   }, []);
 
   // Try fetching user-scoped agents if we couldn't resolve and local agents list is empty
+  // NOTE: depend only on `property` and use `resolvedAgentRef` for current value to avoid ping-pong
   useEffect(() => {
-
     let mounted = true;
     const tryFetch = async () => {
-      if (resolvedAgent) return;
+      if (resolvedAgentRef.current) return;
       if (agents && agents.length) return; // local agents present
       try {
         const token = localStorage.getItem('ndaku_auth_token');
@@ -159,7 +195,14 @@ const PropertyDetails = () => {
         if (!mounted) return;
         if (list && list.length) {
           const found = list.find(a => String(a.id) === String(property.agentId) || String(a._id) === String(property.agentId) || String(a.id) === String(property.agent) || String(a._id) === String(property.agent));
-          if (found) setResolvedAgent(found);
+          if (found) {
+            const foundId = String(found.id || found._id || '');
+            const currentId = String(resolvedAgentRef.current?.id || resolvedAgentRef.current?._id || '');
+            if (foundId && foundId !== currentId) {
+              setResolvedAgent(found);
+              resolvedAgentRef.current = found;
+            }
+          }
         }
       } catch (e) {
         // ignore
@@ -167,21 +210,38 @@ const PropertyDetails = () => {
     };
     tryFetch();
     return () => { mounted = false; };
-  }, [resolvedAgent, property]);
+  }, [property]);
 
-  // Recompute resolvedAgent when property or local agents change
+  // Recompute resolvedAgent when property or agents change (use ref to avoid ping-pong)
+  // Guard updates so we don't keep writing the same value and trigger re-renders
   useEffect(() => {
     try {
-      if (property && property.agent && typeof property.agent === 'object') {
-        setResolvedAgent(property.agent);
+      if (!property) return;
+
+      // If property embeds an agent object, set it only when it changes compared to ref
+      if (property.agent && typeof property.agent === 'object') {
+        const incomingId = String(property.agent.id || property.agent._id || '');
+        const currentId = String(resolvedAgentRef.current?.id || resolvedAgentRef.current?._id || '');
+        if (incomingId && incomingId !== currentId) {
+          setResolvedAgent(property.agent);
+          resolvedAgentRef.current = property.agent;
+        }
         return;
       }
-      if (agents && agents.length && property) {
-        const found = agents.find(a => {
-          const pid = String(property.agentId || property.agent || property.agent_id || property._id || property.id || '');
-          return [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id].some(x => x && String(x) === pid);
-        });
-        if (found) setResolvedAgent(found);
+
+      // Otherwise try to match from local agents but only update when different
+      if (agents && agents.length) {
+        const pid = String(property.agentId || property.agent || property.agent_id || property._id || property.id || '');
+        if (!pid) return;
+        const found = agents.find(a => [a.id, a._id, a.agentId, a.raw && a.raw._id, a.raw && a.raw.id].some(x => x && String(x) === pid));
+        if (found) {
+          const foundId = String(found.id || found._id || '');
+          const currentId = String(resolvedAgentRef.current?.id || resolvedAgentRef.current?._id || '');
+          if (foundId && foundId !== currentId) {
+            setResolvedAgent(found);
+            resolvedAgentRef.current = found;
+          }
+        }
       }
     } catch (e) {
       // ignore
@@ -194,7 +254,7 @@ const PropertyDetails = () => {
       try {
         const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
         const isPropertyReserved = reserved.includes(String(property.id || property._id));
-        setIsReserved(isPropertyReserved);
+        setIsReserved(prev => (prev === isPropertyReserved ? prev : isPropertyReserved));
       } catch (e) {
         setIsReserved(false);
       }
@@ -359,13 +419,21 @@ const PropertyDetails = () => {
         <div className="pd-page-grid">
           {/* LEFT: Main content */}
           <div>
-             <div className="d-flex justify-content-between align-items-center w-100 mb-4" style={{ marginRight: "9%" }}>
-                <div className="pd-type">{property.name || 'Appartement'}</div>
-                <div className="pd-price d-flex justify-content-center align-items-center" style={{ fontSize: 16 }}><FaMapMarkerAlt /> {property.address ? property.address: ''}</div>
-
+            {/* Header: title + big price */}
+            <div className="pd-header d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <h1 className="pd-title" style={{ margin: 0 }}>{property.name || 'Appartement'}</h1>
+                <div className="pd-sub text-muted mt-2" style={{ fontSize: '0.98rem' }}><FaMapMarkerAlt style={{ marginRight: 6 }} />{property.address || ''}</div>
               </div>
+
+              <div className="pd-price-hero text-end">
+                <div className="pd-price-big">{property.price ? Number(property.price).toLocaleString() : '—'} <span className="pd-price-currency">USD</span></div>
+                <div className="pd-price-meta text-muted" style={{ fontSize: '0.95rem', marginTop: 8 }}>{property.type || ''} • {property.status || (property.isAvailable ? 'En location' : 'À vendre')}</div>
+              </div>
+            </div>
+
             <div className="pd-hero">
-             
+              
               <div className="pd-hero-main">
                 <motion.img
                   src={(property.images && property.images[0]) ? property.images[0] : require('../img/property-1.jpg')}
@@ -377,7 +445,16 @@ const PropertyDetails = () => {
                   onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}
                 />
 
-                {/* Video / virtual tour CTA overlay */}
+                {/* View media CTA overlay - shows total medias */}
+                <button
+                  className="pd-view-media"
+                  onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}
+                  aria-label="Voir tous les médias"
+                >
+                  Voir les {((property.images && property.images.length) ? property.images.length : 0) + (videos && videos.length ? videos.length : 0)} médias
+                </button>
+
+                {/* Video / virtual tour CTA overlay (kept but secondary) */}
                 {videos && videos.length > 0 ? (
                   <button
                     className="pd-video-btn"
@@ -388,17 +465,7 @@ const PropertyDetails = () => {
                     <span className="icon"><FaPlay /></span>
                     <span>Visite virtuelle</span>
                   </button>
-                ) : (
-                  <button
-                    className="pd-video-btn"
-                    onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}
-                    aria-label="Voir les photos"
-                    title="Voir les photos"
-                  >
-                    <span className="icon"><FaRegImage /></span>
-                    <span>Voir les photos</span>
-                  </button>
-                )}
+                ) : null}
               </div>
               <div className="pd-hero-thumbs">
                 {(property.images || []).slice(1, 3).map((img, i) => (
@@ -418,28 +485,50 @@ const PropertyDetails = () => {
             </div>
 
             <div className="pd-main">
-              <div className="pd-meta-row">
-                <div className="d-flex justify-content-between align-items-center w-100" style={{ marginRight: "9%" }}>
-                  <div className="pd-type">{property.type || 'Apartment'}</div>
-                  <div >{property.price ? `${property.price.toLocaleString()}$` : '$'}</div>
-
+              <div className="pd-meta-grid">
+                <div className="pd-meta-item">
+                  <div className="meta-label">Prix</div>
+                  <div className="meta-value price-value">{property.price ? `${Number(property.price).toLocaleString()} USD` : '—'}</div>
                 </div>
-                <div className="pd-star-row">
-                  <span style={{ fontWeight: 700, marginRight: 8 }}>{property.rating || 4.6}</span>
-                  <span>★</span><span>★</span><span>★</span><span>★</span><span style={{ opacity: 0.35 }}>★</span>
+
+                <div className="pd-meta-item">
+                  <div className="meta-label">Chambres</div>
+                  <div className="meta-value">{property.chambres || property.bedrooms || 0}</div>
+                </div>
+
+                <div className="pd-meta-item">
+                  <div className="meta-label">Salles de bain</div>
+                  <div className="meta-value">{property.douches || property.bathrooms || 0}</div>
+                </div>
+
+                <div className="pd-meta-item">
+                  <div className="meta-label">Surface</div>
+                  <div className="meta-value">{property.surface || property.area || property.m2 ? `${property.surface || property.area || property.m2} m²` : '—'}</div>
+                </div>
+
+                <div className="pd-meta-item">
+                  <div className="meta-label">Quartier</div>
+                  <div className="meta-value">{property.neighborhood || property.quartier || property.zone || '—'}</div>
+                </div>
+
+                <div className="pd-meta-item">
+                  <div className="meta-label">Médias</div>
+                  <div className="meta-value">
+                    <button className="btn btn-sm btn-outline-primary meta-media-btn" onClick={() => { setLightboxIndex(0); setShowImageLightbox(true); }}>
+                      Voir {((property.images && property.images.length) ? property.images.length : 0) + (videos && videos.length ? videos.length : 0)} médias
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="pd-facilities">
-                <div className="pd-facility"><FaCouch /> <span>{property.salon || 0} Salon </span></div>
-                <div className="pd-facility"><FaBed /> {property.chambres} Chambre(s)</div>
-                <div className="pd-facility"><FaShower /> {property.douches} Salle de bain(s)</div>
-                <div className="pd-facility"><FaUtensils /> {property.cuisine} cuisine(s)</div>
-                <div className="pd-facility"><FaWifi /> Wifi </div>
-                <div className="pd-facility"><FaMapMarkerAlt /> Place Parking</div>
+              <div className="pd-star-row">
+                <span style={{ fontWeight: 700, marginRight: 8 }}>{property.rating || 4.6}</span>
+                <span>★</span><span>★</span><span>★</span><span>★</span><span style={{ opacity: 0.35 }}>★</span>
               </div>
 
-              <div className="pd-desc">
+             
+
+              <div className="pd-desc ">
                 <h4>Description</h4>
                 <p style={{color : "black"}}>{property.description}</p>
               </div>
@@ -519,7 +608,7 @@ const PropertyDetails = () => {
                             </div>
                           </Popup>
                         </Marker>
-                        <Polyline positions={[[userPosition.lat, userPosition.lng], [propertyPosition.lat, propertyPosition.lng]]} pathOptions={{ color: '#6a46f7', weight: 3, opacity: 0.8 }} />
+                        <Polyline positions={[[userPosition.lat, userPosition.lng], [propertyPosition.lat, propertyPosition.lng]]} pathOptions={{ color: '#0daebe', weight: 3, opacity: 0.8 }} />
                         <Circle center={[userPosition.lat, userPosition.lng]} radius={40} pathOptions={{ color: '#1e90ff', fillOpacity: 0.08 }} />
                       </>
                     )}
@@ -531,15 +620,32 @@ const PropertyDetails = () => {
 
           {/* RIGHT: Side panel (price + agent + CTAs) */}
           <aside className="pd-sidepanel">
-            <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(2,6,23,0.06)' }}>
+            <div >
               <div style={{ marginTop: 12 }}>
-                <AgentProfileCard agent={resolvedAgent} property={property} isReserved={isReserved} onContactClick={(t) => { if (t === 'whatsapp') setShowContact(true); }} />
+                <AgentProfileCard setShowBooking={setShowBooking} agent={resolvedAgent} property={property} isReserved={isReserved} onContactClick={(t) => { if (t === 'whatsapp') setShowContact(true); }} />
               </div>
 
-              <div style={{ marginTop: 12, width : '90%', marginLeft: 'auto', marginRight: 'auto'}}>
-                <button className="btn-reserve-visite btn pd-primary" style={{ width: '100%' }} onClick={() => setShowBooking(true)}>
-                  Réserver une visite
-                </button>
+            
+
+              {/* subtle separator */}
+              <div className="card-separator" style={{ height: 14 }} />
+
+              {/* Security tips card */}
+              <div className="safety-tips-card" style={{ marginTop: 10, padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 999, background: 'brown' }} />
+                  <div style={{ fontWeight: 800, color: 'brown' }}>Conseils de sécurité</div>
+                </div>
+                <ul style={{ paddingLeft: 16, margin: 0, color: '#374151' }}>
+                  <li>Rencontrez-vous dans un lieu public sûr</li>
+                  <li>Inspectez l'article avant l'achat</li>
+                  <li>Ne payez jamais à l'avance sans voir l'article</li>
+                  <li>
+                    Signalez les annonces suspectes. <a href={`mailto:support@ndaku.app?subject=Signalement%20annonce%20${property.id}`} className="contact-link" onClick={(e)=>{ /* dispatch event then allow mailto */ window.dispatchEvent(new CustomEvent('ndaku:report-issue',{ detail: { propertyId: property.id } })); }}>
+                      Contactez-nous
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
           </aside>

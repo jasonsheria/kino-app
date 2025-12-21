@@ -133,8 +133,9 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
 
   useEffect(() => {
     const handler = (e) => {
-      const reservedId = e?.detail?.propertyId;
-      if (String(reservedId) === String(property.id)) {
+      const reservedId = e?.detail?.propertyId ?? e?.detail?.property_id ?? e?.detail?.id ?? null;
+      const idsToCheck = [property.id, property._id].filter(Boolean).map(String);
+      if (reservedId && idsToCheck.includes(String(reservedId))) {
         console.log('PropertyCard received property-reserved event for', reservedId);
         setIsReserved(true);
       }
@@ -143,7 +144,8 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       if (e.key === 'reserved_properties') {
         try {
           const reserved = JSON.parse(e.newValue || '[]').map(String);
-          if (reserved.includes(String(property.id))) setIsReserved(true);
+          const idsToCheck = [property.id, property._id].filter(Boolean).map(String);
+          if (idsToCheck.some(id => reserved.includes(id))) setIsReserved(true);
         } catch (err) { /* ignore */ }
       }
     };
@@ -153,7 +155,8 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     const syncHandler = (e) => {
       try {
         const reserved = (e?.detail?.reserved || []).map(String);
-        if (reserved.includes(String(property.id))) {
+        const idsToCheck = [property.id, property._id].filter(Boolean).map(String);
+        if (idsToCheck.some(id => reserved.includes(id))) {
           setIsReserved(true);
         }
       } catch (err) { /* ignore */ }
@@ -303,10 +306,10 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
         <img src={imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay" />
         <div className="badges">
-          <div className="badge status-badge">{safeStr(property.statut || property.status || '')}</div>
+          <div className="badge status-badge">{new Intl.NumberFormat().format(property.prix || property.price || 0)} $</div>
           <div className="badge type-badge">{safeStr(property.type || '')}</div>
         </div>
-        <div className="price-badge">{new Intl.NumberFormat().format(property.prix || property.price || 0)} $</div>
+        <div className="price-badge">{safeStr(property.statut || property.status || '')}</div>
         {showActions && (
           <div className="card-actions">
             <button className="action-btn" title="Edit"><FaEdit /></button>
@@ -379,15 +382,17 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
                       open={showBooking}
                       onClose={() => setShowBooking(false)}
                       onSuccess={(data) => {
-                        // mark reserved locally and notify others
+                        // mark reserved locally and notify others (use canonical id)
                         try {
+                          const canonicalId = property?.id ?? property?._id ?? null;
                           const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
-                          if (!reserved.includes(String(property.id))) {
-                            reserved.push(String(property.id));
+                          if (canonicalId && !reserved.includes(String(canonicalId))) {
+                            reserved.push(String(canonicalId));
                             localStorage.setItem('reserved_properties', JSON.stringify(reserved));
                           }
                         } catch (e) { /* ignore */ }
-                        window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(property.id) } }));
+                        const canonicalId = property?.id ?? property?._id ?? null;
+                        window.dispatchEvent(new CustomEvent('property-reserved', { detail: { propertyId: String(canonicalId || ''), property_id: property?._id ?? property?.id ?? canonicalId, property: property || null, agent: agentResolved || null } }));
                         setIsReserved(true);
                         setShowBooking(false);
                       }}

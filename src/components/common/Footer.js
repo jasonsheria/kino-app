@@ -1,8 +1,11 @@
 import React from 'react';
 import { FaFacebook, FaTwitter, FaInstagram, FaPhone, FaEnvelope, FaMapMarkerAlt, 
-         FaHome, FaUserFriends, FaHandshake, FaComments, FaWhatsapp } from 'react-icons/fa';
+         FaHome, FaUserFriends, FaHandshake, FaComments, FaWhatsapp, FaApple, FaGoogle, FaDownload } from 'react-icons/fa';
+import img6 from '../../assets/images/quelle-agence-immobiliere-choisir-pour-vendre-1.jpg'
 import { useTheme } from '@mui/material/styles';
-import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery, Link } from '@mui/material';
+import { Box, Container, Grid, Stack, Typography, IconButton, Button, useMediaQuery, Link, TextField } from '@mui/material';
+import { articles } from '../../data/fakedata';
+import { color } from 'framer-motion';
 
 
 const Footer = () => {
@@ -43,6 +46,8 @@ const Footer = () => {
       component="footer"
       sx={{
         mt: 'auto',
+        borderTop: "1px solid #8080804a",
+        background: "#ffe4c459",
         position: 'relative',
         '&::before': {
           content: '""',
@@ -59,30 +64,35 @@ const Footer = () => {
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
         <Grid container spacing={4}>
           {/* Logo et description */}
-          <Grid item xs={12} md={4}>
-            <Stack spacing={3}>
-              <Box>
-                <Typography 
-                  variant="h4"
-                    sx={{ 
-                    fontWeight: 800,
-                    letterSpacing: 2,
-                    mb: 1,
-                   color: "#2d3436"
-                  }}
-                >
-                  NDAKU
-                </Typography>
-                <Typography 
-                  variant="subtitle2"
-                  sx={{
-                    color: isDark ? 'var(--ndaku-primary)' : 'black',
-                    letterSpacing: 3,
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  IMMOBILIER
-                </Typography>
+          <Grid item xs={12} md={3}>
+            <Stack spacing={3} style={{ borderBottom:'1px solid gray', paddingBottom:10 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ width: 64, height: 64, borderRadius: 2, bgcolor: 'var(--ndaku-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: 20 }}>
+                  ND
+                </Box>
+                <Box>
+                  <Typography 
+                    variant="h4"
+                      sx={{ 
+                      fontWeight: 800,
+                      letterSpacing: 2,
+                      mb: 1,
+                     color: "#2d3436"
+                    }}
+                  >
+                    NDAKU
+                  </Typography>
+                  <Typography 
+                    variant="subtitle2"
+                    sx={{
+                      color: isDark ? 'var(--ndaku-primary)' : 'black',
+                      letterSpacing: 3,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    IMMOBILIER
+                  </Typography>
+                </Box>
               </Box>
               <Typography 
                 variant="body2"
@@ -105,7 +115,7 @@ const Footer = () => {
                   textTransform: 'none',
                   px: 3,
                   '&:hover': {
-                    bgcolor: '#667eea',
+                    bgcolor: '#0daebe',
                     transform: 'translateY(-2px)',
                     transition: 'all 0.2s'
                   }
@@ -115,20 +125,64 @@ const Footer = () => {
               </Button>
             </Stack>
           </Grid>
-
-          {/* Liens rapides */}
-          <Grid item xs={12} sm={6} md={4}>
+{/* Téléchargement et contact */}
+          <Grid item xs={12} sm={6} md={3}>
             <Typography 
               variant="h6" 
               sx={{ 
-                fontWeight: 600,
+                fontWeight: 700,
                 mb: 3,
                 color: isDark ? 'black' : 'black'
               }}
             >
-              Navigation rapide
+              Téléchargez l'application
             </Typography>
             <Stack spacing={2}>
+              <Typography variant="body2" sx={{ color: 'black' }}>Obtenez l'app pour rechercher et réserver plus rapidement.</Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                <Button variant="outlined" startIcon={<FaGoogle color='white'/>} href="https://play.google.com" target="_blank" sx={{ textTransform: 'none', borderRadius: 2, backgroundColor: 'black', padding: '12px 15px'  }}>
+                  Google Play
+                </Button>
+                <Button variant="outlined" startIcon={<FaApple color='white'/>} href="https://www.apple.com/app-store/" target="_blank" sx={{ textTransform: 'none', borderRadius: 2, backgroundColor: 'black', padding: '12px 15px'  }}>
+                  App Store
+                </Button>
+              </Stack>
+
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Newsletter</Typography>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }} component="form" onSubmit={(e) => { e.preventDefault(); /* TODO: wire up subscription */ }}>
+                  <TextField size="small" placeholder="Votre e-mail" sx={{ bgcolor: 'white', borderRadius: 1 }} />
+                  <Button type="submit" variant="contained" startIcon={<FaDownload />} sx={{ textTransform: 'none' }}>S'abonner</Button>
+                </Stack>
+              </Box>
+
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Contact</Typography>
+                {contactInfo.map((info, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1 }}>
+                    <Box sx={{ width: 34, height: 34, display:'flex',alignItems:'center',justifyContent:'center', bgcolor: 'rgba(0,0,0,0.03)', borderRadius:1 }}>
+                      <info.icon style={{ color: 'var(--ndaku-primary)' }} />
+                    </Box>
+                    <Link href={info.link} underline="none" sx={{ color: 'black' }}>{info.text}</Link>
+                  </Box>
+                ))}
+              </Box>
+
+            </Stack>
+          </Grid>
+          {/* Liens rapides */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700,
+                mb: 3,
+                color: isDark ? 'black' : 'black'
+              }}
+            >
+              Navigation
+            </Typography>
+            <Stack spacing={1.1}>
               {quickLinks.map((link, index) => (
                 <Link 
                   key={index}
@@ -152,78 +206,42 @@ const Footer = () => {
             </Stack>
           </Grid>
 
-          {/* Contact */}
-          <Grid item xs={12} sm={6} md={4}>
+          {/* Articles récents */}
+          <Grid item xs={12} sm={6} md={3}>
             <Typography 
               variant="h6" 
               sx={{ 
-                fontWeight: 600,
+                fontWeight: 700,
                 mb: 3,
                 color: isDark ? 'black' : 'black'
               }}
             >
-              Contactez-nous
+              Articles récents
             </Typography>
-            <Stack spacing={3}>
-              {contactInfo.map((info, index) => (
-                <Stack 
-                  key={index}
-                  spacing={1}
-                >
-                  <Stack 
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                  >
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: isDark ? 'rgba(19,194,150,0.1)' : 'rgba(19,194,150,0.1)',
-                      }}
-                    >
-                      <info.icon style={{ color: 'var(--ndaku-primary)', fontSize: '1.2rem' }} />
-                    </Box>
-                    <Typography 
-                      variant="body2"
-                      sx={{ color: 'black' }}
-                    >
-                      {info.text}
-                    </Typography>
-                  </Stack>
-                  <Link
-                    href={info.link}
-                    underline="none"
-                    sx={{
-                      color: 'var(--ndaku-primary)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      ml: 7,
-                      '&:hover': {
-                        color: '#667eea',
-                        textDecoration: 'underline'
-                      }
-                    }}
-                  >
-                    {info.action} →
-                  </Link>
-                </Stack>
+            <Stack spacing={2}>
+              {(articles && articles.length ? articles.slice(0,3) : [{}, {}, {}]).map((a, i) => (
+                <Link key={a.id || i} href={a.slug ? `/posts/${a.slug}` : `/posts/sample-${i+1}`} underline="none" sx={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <Box component="img" src={a.image || img6} sx={{ width: 114, height: 52, objectFit: 'cover', borderRadius: 1, boxShadow: '0 6px 16px rgba(0,0,0,0.08)' }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{a.title || `Titre d'article ${i+1}`}</Typography>
+                    <Typography variant="caption" sx={{ color: 'var(--ndaku-text)' }}>{a.excerpt || 'Extrait rapide de l\'article pour attirer l\'attention.'}</Typography>
+                  </Box>
+                </Link>
               ))}
             </Stack>
           </Grid>
+
+          
         </Grid>
 
         {/* Footer Bottom */}
         <Box
           sx={{
             mt: 6,
-            pt: 3,
+            pt: 4,
+            pb: 2,
             borderTop: 1,
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+            borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
           }}
         >
           <Stack 
@@ -232,16 +250,21 @@ const Footer = () => {
             alignItems="center"
             spacing={2}
           >
-            <Typography 
-              variant="body2" 
-              sx={{ color: 'black' }}
-            >
-              © {new Date().getFullYear()} Ndaku Immobilier · Tous droits réservés
-            </Typography>
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ color: 'black' }}
+              >
+                © {new Date().getFullYear()} Ndaku Immobilier · Tous droits réservés
+              </Typography>
+              <Link href="/terms" underline="none" sx={{ color: 'var(--ndaku-text)', ml: 2 }}>Conditions</Link>
+              <Link href="/privacy" underline="none" sx={{ color: 'var(--ndaku-text)', ml: 2 }}>Confidentialité</Link>
+            </Box>
 
             <Stack 
               direction="row" 
               spacing={1}
+              alignItems="center"
             >
               {[FaFacebook, FaTwitter, FaInstagram, FaWhatsapp].map((Icon, i) => (
                 <IconButton 
@@ -260,6 +283,10 @@ const Footer = () => {
                   <Icon />
                 </IconButton>
               ))}
+              <Stack direction="row" spacing={1} sx={{ ml: 2 }}>
+                <img src={img6} alt="app-sample" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }} />
+                <Typography variant="caption" sx={{ color: 'var(--ndaku-text)' }}>Télécharger l'app</Typography>
+              </Stack>
             </Stack>
           </Stack>
         </Box>

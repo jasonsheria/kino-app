@@ -91,8 +91,8 @@
 .map-svg { width: 320px; height: 260px; display:block; }
 .map-center-dot { filter: drop-shadow(0 6px 18px rgba(255,107,107,0.24)); }
 
-/* --- Unified primary color theme (harmonize to #667eea) --- */
-/* Uses existing --ndaku-primary (already set to #667eea in index.css) */
+/* --- Unified primary color theme (harmonize to #0daebe) --- */
+/* Uses existing --ndaku-primary (already set to #0daebe in index.css) */
 :root { --site-primary: var(--ndaku-primary); }
 
 /* Titles and key labels */
@@ -103,12 +103,12 @@ h1, h2, h3, h4, h5, h6,
 .promo-agent .agent-name,
 .map-count,
 .map-label {
-  color:#667eea !important;
+  color:#0daebe !important;
 }
 
 /* Icons and inline svgs use the primary color by default (stars use inline color overrides) */
 svg, .react-icons, .fa, .icon, .iconify {
-  color: var(--site-primary);
+  color: #334155;
 }
 
 /* Buttons and CTAs */
@@ -190,7 +190,9 @@ svg, .react-icons, .fa, .icon, .iconify {
   box-shadow: 0 12px 30px rgba(13,23,30,0.08);
   transition: transform .18s ease, box-shadow .18s ease;
   min-height: 320px;
-  max-width: 440px;
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
   position: relative;
 }
 
@@ -221,7 +223,7 @@ svg, .react-icons, .fa, .icon, .iconify {
 .overlay-btn { display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.98); border: none; padding:12px 16px; border-radius:12px; font-weight:800; cursor:pointer; box-shadow: 0 16px 48px rgba(2,6,23,0.12); }
 .overlay-btn svg { color: var(--ndaku-primary); }
 
-.promo-pro-body { display:flex; flex-direction:column; gap:6px; }
+.promo-pro-body { display:flex; flex-direction:column; gap:6px; padding : 10px }
 .promo-pro-title { font-size:1.02rem; font-weight:800; color:#0b2f3a; margin:0; }
 .promo-pro-sub { color:#55606a; font-size:0.95rem; margin:0; }
 
@@ -441,6 +443,7 @@ svg, .react-icons, .fa, .icon, .iconify {
 
 /* Responsive grid for cards */
 .row.justify-content-center>.col-12.col-md-6.col-lg-4,
+.row.justify-content-center>.col-12.col-md-6.col-lg-3,
 .row.justify-content-center>.col-12.col-md-6 {
   display: flex;
   flex-direction: column;
@@ -1563,7 +1566,7 @@ img {
     transform: translateY(-6px);
     box-shadow: 0 18px 46px rgba(17,25,40,0.12);
   }
-  .promo-item .promo-pro-top { width: 100%; height: 140px; overflow: hidden; }
+  .promo-item .promo-pro-top { width: 100%; height: 250px; overflow: hidden; }
   .promo-item .promo-pro-img { width: 100%; height: 100%; object-fit: cover; display:block; }
   .promo-item .promo-pro-body { display:flex; flex-direction:column; gap:8px; }
   .promo-item .promo-pro-title { font-weight: 900;
