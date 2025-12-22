@@ -556,7 +556,7 @@ const PropertyDetails = () => {
                   {/* small control to focus on user/property */}
                   <div style={{ position: 'absolute', right: 10, top: 10, zIndex: 5000 }}>
                     <button
-                      className="btn"
+                      className="btn-primary btn-sm"
                       onClick={() => {
                         if (mapRef.current) {
                           if (userPosition) {
@@ -573,7 +573,7 @@ const PropertyDetails = () => {
                         }
                       }}
                       title="Localiser moi et afficher le trajet"
-                      style={{ background: 'rgba(255,255,255,0.95)', borderRadius: 8, padding: '6px 8px', border: 'none', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }}
+                      style={{ background: 'rgba(255,255,255,0.95)', borderRadius: 8, padding: '6px 8px', border: 'none', boxShadow: '0 6px 18px rgba(0,0,0,0.08)', color : '' }}
                     >
                       Localiser
                     </button>

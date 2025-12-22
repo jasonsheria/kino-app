@@ -301,7 +301,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     return text.substring(0, maxLength) + '...';
   }
   return (
-    <div className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{ borderRadius: 14, overflow: 'hidden', transition: 'box-shadow .3s' }}>
+    <div className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{ borderRadius: 14, overflow: 'hidden', transition: 'box-shadow .3s', minWidth: 280 }}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
         <img src={imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay" />

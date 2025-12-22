@@ -21,7 +21,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { alpha } from '@mui/material/styles';
 
 import { saveAppointment, updateAppointment } from '../data/fakeAppointments';
-import { confirmReservation, rejectReservation } from '../api/appointments';
+import { confirmReservation, rejectReservation, fetchAppointments } from '../api/appointments';
 import {tronquerTexte } from '../utils/util'
 // Fonctions locales pour manipuler les rendez-vous fakeAppointments
 
@@ -128,15 +128,77 @@ export default function OwnerAppointments() {
     { label: `Bloqués (${blockedDates.length})` }
   ];
 
-  // Fonction pour actualiser les rendez-vous
-  const refreshAppointments = React.useCallback(() => {
+  // Fonction pour actualiser les rendez-vous (fetch direct depuis l'API / simulation)
+  const [lastFetchSource, setLastFetchSource] = useState(null);
+  const refreshAppointments = React.useCallback(async () => {
     setLoading(true);
     try {
-      const local = getLocalAppts(ownerId) || [];
-      setAppts(local.map(a => ({ ...a, status: a.status })));
-      setBlockedDates(local.filter(a => a.status === "cancelled"));
+      console.debug('[OwnerAppointments] refreshAppointments ownerId=', ownerId);
+      let data = [];
+      let usedSource = 'remote';
+      try {
+        data = await fetchAppointments(ownerId);
+        console.debug('[OwnerAppointments] fetchAppointments returned length=', Array.isArray(data) ? data.length : 'non-array');
+      } catch (e) {
+        console.warn('[OwnerAppointments] fetchAppointments failed, falling back to local store', e);
+        data = getLocalAppts(ownerId) || [];
+        usedSource = 'local-fetch-error-fallback';
+      }
+
+      // Normalize received appointments
+      let mapped = (Array.isArray(data) ? data : []).map(a => ({
+        id: a.id || a._id || String(a._id || a.id || Math.random()).slice(2),
+        date: a.date || a.createdAt || a.created_at || null,
+        time: a.time || a.heure || null,
+        guestName: a.guestName || a.name || a.userName || null,
+        propertyId: a.propertyId || a.property || (a.property && (a.property._id || a.property.id)) || null,
+        status: a.status || 'pending',
+        ownerId: a.ownerId || a.owner || a.owner_id || null,
+        note: a.note || a.notes || '',
+        name: a.name || a.guestName || 'Visiteur'
+      }));
+
+      // If remote returned empty but local store has entries, prefer local
+      if ((!Array.isArray(mapped) || mapped.length === 0)) {
+        const local = getLocalAppts(ownerId) || [];
+        if (Array.isArray(local) && local.length > 0) {
+          console.warn('[OwnerAppointments] remote returned 0; using local store with', local.length, 'items');
+          mapped = local.map(a => ({
+            id: a.id || a._id || String(a._id || a.id || Math.random()).slice(2),
+            date: a.date || a.createdAt || a.created_at || null,
+            time: a.time || a.heure || null,
+            guestName: a.guestName || a.name || a.userName || null,
+            propertyId: a.propertyId || a.property || (a.property && (a.property._id || a.property.id)) || null,
+            status: a.status || 'pending',
+            ownerId: a.ownerId || a.owner || a.owner_id || null,
+            note: a.note || a.notes || '',
+            name: a.name || a.guestName || 'Visiteur'
+          }));
+          usedSource = 'local-fallback';
+        } else {
+          usedSource = usedSource || 'empty';
+        }
+      } else {
+        usedSource = usedSource || 'remote';
+      }
+
+      setAppts(mapped);
+      setBlockedDates(mapped.filter(a => a.status === 'cancelled'));
+      setLastFetchSource(usedSource);
+
+      // keep backward compatibility for components listening to this event
+      try { window.dispatchEvent(new CustomEvent('ndaku:appointments-updated', { detail: { appointments: mapped } })); } catch (e) { }
     } catch (e) {
       console.error('Erreur lors du rafraîchissement des rendez-vous:', e);
+      // fallback to local read
+      try {
+        const local = getLocalAppts(ownerId) || [];
+        setAppts(local);
+        setBlockedDates(local.filter(a => a.status === 'cancelled'));
+        setLastFetchSource('local-fallback-exception');
+      } catch (err2) {
+        setLastFetchSource('error');
+      }
     } finally {
       setLoading(false);
     }
@@ -146,6 +208,36 @@ export default function OwnerAppointments() {
   useEffect(() => {
     refreshAppointments();
   }, [ownerId, refreshAppointments]);
+
+  // Écouter les mises à jour asynchrones des rendez-vous depuis le module de données
+  useEffect(() => {
+    const onApptsUpdated = (ev) => {
+      try {
+        const aps = ev && ev.detail && Array.isArray(ev.detail.appointments) ? ev.detail.appointments : null;
+        if (aps) {
+          setAppts(aps.map(a => ({ ...a, status: a.status })));
+          setBlockedDates(aps.filter(a => a.status === 'cancelled'));
+          setLoading(false);
+        } else {
+          // fallback: re-read local store
+          refreshAppointments();
+        }
+      } catch (e) {
+        console.error('Erreur en traitant ndaku:appointments-updated', e);
+      }
+    };
+    window.addEventListener('ndaku:appointments-updated', onApptsUpdated);
+
+    // Ensure we re-read appointments immediately after attaching listener so we don't miss
+    // an earlier dispatch that happened before mount (module-level fetch may have finished).
+    try {
+      refreshAppointments();
+    } catch (e) {
+      console.error('Error refreshing appointments after attaching listener', e);
+    }
+
+    return () => window.removeEventListener('ndaku:appointments-updated', onApptsUpdated);
+  }, [refreshAppointments]);
 
   const stats = useMemo(() => ({
     total: appts.length,
@@ -294,13 +386,13 @@ export default function OwnerAppointments() {
         {/* Main content */}
         <Grid container spacing={3} sx={{ width: '100%' }}>
           <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper }}>
+            <Paper elevation={3} sx={{ p: 2,  width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper, boxShadow: 0}}>
               {/* Custom toolbar above calendar for precise layout */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, width: '100%' }}>
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
                   <IconButton size="small" onClick={() => calendarRef.current?.getApi().prev()}><ChevronLeft /></IconButton>
                   <IconButton size="small" onClick={() => calendarRef.current?.getApi().next()}><ChevronRight /></IconButton>
-                  <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={() => calendarRef.current?.getApi().today()}>Aujourd'hui</Button>
+                  <Button size="small" startIcon={<TodayIcon />} sx={{ px: 1, minWidth: 36 }} onClick={() => calendarRef.current?.getApi().today()}>aujourd'hui</Button>
                 </Stack>
 
                 {/* <Typography variant="h6" sx={{ fontWeight: 800, color: theme.palette.primary.dark }}>{calendarTitle}</Typography> */}
@@ -308,7 +400,7 @@ export default function OwnerAppointments() {
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
                   <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('dayGridMonth')} title="Mois"><ViewMonthIcon /></IconButton>
                   <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('timeGridWeek')} title="Semaine"><ViewWeekIcon /></IconButton>
-                  <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('timeGridDay')} title="Jour"><ViewDayIcon /></IconButton>
+                  {/* <IconButton size="small" onClick={() => calendarRef.current?.getApi().changeView('timeGridDay')} title="Jour"><ViewDayIcon /></IconButton> */}
                 </Stack>
               </Box>
 
@@ -348,7 +440,7 @@ export default function OwnerAppointments() {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', width: '100%', bgcolor: theme.palette.background.paper }}>
+            <Paper elevation={3} sx={{ overflow: 'hidden', width: '100%', bgcolor: theme.palette.background.paper }}>
               <Tabs value={rightTab} onChange={(e, v) => setRightTab(v)} variant="fullWidth" sx={{ width: '100%' }}>
                 {rightTabs.map((tab, i) => <Tab key={i} label={tab.label} sx={{ fontWeight: 700, fontSize: 16, textTransform: 'none', letterSpacing: 0.5 }} />)}
               </Tabs>
@@ -370,7 +462,7 @@ export default function OwnerAppointments() {
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.success.dark, mb: 1 }}>Confirmés</Typography>
                       {confirmed.map(a => (
-                        <Paper key={a.id} sx={{ p: 1.5, mb: 1.5, borderRadius: 1.5, bgcolor: "linear-gradient(135deg, #5a97ef 0%, #3d7fd5 100%)", boxShadow: '0 4px 12px rgba(90, 151, 239, 0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <Paper key={a.id} sx={{ gap:12 ,p: 1.5, mb: 1.5,  bgcolor: "linear-gradient(135deg, #5a97ef 0%, #3d7fd5 100%)", boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px'}}>
                           <Stack direction="column" spacing={1}>
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                               <Box>
@@ -379,7 +471,7 @@ export default function OwnerAppointments() {
                               </Box>
                               <Stack direction="row" spacing={0.5} sx={{ minWidth: 40 }}>
                                 <Tooltip title="Annuler" arrow>
-                                  <IconButton size="small" sx={{ bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
+                                  <IconButton size="small" sx={{ border :'1px solid' ,bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
                                     <DeleteIcon sx={{ fontSize: 18 }} />
                                   </IconButton>
                                 </Tooltip>
@@ -391,6 +483,7 @@ export default function OwnerAppointments() {
                                 <IconButton 
                                   size="small" 
                                   sx={{ 
+                                    border : "1px solid",
                                     flex: 1,
                                     bgcolor: 'rgba(255,255,255,0.15)',
                                     color: '#fff',
@@ -482,7 +575,7 @@ export default function OwnerAppointments() {
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.dark, mb: 1 }}>En attente</Typography>
                       {unconfirmed.map(a => (
-                        <Paper key={a.id} sx={{ p: 1.5, mb: 1.5, borderRadius: 1.5, bgcolor: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)", boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <Paper key={a.id} sx={{ p: 1.5, mb: 1.5, boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px' }}>
                           <Stack direction="column" spacing={1}>
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                               <Box>

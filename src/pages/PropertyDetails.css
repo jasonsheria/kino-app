@@ -418,8 +418,7 @@
 .pd-page-grid { display: grid;
   grid-template-columns: 1fr 340px;
   gap: 60px;
-  align-items: start;
-  margin: 60px; }
+  align-items: start; }
 .pd-breadcrumb { font-size: 0.95rem; color: #6b7280; margin-bottom: 10px; }
 .pd-actions { display:flex; gap:8px; align-items:center; margin-bottom: 14px; }
 .pd-actions .btn { border-radius: 8px; padding: 6px 10px; font-size: 0.9rem; }
