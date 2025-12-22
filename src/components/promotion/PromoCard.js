@@ -121,8 +121,7 @@ const PromoCard = ({ promo: initialPromo }) => {
           ) : null}
         </div>
         <div className="promo-content">
-          <h3 className="promo-title">{promo.title}</h3>
-          <p className="promo-description">{promo.promoComment || promo.description || ''}</p>
+          <h3 className="promo-title text-capitalize">{promo.title}</h3>
           <div className="promo-price-section">
             {promo.originalPrice ? <div className="promo-old-price">${Number(promo.originalPrice).toLocaleString()}</div> : null}
             {promo.price ? <div className="promo-new-price">${Number(promo.price).toLocaleString()}</div> : null}

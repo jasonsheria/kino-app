@@ -18,7 +18,7 @@ export default function OwnerSidebar({ collapsed }) {
   const { ownerProfile, loading, error } = useOwnerProfile();
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box >
       {!collapsed && (
         <Box sx={{ px: 3, mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -41,7 +41,7 @@ export default function OwnerSidebar({ collapsed }) {
             { to: '/owner/properties', icon: <FaHome />, label: 'Mes biens' },
             { to: '/owner/agents', icon: <FaUsers />, label: 'Agents' },
             { to: '/owner/appointments', icon: <FaCalendarAlt />, label: 'Rendez-vous' },
-            { to: '/owner/messages', icon: <FaEnvelope />, label: 'Messages' },
+            // { to: '/owner/messages', icon: <FaEnvelope />, label: 'Messages' },
           ].map(({ to, icon, label }) => (
             <ListItem key={to} disablePadding>
               <ListItemButton
@@ -76,9 +76,9 @@ export default function OwnerSidebar({ collapsed }) {
 
           {[
             { to: '/owner/profile', icon: <FaUserCircle />, label: 'Profil' },
-            { to: '/owner/wallet', icon: <FaWallet />, label: 'Wallet' },
+            // { to: '/owner/wallet', icon: <FaWallet />, label: 'Wallet' },
             { to: '/owner/security', icon: <FaShieldAlt />, label: 'Sécurité' },
-            { to: '/owner/subscribe', icon: <FaStar />, label: 'Abonnement' },
+            // { to: '/owner/subscribe', icon: <FaStar />, label: 'Abonnement' },
           ].map(({ to, icon, label }) => (
             <ListItem key={to} disablePadding>
               <ListItemButton

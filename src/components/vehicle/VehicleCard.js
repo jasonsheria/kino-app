@@ -74,12 +74,11 @@ const VehicleCard = ({ vehicle }) => {
       <div className="card-body" onClick={() => navigate(`/properties/${vehicle._id}`)} style={{ cursor: 'pointer', paddingBottom:0}}>
         <div className="d-flex justify-content-between align-items-center mb-2">
 
-          <h6 className="card-title fw-bold text-primary mb-1">{tronquerTexte(vehicle.titre, 25)}</h6>
+          <h6 className="card-title fw-bold text-primary mb-1 text-capitalize">{tronquerTexte(vehicle.titre, 25)}</h6>
           <div className="mb-2 text-muted small d-flex align-items-center gap-2"><FaMapMarkerAlt className="text-success" /> {vehicle.adresse}</div>
         </div>
         <div className="mb-2">
 
-          <span className="text-secondary small">{ tronquerTexte((vehicle?.description), 40) }</span>
         </div>
         <div className="mb-2 d-flex flex-wrap gap-2 align-items-center justify-content-start">
           <span className="badge bg-light text-dark border me-1" title="Couleur"><FaPalette className="me-1 text-primary" /> {vehicle?.couleur}</span>

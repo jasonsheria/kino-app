@@ -723,7 +723,6 @@ const Home = () => {
                                                     {p.price ? <div className="promo-new">${Number(p.price).toLocaleString()}</div> : null}
                                                 </div>
                                             </div>
-                                            <p className="promo-pro-sub" style={{padding : 10, paddingTop:0}}> {tronquerTexte(p.promoComment ? p.promoComment : '', 50) + '...' || p.excerpt || p.description}</p>
                                             {(p.address || p.location || p.adresse || p.city) && (
                                                 <div className="promo-address text-muted align-text-right" style={{ fontSize: '0.9rem', padding : 10  }}>
                                                     <small> <FaLocationArrow/></small><small style={{paddingLeft : 10}}> <strong style={{ color: '#e63946' }} > Adresse </strong>: {p.address || p.location || p.adresse || p.city}</small>

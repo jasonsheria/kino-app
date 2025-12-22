@@ -320,9 +320,8 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
       <div className="card-body" onClick={() => navigate(`/properties/${property.id}`)} style={{ cursor: 'pointer' }}>
         <div className="title-row">
           <h6 className="card-title mb-0">{displayName}</h6>
-          <div className="meta-location small text-muted"><FaMapMarkerAlt className="me-1" />{tronquerTexte(safeStr(property.adresse || property.address), 30)}</div>
+          <div className="meta-location small text-muted text-captalize"><FaMapMarkerAlt className="me-1" />{tronquerTexte(safeStr(property.adresse || property.address), 30)}</div>
         </div>
-        <p className="card-desc text-secondary small"> {tronquerTexte(safeStr(property.description || property.desc || property.details || ''), 40)}</p>
         <div className="features-row">
           {((property.chambres || property.douches || property.salon || property.cuisine) && property.type !== "Salle de fête" ) && (
             <>

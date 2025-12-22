@@ -390,7 +390,7 @@ export default function OwnerProfile() {
 
         {/* Statistiques */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} style={{width : "42vw"}}>
+          <Grid item xs={12} style={{minWidth : "256px"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -401,7 +401,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} style={{width : "42vw"}}>
+          <Grid item xs={12} style={{minWidth : "256px"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -412,7 +412,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} style={{width : "42vw"}}>
+          <Grid item xs={12} style={{minWidth : "256px"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -423,7 +423,7 @@ export default function OwnerProfile() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} style={{width : "42vw"}}>
+          <Grid item xs={12} style={{minWidth : "256px"}}>
             <Card>
               <CardContent>
                 <Stack spacing={1} alignItems="center">
@@ -432,7 +432,6 @@ export default function OwnerProfile() {
                   <Box>
                     <Rating value={stats.rating} precision={0.1} readOnly />
                     <Typography color="text.secondary" align="center">
-                      {reviews.length} avis
                     </Typography>
                   </Box>
                 </Stack>
