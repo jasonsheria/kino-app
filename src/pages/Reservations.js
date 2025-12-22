@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import HomeLayout from '../components/homeComponent/HomeLayout';
-
+import { format, addHours } from 'date-fns';
 const statusColors = {
   pending: 'warning',
   confirmed: 'success',
@@ -274,13 +274,13 @@ export default function Reservations() {
                             alt={reservation.property.title}
                             style={{ 
                               width: '100%', 
-                              height: '200px', 
+                              maxHeight: '345px', 
                               objectFit: 'cover',
                               borderRadius: '8px'
                             }}
                           />
                           <Chip
-                            label={reservation.status}
+                            label={reservation.status==='padding'? 'En attente' : reservation.status==='confirmed' ? 'Confirmée' : reservation.status==='cancelled' ? 'Annulée' : 'Terminée'}
                             color={statusColors[reservation.status]}
                             sx={{ 
                               position: 'absolute',
@@ -291,27 +291,32 @@ export default function Reservations() {
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={8}>
-                        <Typography variant="h6" gutterBottom>
+                        <Typography variant="h6" gutterBottom style={{ fontWeight: 'bold' , fontSize : '1.7rem', textTransform : 'capitalize', borderBottom : '1px solid'}}>
                           {reservation.property.title}
                         </Typography>
                         <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                              <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                              <Typography>
-                                Du {formatDate(reservation.startDate)} à {reservation.time}
-                                <br />
-                                Au {formatDate(reservation.endDate)} à {reservation.time}
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Grid item xs={12} sm={6} style={{marginBottom : '1px solid gray'}}>
+                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                               <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                              <Typography>{reservation.property.location}</Typography>
+                              <Typography>Adresse : {reservation.property.location}</Typography>
                             </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              
+                              <Typography style={{marginTop : 10, marginBottom : 10, gap : 10}}>
+                                <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} /> Date reservation : {formatDate(reservation.startDate)} à {reservation.time}
+                                <br />
+                                <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} /> Fin reservation : {formatDate(addHours(reservation.endDate, 24))} à {reservation.time}
+                              </Typography>
+                              
+                            </Box>
+                             <Typography>
+                                <strong>Notice :</strong>  Depassé ce delai vous n'aurez plus gain de cause de réclamer un remboursement en cas de payement
+                               </Typography>
+                           
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item xs={12} sm={6} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'space-betwen' }}> 
                             <Typography variant="h6" color="primary" gutterBottom>
-                              {reservation.totalPrice} €
+                              <strong>Prix : </strong>{reservation.totalPrice} $
                             </Typography>
                             <Button 
                               variant="outlined" 

@@ -248,11 +248,11 @@ export default function Profile() {
               <Stack spacing={3}>
                 {/* Carte des rôles */}
                 <Card sx={{width : '100%'}}>
-                  <CardContent>
+                  <CardContent style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 15}}>
                     <Typography variant="h6" gutterBottom>
                       Rôles et Accès
                     </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }} style={{gap: 15, display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems : 'center'}}>
                       {ownerAccount?.hasAccount && (
                         <Chip 
                           icon={<HomeIcon />}
@@ -266,7 +266,7 @@ export default function Profile() {
                         <Chip
                           icon={<BusinessIcon />}
                           label="Agence"
-                          color="primary"
+                          color="warning"
                           variant="outlined"
                           onClick={() => navigate('/agency/dashboard')}
                         />
@@ -322,8 +322,8 @@ export default function Profile() {
 
                 {/* Section Propriétaire */}
                 {ownerAccount?.hasAccount && (
-                  <Card sx={{width : '100%'}}>
-                    <CardContent>
+                  <Card sx={{width : '100%', display : 'flex', justifyContent: 'center'}}>
+                    <CardContent style={{display: 'flex', flexDirection : 'column', justifyContent : 'center', gap : '31px'}}>
                       <Typography variant="h6" gutterBottom>
                         Espace Propriétaire
                       </Typography>
