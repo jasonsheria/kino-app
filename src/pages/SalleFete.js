@@ -116,8 +116,7 @@ const scrollToId = (id) => {
               <h2 className="mb-2" style={{color:'#d7263d', fontWeight:900}}>Promotion Salle de fête — -30%</h2>
               <p className="mb-3 text-muted">Réduction exceptionnelle sur les réservations de salle pour mariages et événements. Offre limitée — réservez dès maintenant.</p>
               <div className="d-flex gap-3">
-                <a className="btn btn-lg btn-success" href="/contact">Réserver maintenant</a>
-                <a className="btn btn-outline-secondary" href="/salle#details">Voir les détails</a>
+                <a className="btn btn-outline-secondary" href="/salle#details">Voir Plus</a>
               </div>
             </div>
           </div>
