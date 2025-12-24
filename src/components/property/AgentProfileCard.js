@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaPhone, FaWhatsapp, FaFacebook, FaEnvelope, FaCheckCircle, FaListAlt, FaUsers, FaClock, FaRegMoneyBillAlt, FaUserPlus } from 'react-icons/fa';
 import './AgentProfileCard.css';
-
+import img from '../../assets/images/user-ecommerce-icon-fill-style-png.png';
 /**
  * AgentProfileCard - modern profile card adjusted to show stats and CTAs
  */
@@ -11,10 +11,8 @@ const AgentProfileCard = ({ setShowBooking, agent, onContactClick = () => { } })
   const name = agent?.prenom || agent?.name || 'Agent';
   const title = agent?.titre || agent?.title || 'Agent immobilier';
   const location = agent?.location || agent?.city || '';
-  const photo = (agent?.photo || agent?.image || agent?.avatar)
-    ? (agent?.photo || agent?.image || agent?.avatar)
-    : require('../../img/property-1.jpg');
-
+  const photo =   agent?.image?.substring(0, 4) === 'blob' ?  img :agent?.photo ;
+  console.log('AgentProfileCard rendering for agent', agent);
   const openMessengerForAgent = (agentId) => {
     try {
       window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId } }));

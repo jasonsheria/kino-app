@@ -19,8 +19,8 @@ import { IconButton } from '@mui/material';
 export default function ModernVirtualTourModal({
   videos = [],
   selectedIndex = 0,
-  onClose = () => {},
-  onSelect = () => {},
+  onClose = () => { },
+  onSelect = () => { },
 }) {
   const [index, setIndex] = useState(selectedIndex || 0);
   const [playing, setPlaying] = useState(false);
@@ -50,7 +50,7 @@ export default function ModernVirtualTourModal({
     try {
       if (url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
       if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'www.youtube.com/embed/');
-    } catch (e) {}
+    } catch (e) { }
     return url;
   };
 
@@ -315,18 +315,18 @@ export default function ModernVirtualTourModal({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   style={{
-                    position: 'absolute',
-                    bottom: '1.5rem',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: '0.8rem',
-                    background: 'rgba(0, 0, 0, 0.7)',
-                    padding: '1rem',
-                    borderRadius: '50px',
-                    backdropFilter: 'blur(10px)',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
+                    position: "absolute",
+                    bottom: "3.5rem",
+                    left: "0 %",
+                    transform: "none",
+                    display: "flex",
+                    gap: "2.8rem",
+                    flexDirection: "row",
+                    padding: "1rem",
+                    borderRadius: "50px",
+                    backdropFilter: "blur(10px)",
+                    justifyContent: " center",
+                    opacity: "1",
                   }}
                 >
                   {videos.length > 1 && (
@@ -480,7 +480,7 @@ export default function ModernVirtualTourModal({
             </motion.div>
           )}
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </motion.div >
+    </AnimatePresence >
   );
 }

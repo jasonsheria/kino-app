@@ -42,7 +42,7 @@ const Contact = () => {
         {
             icon: <FaEnvelope size={24} />,
             title: "Email",
-            details: ["jasongachaba1@.gmail", "sheriajason343@gmail.com"],
+            details: [""],
         },
         {
             icon: <FaClock size={24} />,

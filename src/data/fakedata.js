@@ -19,7 +19,7 @@ export const articles = [
     slug: 'guide-achat-immobilier',
     title: "Guide d'achat immobilier",
     excerpt: "6 conseils pour acheter un bien à Kinshasa",
-    image: require('../img/property-1.jpg'),
+    image: require('../img/property-3.jpg'),
     publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 10
   },
   {
@@ -27,7 +27,7 @@ export const articles = [
     slug: 'mettre-en-vente',
     title: "Comment mettre en vente rapidement",
     excerpt: "Astuce et checklist pour une mise en vente efficace",
-    image: require('../img/property-1.jpg'),
+    image: require('../img/carousel-1.jpg'),
     publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 20
   },
   {
@@ -35,7 +35,7 @@ export const articles = [
     slug: 'choisir-un-agent',
     title: "Choisir le bon agent immobilier",
     excerpt: "Critères pour sélectionner un agent de confiance",
-    image: require('../img/property-1.jpg'),
+    image: require('../img/carousel-2.jpg'),
     publishedAt: Date.now() - 1000 * 60 * 60 * 24 * 30
   }
 ];

@@ -16,7 +16,7 @@
   
   /* PRIMARY - Vert principal (Boutons, Titres, CTA) */
   --color-primary: #0daebe;
-  --color-primary-light: #1aad7e;
+  --color-primary-light: #0daebe;
   --color-primary-dark: #0d5543;
   --color-primary-lighter: #e8f5f1;
   
@@ -58,7 +58,7 @@
   
   /* Primary Gradient */
   --gradient-primary: linear-gradient(135deg, #0daebe 0%, #0d5543 100%);
-  --gradient-primary-light: linear-gradient(135deg, #1aad7e 0%, #0daebe 100%);
+  --gradient-primary-light: linear-gradient(135deg, #0daebe 0%, #0daebe 100%);
   
   /* Subtle Gradient Background */
   --gradient-bg-subtle: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
@@ -449,7 +449,6 @@ input[type="number"]:focus, textarea:focus, select:focus {
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: var(--transition);
 }

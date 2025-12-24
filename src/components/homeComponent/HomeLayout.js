@@ -245,7 +245,7 @@ export default function HomeLayout({ children }) {
   }, [isMobile]);
 
   return (
-    <Box sx={{ mt: '10px', mb : '10px', display: 'flex', bgcolor: "#83a49e08" }}>
+    <Box sx={{ mt: '10px', mb: '10px', display: 'flex', bgcolor: "#83a49e08" }}>
       <AppBar
         position="fixed"
         sx={{
@@ -265,7 +265,7 @@ export default function HomeLayout({ children }) {
       >
         <Toolbar>
           {/* Brand / logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12, marginTop:'-3px' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', marginRight: 12, marginTop: '-3px' }}>
             {/* Inline SVG component to ensure animation and cross-browser rendering */}
             <Logo width={34} height={34} style={{ marginRight: 8 }} />
           </Link>
@@ -315,8 +315,8 @@ export default function HomeLayout({ children }) {
                 }}
                 color={['/voitures', '/terrain', '/appartement', '/salle'].includes(location.pathname) ? 'primary' : 'inherit'}
                 className="kn-menu-text animated-link"
-                sx={{ textTransform: 'none', gap : '0px' }}
-                
+                sx={{ textTransform: 'none', gap: '0px' }}
+
               >
                 Immobilier
               </Button>
@@ -324,7 +324,12 @@ export default function HomeLayout({ children }) {
               <Button className="kn-menu-text animated-link" component={Link} to="/contact" color={location.pathname === '/contact' ? 'primary' : 'inherit'} sx={{ textTransform: 'none', color: "#0f888880", marginLeft: "6px" }}>Contact</Button>
 
               {/* Owner / Login CTAs on desktop */}
-              <Button className="kn-menu-text animated-link" component={Link} to="/owner/onboard"  color="primary" >
+              <Button className="kn-menu-text " component={Link} to="/owner/onboard" style={{
+                border: "1px solid #0daebe",
+                background: "#0daebe",
+                color: "white",
+                borderRadius: 0
+              }} >
                 vendez ou louez votre bien ici!
               </Button>
 
@@ -344,7 +349,7 @@ export default function HomeLayout({ children }) {
             }}
           >
             <Box sx={{
-              padding: theme.spacing(0.5, 1),
+              padding: '4px 51px',
               height: '40px',
               display: 'flex',
               alignItems: 'center',
@@ -358,6 +363,8 @@ export default function HomeLayout({ children }) {
                   '& .MuiInputBase-input': {
                     padding: theme.spacing(1, 1, 1, 0),
                   },
+                  '& ::hover': { backgroundColor: 'transparent', boxShadow: 'none' , border : 'none' },
+                  '& ::focus': { backgroundColor: 'transparent', boxShadow: 'none', border : 'none' },
                 }}
               />
             </Box>
@@ -520,7 +527,7 @@ export default function HomeLayout({ children }) {
           // pt: { xs: 2, sm: 3 },
           // px: { xs: 2, sm: 3 },
           mt: '64px', // height of AppBar
-          
+
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
@@ -581,7 +588,7 @@ export default function HomeLayout({ children }) {
             onClick={() => {
               localStorage.removeItem('ndaku_auth_token');
               localStorage.removeItem('ndaku_user')
-              window.location.href=('/');
+              window.location.href = ('/');
               setAnchorProfile(null);
             }}
             sx={{
@@ -632,7 +639,7 @@ export default function HomeLayout({ children }) {
           // attach ref to the Paper element so we can detect relatedTarget containment
           ref: menuPaperRef,
           onMouseEnter: () => { if (!isMobile) { clearTimeout(hoverCloseTimer.current); } },
-          onMouseLeave: () => { if (!isMobile) { hoverCloseTimer.current =  setAnchorProp(null); } }
+          onMouseLeave: () => { if (!isMobile) { hoverCloseTimer.current = setAnchorProp(null); } }
         }}
       >
         {/* Rich mega-menu for Immobilier: two columns with detailed descriptions and example articles */}

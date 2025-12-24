@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import { properties, agents } from '../data/fakedata';
+import { vehicles } from '../data/fakedataVehicles';
 import { FaBed, FaShower, FaCouch, FaUtensils, FaBath, FaWifi, FaWhatsapp, FaFacebook, FaPhone, FaMapMarkerAlt, FaRegMoneyBillAlt, FaStepBackward, FaStepForward, FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaExpand, FaTimes, FaRegImage } from 'react-icons/fa';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -52,7 +53,7 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   // local state for the property so we can refresh when global `properties` array is updated
-  const [property, setProperty] = useState(() => properties.find(p => String(p.id || p._id) === String(id)));
+  const [property, setProperty] = useState( () => properties.find(p => String(p.id || p._id) === String(id)) || vehicles.find(v => String(v.id || v._id) === String(id)) || null );
   // Evaluation modal state
   const [showContact, setShowContact] = useState(false);
 
@@ -65,7 +66,7 @@ const PropertyDetails = () => {
     console.log("listes des agents", agents);
     console.log("listes de propriety", properties);
     const refresh = () => {
-      const found = properties.find(p => String(p.id) === String(id));
+      const found = properties.find(p => String(p.id) === String(id)) || vehicles.find(v => String(v.id) === String(id));
       if (!found) {
         // if previously had a property, remove it, otherwise keep as-is
         setProperty(prev => prev ? null : prev);
@@ -73,7 +74,7 @@ const PropertyDetails = () => {
       }
       setProperty(prev => {
         const prevId = String(prev?.id || prev?._id || '');
-        const foundId = String(found?.id || found?._id || '');
+        const foundId = String(found?.id || found?._id || '');  
         if (prevId === foundId) return prev; // avoid setting same object
         return found;
       });

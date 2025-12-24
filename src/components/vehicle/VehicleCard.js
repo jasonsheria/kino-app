@@ -6,6 +6,7 @@ import VisitBookingModal from '../common/VisitBookingModal';
 import '../property/PropertyCard.css';
 import { FaWhatsapp } from 'react-icons/fa';
 import { FaCar, FaTachometerAlt, FaPalette, FaCalendarAlt, FaGasPump, FaCogs, FaUserTie, FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+import img from '../../assets/images/user-ecommerce-icon-fill-style-png.png';
 
 const VehicleCard = ({ vehicle }) => {
   const [imgIdx, setImgIdx] = useState(0);
@@ -17,10 +18,10 @@ const VehicleCard = ({ vehicle }) => {
   const [showBooking, setShowBooking] = useState(false);
   const [isReserved, setIsReserved] = useState(() => {
     try {
-      const raw = localStorage.getItem('reserved_properties') || '[]';
-      const list = JSON.parse(raw).map(String);
-      return list.includes(String(vehicle._id));
-    } catch (e) { return false }
+      // const raw = localStorage.getItem('reserved_properties') || '[]';
+      const reserved = JSON.parse(localStorage.getItem('reserved_properties') || '[]').map(String);
+      return reserved.includes(String(vehicle._id || vehicle.id)) || Boolean(vehicle.isReserved);
+    } catch (e) { return Boolean(vehicle.isReserved); }
   });
   const navigate = useNavigate();
 
@@ -49,10 +50,10 @@ const VehicleCard = ({ vehicle }) => {
     return text.substring(0, maxLength) + '...';
   }
   return (
-    <div className="card shadow-lg border-0 mb-4 vehicle-card animate__animated animate__fadeInUp" style={{ borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(120deg, rgba(19,194,150,0.03) 40%, rgba(25,118,210,0.03) 100%)', minHeight: 160 }}>
+    <div className="card border-0 mb-4 vehicle-card animate__animated animate__fadeInUp" style={{ borderRadius: 18, overflow: 'hidden', background: 'linear-gradient(120deg, rgba(19,194,150,0.03) 40%, rgba(25,118,210,0.03) 100%)', minHeight: 160 }}>
       <div className="position-relative">
         <img
-          src={imgs[imgIdx]}
+          src={imgs[imgIdx]?.substring(0, 4) === 'blob' ?  img :imgs[imgIdx]}
           alt={vehicle?.name || vehicle?.title || ''}
           className="card-img-top animate__animated animate__zoomIn"
           style={{ height: 270, objectFit: 'cover', borderTopLeftRadius: 18, borderTopRightRadius: 18, cursor: 'pointer', transition: 'transform .4s' }}
@@ -102,7 +103,7 @@ const VehicleCard = ({ vehicle }) => {
           <div className="property-agent-inner">
             <div className="agent-left">
               <div className="agent-avatar-wrapper" style={{ filter: isReserved ? 'none' : 'blur(4px) grayscale(.15)', transition: 'filter .32s ease' }}>
-                <img src={agent.photo} alt={agent.name} className="agent-thumb" />
+                <img src={agent?.image?.substring(0, 4) === 'blob' ?  img :agent?.photo} alt={agent.name} className="agent-thumb" />
               </div>
               <div className="agent-meta">
                 <div className="fw-semibold small agent-name" style={{ color: isReserved ? 'var(--ndaku-primary)' : 'rgba(0,0,0,0.6)' }}>{agent.name}</div>

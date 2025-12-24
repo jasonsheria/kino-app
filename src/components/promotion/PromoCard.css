@@ -1101,14 +1101,15 @@
 }
 
 .price-badge {
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  z-index: 8;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-end
+ position: absolute;
+    right: 14px;
+    top: 12px;
+    font-size: 13px;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
 }
 
 .price-badge>div:last-child {

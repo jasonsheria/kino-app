@@ -18,6 +18,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 import { syncReservationsFromServer } from '../../utils/reservationsSync';
+import img from '../../assets/images/user-ecommerce-icon-fill-style-png.png';
 
 const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking }) => {
   const [showLightbox, setShowLightbox] = useState(false);
@@ -301,7 +302,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
     return text.substring(0, maxLength) + '...';
   }
   return (
-    <div className="card border-0 mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{ borderRadius: 14, overflow: 'hidden', transition: 'box-shadow .3s', minWidth: 280 }}>
+    <div className="card  mb-4 property-card fixed-size animate__animated animate__fadeInUp" style={{ borderRadius: 14, overflow: 'hidden', transition: 'box-shadow .3s', minWidth: 280 }}>
       <div className="property-image" onClick={() => imgs.length && openLightbox(0)} role="button">
         <img src={imgs[0]} alt={displayName} className="property-img" />
         <div className="image-overlay" />
@@ -344,7 +345,7 @@ const PropertyCard = ({ property, showActions: propShowActions, onOpenBooking })
           <div className="property-agent-inner">
             <div className="agent-left">
               <div className="agent-avatar-wrapper">
-                <img src={agentResolved.image} alt={agentResolved.prenom || agentResolved.name} className="agent-thumb" />
+                <img src={agentResolved?.image?.substring(0, 4) === 'blob' ?  img :agentResolved?.photo } alt={agentResolved.prenom || agentResolved.name} className="agent-thumb" />
               </div>
               <div className="agent-meta">
                 <div className="agent-name fw-semibold small">{agentResolved.name || agentResolved.prenom}</div>

@@ -266,13 +266,13 @@ export default function OwnerAppointments() {
         <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', mb: 3 }}>
           <Grid container spacing={2} sx={{ width: '100%' }}>
             {[{
-              label: 'Total rendez-vous', value: stats.total, color: theme.palette.primary.dark, bg: theme.palette.primary.light
+              label: 'Total rendez-vous', value: stats.total, color: theme.palette.primary.dark,
             }, {
-              label: 'Confirmés', value: stats.confirmed, color: theme.palette.success.dark, bg: theme.palette.success.light
+              label: 'Confirmés', value: stats.confirmed, color: theme.palette.success.dark
             }, {
-              label: 'En attente', value: stats.pending, color: theme.palette.warning.dark, bg: theme.palette.warning.light
+              label: 'En attente', value: stats.pending, color: theme.palette.warning.dark, 
             }, {
-              label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary, bg: theme.palette.grey[100]
+              label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary, 
             }].map((c, i) => (
               <Grid item xs={12} sm={6} md={3} key={c.label} sx={{ display: 'flex', width: '47.5%', justifyContent: 'center' }}>
                 <Paper elevation={2} sx={{ p: 2.5, minHeight: 120, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: c.bg, boxShadow: 2 }}>
