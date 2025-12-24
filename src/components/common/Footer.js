@@ -153,7 +153,7 @@ const Footer = () => {
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Newsletter</Typography>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }} component="form" onSubmit={(e) => { e.preventDefault(); /* TODO: wire up subscription */ }}>
                   <TextField size="small" placeholder="Votre e-mail" sx={{ bgcolor: 'white', borderRadius: 1 }} />
-                  <Button type="submit" variant="contained" startIcon={<FaDownload color='white'/>} sx={{ textTransform: 'none', padding: '13px 16px' }}>S'abonner</Button>
+                  <Button type="submit" variant="contained" sx={{ textTransform: 'none', padding: '13px 16px' }}>S'abonner</Button>
                 </Stack>
               </Box>
 
