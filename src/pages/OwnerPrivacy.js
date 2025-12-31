@@ -13,7 +13,7 @@ const SECTIONS = [
   { id: 'cookies', title: 'Cookies & trackers', body: `Nous utilisons des cookies techniques et analytiques pour améliorer l'expérience. Vous pouvez gérer vos préférences via le navigateur et nos paramètres de compte.` },
   { id: 'conservation', title: 'Conservation des données', body: `Les données sont conservées le temps nécessaire pour la finalité pour laquelle elles ont été recueillies, sauf obligation légale contraire. Vous pouvez demander la suppression de votre compte.` },
   { id: 'droits', title: 'Vos droits', body: `Vous pouvez demander l'accès, la rectification, l'effacement, la limitation du traitement et la portabilité de vos données. Pour exercer vos droits, contactez-nous via l'onglet Contact ci-dessous.` },
-  { id: 'contact', title: 'Contact', body: `Pour toute question liée à la vie privée:\nEmail: privacy@ndaku.example\nAdresse: 1 rue Exemple, 75000 Paris` }
+  { id: 'contact', title: 'Contact', body: `Pour toute question liée à la vie privée:\nEmail: jasongachaba1@gmail.com` }
 ];
 
 function Section({ id, title, children }){
@@ -43,32 +43,24 @@ export default function OwnerPrivacy(){
                 <Typography variant="h5" style={{fontWeight:800}}>Politique de confidentialité</Typography>
                 <Typography variant="body2" color="textSecondary">Comment nous recueillons, utilisons et protégeons les données des utilisateurs.</Typography>
               </div>
-              <Stack
+             
+            </div>
+             <div
                 direction={isSmall ? 'column' : 'row'}
                 spacing={1}
                 className="privacy-header-actions"
-                sx={{ alignItems: isSmall ? 'stretch' : 'center' }}
+                xs={12} md={8}
+                style={{ alignItems: isSmall ? 'stretch' : 'center', display : 'flex', mb: 2, gap:'40px' }}
               >
                 <Button variant="outlined" startIcon={<PrintIcon />} onClick={onPrint} fullWidth={isSmall}>Imprimer</Button>
                 <Button variant="outlined" startIcon={<GetAppIcon />} onClick={downloadPDF} fullWidth={isSmall}>Télécharger</Button>
-              </Stack>
-            </div>
+              </div>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={8}>
             <Paper variant="outlined" className="privacy-toc">
               <Typography variant="subtitle2" className="muted-small" style={{marginBottom:8}}>Sommaire</Typography>
-              {!isSmall ? (
-                <List dense>
-                  {SECTIONS.map(s => (
-                    <ListItem key={s.id} disablePadding>
-                      <ListItemButton component="a" href={`#${s.id}`}>
-                        <ListItemText primary={s.title} />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
+              
                 <div>
                   {SECTIONS.map(s => (
                     <Accordion key={s.id} elevation={0} disableGutters>
@@ -81,7 +73,7 @@ export default function OwnerPrivacy(){
                     </Accordion>
                   ))}
                 </div>
-              )}
+            
             </Paper>
           </Grid>
 

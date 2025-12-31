@@ -1,281 +1,255 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import '../styles/owner.css';
-import { Container, Grid, Card, CardContent, CardActions, Typography, Button, Stack, Box, Chip, Avatar, useTheme, useMediaQuery } from '@mui/material';
+import { 
+  Container, Grid, Card, CardContent, CardActions, Typography, 
+  Button, Stack, Box, Chip, Avatar, useTheme, useMediaQuery, 
+  CircularProgress, Divider, Alert, AlertTitle, Paper
+} from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 
-function PlanCard({ plan, selected, onSelect, onAction, featured, isSmall }){
+// --- COMPOSANT : PLAN CARD (DESIGN ULTRA-PRO) ---
+function PlanCard({ plan, selected, onSelect, onAction, featured, submitting, isMobile }) {
+  const isSelected = selected && selected.id === plan.id;
+
   return (
     <Card
       onClick={() => onSelect(plan)}
-      elevation={featured ? 8 : 2}
       sx={{
         cursor: 'pointer',
-        borderRadius: 3,
+        borderRadius: isMobile ? 4 : 5,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         position: 'relative',
-        minWidth: 240,
-        flex: '1 1 320px',
-        maxWidth: featured ? 420 : 360,
-        border: selected && selected.id === plan.id ? '2px solid rgba(14,165,164,0.12)' : '1px solid rgba(15,23,42,0.04)',
-        '&:hover': { transform: 'translateY(-6px)', transition: 'transform .18s ease' }
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        border: isSelected ? '2px solid #0ea5a4' : '1px solid #f1f5f9',
+        backgroundColor: isSelected ? '#f0fdfa' : '#ffffff',
+        transform: isSelected ? 'scale(1.01)' : 'none',
+        '&:hover': { 
+          transform: isMobile ? 'none' : 'translateY(-8px)',
+          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' 
+        }
       }}
     >
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-          <Box>
-            <Typography variant="overline" sx={{fontWeight:800, color:'primary.main'}}>{plan.title}</Typography>
-            <Typography variant="h5" sx={{fontWeight:900}}>{plan.price ? `${plan.price}€` : (plan.id === 'revshare' ? 'RevShare' : 'Gratuit')}</Typography>
-            <Typography variant="caption" display="block" color="text.secondary">{plan.desc}</Typography>
-          </Box>
-          {featured && <Avatar sx={{bgcolor:'primary.main'}}><StarIcon /></Avatar>}
-        </Stack>
-
-        <Box component="ul" sx={{pl:2, mt:2}}>
-          {plan.bullets && plan.bullets.map((b,i)=> <li key={i} style={{marginBottom:6}}>{b}</li>)}
+      {featured && (
+        <Box sx={{
+          position: 'absolute', top: 12, right: 12, bgcolor: '#0ea5a4', color: 'white',
+          px: 1.5, py: 0.4, borderRadius: 10, fontSize: '0.65rem', fontWeight: 900, zIndex: 1
+        }}>
+          POPULAIRE
         </Box>
+      )}
+
+      <CardContent sx={{ p: isMobile ? 3 : 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="overline" sx={{ fontWeight: 800, color: '#64748b', fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
+          {plan.title}
+        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'baseline', my: isMobile ? 1 : 2 }}>
+          <Typography variant={isMobile ? "h4" : "h3"} sx={{ fontWeight: 900 }}>
+            {plan.price}$
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#64748b', ml: 0.5, fontSize: '0.8rem' }}>
+            {plan.id === 'commission' ? '/vente' : '/mois'}
+          </Typography>
+        </Box>
+        
+        <Typography variant="body2" sx={{ color: '#475569', mb: 3, fontSize: isMobile ? '0.85rem' : '0.9rem', minHeight: isMobile ? 'auto' : '3em' }}>
+          {plan.desc}
+        </Typography>
+
+        <Divider sx={{ mb: 3, opacity: 0.5 }} />
+
+        <Stack spacing={1.5} sx={{ flexGrow: 1 }}>
+          {plan.bullets.map((text, i) => (
+            <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
+              <CheckCircleIcon sx={{ fontSize: 18, color: '#0ea5a4', mt: 0.2 }} />
+              <Typography variant="body2" sx={{ fontWeight: 500, fontSize: isMobile ? '0.8rem' : '0.875rem' }}>
+                {text}
+              </Typography>
+            </Stack>
+          ))}
+        </Stack>
       </CardContent>
-      <CardActions sx={{padding:2}}>
+
+      <CardActions sx={{ p: isMobile ? 2 : 3, pt: 0 }}>
         <Button
-          variant={featured ? 'contained' : 'outlined'}
-          onClick={(e)=>{ e.stopPropagation(); onAction(plan); }}
-          fullWidth={isSmall}
+          variant={isSelected ? 'contained' : 'outlined'}
+          fullWidth
+          disabled={submitting}
+          onClick={(e) => { e.stopPropagation(); onAction(plan); }}
+          sx={{ 
+            borderRadius: 3, py: isMobile ? 1.2 : 1.5, fontWeight: 800, 
+            textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.95rem' 
+          }}
         >
-          {featured ? 'Commencer Premium' : (plan.id === 'freemium' ? 'Commencer' : 'Contactez-nous')}
+          {isSelected ? 'Confirmer' : 'Choisir'}
         </Button>
       </CardActions>
     </Card>
   );
 }
 
-export default function OwnerSubscribe(){
+// --- COMPOSANT PRINCIPAL ---
+export default function OwnerSubscribe() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState(null);
   const [searchParams] = useSearchParams();
-  const accountId = searchParams.get('id');
-  const accountType = searchParams.get('type');
-  const [currentSub, setCurrentSub] = useState(null);
-  const [error, setError] = useState(null);
   const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Vérifier si les paramètres requis sont présents
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [profile, setProfile] = useState({ id: '', name: '', type: 'owner', subType: '', endDate: null, isExpired: false });
+
   useEffect(() => {
-    if (!accountId || !accountType) {
-      navigate('/');
-      return;
-    }
-    if (!['owner', 'agency', 'independent'].includes(accountType)) {
-      navigate('/');
-      return;
-    }
-  }, [accountId, accountType, navigate]);
+    const fetchAccount = async () => {
+      try {
+        const token = localStorage.getItem('ndaku_auth_token');
+        if (!token) return navigate('/login');
 
-  useEffect(()=>{
-    try{ const raw = localStorage.getItem('owner_subscription'); if(raw) setCurrentSub(JSON.parse(raw)); }catch(e){}
-  }, []);
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/check-account`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const user = data.owner || data;
+        const expireDate = user.subscriptionEndDate ? new Date(user.subscriptionEndDate) : null;
+        
+        setProfile({
+          id: searchParams.get('id') || user._id,
+          name: user.name || user.username || 'Utilisateur',
+          type: user.accountType || 'owner',
+          subType: user.subscriptionType || 'Aucun',
+          endDate: expireDate,
+          isExpired: expireDate ? new Date() > expireDate : false
+        });
+      } catch (e) { setError("Erreur réseau"); }
+      finally { setLoading(false); }
+    };
+    fetchAccount();
+  }, [navigate, searchParams]);
 
-  // Plans en fonction du type de compte
-  const getPlansByAccountType = () => {
-    const basePlans = {
+  const plans = useMemo(() => {
+    const list = {
       owner: [
-        { 
-          id: 'freemium', 
-          title: 'Freemium', 
-          price: 0, 
-          desc: 'Gratuit, fonctionnalités restreintes (max 2 biens).', 
-          bullets: ['Maximum 2 biens', 'Visibilité limitée', 'Support basique'] 
-        },
-        { 
-          id: 'monthly', 
-          title: 'Premium', 
-          price: 19.99, 
-          desc: 'Accès complet à toutes les fonctionnalités.', 
-          bullets: ['Biens illimités', 'Visibilité maximale', 'Support prioritaire'], 
-          featured: true 
-        },
-        {
-          id: 'commission',
-          title: 'Commission',
-          price: 0,
-          desc: 'Paiement par commission sur chaque transaction réussie.',
-          bullets: [
-            'Biens illimités',
-            'Commission de 5% sur les transactions',
-            'Support prioritaire',
-            'Visibilité premium',
-            'Statistiques avancées'
-          ]
-        }
-      ],
-      agency: [
-        { 
-          id: 'freemium', 
-          title: 'Freemium', 
-          price: 0, 
-          desc: 'Gratuit, fonctionnalités restreintes (max 5 biens).', 
-          bullets: ['Maximum 5 biens', 'Visibilité standard', 'Support basique'] 
-        },
-        { 
-          id: 'monthly', 
-          title: 'Premium', 
-          price: 49.99, 
-          desc: 'Accès complet pour agences.', 
-          bullets: ['Biens illimités', 'Visibilité premium', 'Support dédié'], 
-          featured: true 
-        },
-        {
-          id: 'commission',
-          title: 'Commission',
-          price: 0,
-          desc: 'Paiement par commission sur chaque transaction réussie.',
-          bullets: [
-            'Biens illimités',
-            'Commission de 3% sur les transactions',
-            'Support VIP',
-            'Visibilité premium+',
-            'Dashboard agence avancé'
-          ]
-        }
-      ],
-      independent: [
-        { 
-          id: 'freemium', 
-          title: 'Freemium', 
-          price: 0, 
-          desc: 'Gratuit, fonctionnalités de base.', 
-          bullets: ['Maximum 1 bien', 'Visibilité basique', 'Support communauté'] 
-        },
-        { 
-          id: 'monthly', 
-          title: 'Premium', 
-          price: 9.99, 
-          desc: 'Accès premium pour indépendants.', 
-          bullets: ['Maximum 3 biens', 'Visibilité améliorée', 'Support standard'], 
-          featured: true 
-        },
-        {
-          id: 'commission',
-          title: 'Commission',
-          price: 0,
-          desc: 'Paiement par commission sur chaque transaction réussie.',
-          bullets: [
-            'Maximum 5 biens',
-            'Commission de 7% sur les transactions',
-            'Support standard',
-            'Visibilité améliorée',
-            'Statistiques de base'
-          ]
-        }
+        { id: 'freemium', title: 'Start', price: 0, desc: 'Lancez-vous gratuitement.', bullets: ['2 biens actifs', 'Support Standard'] },
+        { id: 'monthly', title: 'Premium', price: 20, desc: 'Performance maximale.', bullets: ['Biens illimités', 'Badge Confiance', 'Support VIP'], featured: true },
+        { id: 'commission', title: 'Flex', price: 0, desc: 'Payez selon vos ventes.', bullets: ['5% de commission', 'Visibilité Boostée', 'Illimité'] }
       ]
     };
-    return basePlans[accountType] || [];
-  };
+    let available = list[profile.type] || list['owner'];
+    if (profile.isExpired || (profile.subType && profile.subType !== 'Aucun' && profile.subType !== 'freemium')) {
+      available = available.filter(p => p.id !== 'freemium');
+    }
+    return available;
+  }, [profile]);
 
-  const plans = getPlansByAccountType();
+  const continueFlow = async (planToSubmit) => {
+    const sel = planToSubmit || selected;
+    if (!sel) return;
 
-  const choose = (p)=> setSelected(p);
-
-  const continueFlow = async (planOverride) => {
-    const sel = planOverride || selected;
-    if(!sel) return alert('Veuillez choisir une formule');
-
-    // Sauvegarder l'abonnement
-    const entry = { 
-      type: sel.id, 
-      title: sel.title, 
-      chosenAt: Date.now(),
-      accountType,
-      accountId,
-      paid: sel.id === 'monthly',
-      validUntil: sel.id === 'monthly' ? null : null 
-    };
-    try { 
-      localStorage.setItem(`${accountType}_subscription`, JSON.stringify(entry));
-    } catch(e) {
-      console.error('Erreur lors de la sauvegarde de l\'abonnement:', e);
+    if (sel.id === 'freemium' && profile.subType.toLowerCase() === 'freemium') {
+      navigate(`/${profile.type}/dashboard`);
+      return;
     }
 
-    // Redirection en fonction du type de compte et du plan
-    if(sel.id === 'freemium' || sel.id === 'commission') {
-      try {
-        // Activer le compte selon le type d'abonnement
-        const token = localStorage.getItem('ndaku_auth_token');
-        const endpoint = sel.id === 'freemium' ? 'activate-freemium' : 'activate-commission';
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/${accountId}/${endpoint}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+    if (sel.id === 'monthly') {
+      navigate(`/payment?plan=${sel.id}&type=${profile.type}&id=${profile.id}`);
+      return;
+    }
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || 'Erreur lors de l\'activation du compte');
-        }
-
-        const successMessage = `Votre compte ${accountType} a été activé avec l'abonnement ${sel.title}`;
-        
-        switch(accountType) {
-          case 'owner':
-            navigate(`/owner/dashboard?message=${encodeURIComponent(successMessage)}`);
-            break;
-          case 'agency':
-            navigate(`/agency/dashboard?message=${encodeURIComponent(successMessage)}`);
-            break;
-          case 'independent':
-            navigate(`/?message=${encodeURIComponent(successMessage)}`);
-            break;
-          default:
-            navigate('/');
-        }
-      } catch (error) {
-        console.error('Erreur:', error);
-        setError('Erreur lors de l\'activation du compte. Veuillez réessayer.');
-      }
-    } else if(sel.id === 'monthly') {
-      // Pour l'abonnement monthly, rediriger vers le paiement
-      navigate(`/payment?plan=${sel.id}&type=${accountType}&id=${accountId}`);
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('ndaku_auth_token');
+      const endpoint = sel.id === 'freemium' ? 'activate-freemium' : 'activate-commission';
+      await fetch(`${process.env.REACT_APP_BACKEND_APP_URL}/api/owner/${profile.id}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      navigate(`/${profile.type}/dashboard?message=Félicitations !`);
+    } catch (err) {
+      setError("Erreur d'activation");
+      setSubmitting(false);
     }
   };
+
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
 
   return (
-    <Container maxWidth="lg" sx={{py:6}}>
-      <Box textAlign="center" mb={4}>
-        <Typography variant="h4" sx={{fontWeight:900}}>Choisissez une formule</Typography>
-        <Typography color="text.secondary">Sélectionnez le plan qui correspond le mieux à vos besoins. Vous pouvez le modifier à tout moment.</Typography>
-        {error && (
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', color: 'error.dark', borderRadius: 1 }}>
-            <Typography>{error}</Typography>
+    <Box sx={{ bgcolor: '#fbfcfd', minHeight: '100vh', pb: 10 }}>
+      <Container maxWidth="lg">
+        
+        {/* PROFIL CARD */}
+        <Paper elevation={0} sx={{ 
+          p: isMobile ? 2 : 3, my: isMobile ? 3 : 4, borderRadius: 4, border: '1px solid #e2e8f0',
+          display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', gap: 2, textAlign: isMobile ? 'center' : 'left'
+        }}>
+          <Avatar sx={{ width: 50, height: 50, bgcolor: '#0ea5a4' }}><PersonOutlineIcon /></Avatar>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="body1" fontWeight={900}>{profile.name}</Typography>
+            <Typography variant="caption" color="text.secondary">Propriétaire • {profile.id.slice(-6)}</Typography>
           </Box>
-        )}
-      </Box>
+          <Stack direction="row" spacing={1} alignItems="center">
+             <Typography variant="caption" fontWeight={800}>{profile.subType}</Typography>
+             <Chip label={profile.isExpired ? "Expiré" : "Actif"} size="small" color={profile.isExpired ? "error" : "success"} sx={{ height: 20, fontSize: '0.6rem' }} />
+          </Stack>
+        </Paper>
 
-      {currentSub && (
-        <Box sx={{maxWidth:980, mx:'auto', mb:3}}>
-          <Box sx={{display:'flex', justifyContent:'space-between', alignItems:'center', p:2, bgcolor:'background.paper', borderRadius:2, boxShadow:1}}>
-            <Box>
-              <Typography variant="caption" color="text.secondary">Votre abonnement actuel</Typography>
-              <Typography variant="h6" sx={{fontWeight:800}}>{currentSub.title || currentSub.type}</Typography>
-              <Typography variant="body2" color="text.secondary">{currentSub.paid ? `Valide jusqu'au ${new Date(currentSub.validUntil).toLocaleDateString()}` : (currentSub.validUntil ? `Valide jusqu'au ${new Date(currentSub.validUntil).toLocaleDateString()}` : 'Aucune date de validité')}</Typography>
-            </Box>
-            <Chip label={currentSub.type} color="success" variant="outlined" />
+        {profile.isExpired && (
+          <Alert severity="error" sx={{ mb: 4, borderRadius: 3 }}>
+            <AlertTitle sx={{ fontWeight: 800 }}>Action requise</AlertTitle>
+            Votre abonnement est fini. Veuillez choisir un plan payant pour continuer.
+          </Alert>
+        )}
+
+        <Box textAlign="center" mb={isMobile ? 4 : 8}>
+          <Typography variant={isMobile ? "h4" : "h2"} fontWeight={950} sx={{ letterSpacing: '-0.02em', mb: 1 }}>
+            Boostez votre <span style={{ color: '#0ea5a4' }}>visibilité</span>
+          </Typography>
+          <Typography variant="body2" color="text.secondary">Solutions adaptées à chaque étape de votre croissance.</Typography>
+        </Box>
+
+        {/* GRILLE RESPONSIVE : "stretch" aligne la hauteur, "spacing" crée l'espace mobile */}
+        <Grid container spacing={isMobile ? 2 : 4} alignItems="stretch">
+          {plans.map((p) => (
+            <Grid item key={p.id} xs={12} sm={6} md={4}>
+              <PlanCard 
+                plan={p} 
+                selected={selected} 
+                onSelect={setSelected} 
+                onAction={continueFlow} 
+                featured={p.featured}
+                submitting={submitting}
+                isMobile={isMobile}
+              />
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* CTA FINAL FIXE OU CENTRE */}
+        <Box sx={{ mt: 6, textAlign: 'center' }}>
+          <Button 
+            variant="contained" 
+            disabled={!selected || submitting}
+            onClick={() => continueFlow()}
+            sx={{ 
+              bgcolor: '#0f172a', width: isMobile ? '100%' : 'auto', px: 10, py: 2, borderRadius: 3, fontWeight: 800,
+              fontSize: '1rem', '&:hover': { bgcolor: '#1e293b' }
+            }}
+          >
+            {submitting ? <CircularProgress size={24} color="inherit" /> : 'Confirmer mon abonnement'}
+          </Button>
+          <Box mt={2}>
+            <Button variant="text" size="small" onClick={() => navigate(-1)} color="inherit">Retourner en arrière</Button>
           </Box>
         </Box>
-      )}
 
-      <Grid container spacing={2} justifyContent="center" sx={{alignItems:'stretch'}}>
-        {plans.map((p)=> (
-          <Grid item key={p.id} xs={12} sm={6} md={4} sx={{display:'flex'}}>
-            <PlanCard plan={p} selected={selected} onSelect={choose} onAction={continueFlow} featured={p.featured} isSmall={isSmall} />
-          </Grid>
-        ))}
-      </Grid>
-
-      <Stack direction={isSmall ? 'column' : 'row'} spacing={2} justifyContent="space-between" sx={{maxWidth:980, mx:'auto', mt:4}}>
-        <Button variant="outlined" onClick={() => navigate(-1)} fullWidth={isSmall}>Retour</Button>
-        <Button variant="contained" color="primary" onClick={()=>continueFlow()} fullWidth={isSmall}>Confirmer</Button>
-      </Stack>
-    </Container>
+      </Container>
+    </Box>
   );
 }

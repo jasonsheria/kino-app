@@ -116,9 +116,9 @@ export default function OwnerProperties() {
   });
 
   const fetchProperties = useCallback(async () => {
-    console.log('fetchProperties called with user:', user);
+    // console.log('fetchProperties called with user:', user);
     if (!user?.id && !user?._id) {
-      console.log('No user ID found, aborting fetch');
+      // console.log('No user ID found, aborting fetch');
       return;
     }
     
@@ -140,9 +140,9 @@ export default function OwnerProperties() {
       }
 
       const ownerId = user._id || user.id;
-      console.log('Owner ID:', ownerId);
+      // console.log('Owner ID:', ownerId);
       
-      console.log('Fetching properties for owner:', ownerId);
+      // console.log('Fetching properties for owner:', ownerId);
       // Fetch mobilier and vehicules and merge so frontend shows all goods together
       const [mobRes, vehRes] = await Promise.all([
         axios.get(`${process.env.REACT_APP_BACKEND_APP_URL}/api/mobilier/owner/${ownerId}`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -154,7 +154,7 @@ export default function OwnerProperties() {
       // If owner-specific vehicules endpoint returned empty, try fetching all vehicules and filter by owner
       if ((!vehicules || vehicules.length === 0)) {
         try {
-          console.log('OwnerProperties: no owner-vehicules found, fetching /api/vehicules as fallback');
+          // console.log('OwnerProperties: no owner-vehicules found, fetching /api/vehicules as fallback');
           const allResp = await axios.get(`${process.env.REACT_APP_BACKEND_APP_URL}/api/vehicules`, { headers: { Authorization: `Bearer ${token}` } });
           const allItems = allResp.data?.data || allResp.data || [];
           if (Array.isArray(allItems) && allItems.length) {
@@ -170,7 +170,7 @@ export default function OwnerProperties() {
               return false;
             });
             if (filtered.length) {
-              console.log('OwnerProperties: fallback found', filtered.length, 'vehicules for owner');
+              // console.log('OwnerProperties: fallback found', filtered.length, 'vehicules for owner');
               vehicules = filtered;
             }
           }
@@ -183,7 +183,7 @@ export default function OwnerProperties() {
         ...mobiliers.map(p => ({ ...p, __source: 'mobilier' })),
         ...vehicules.map(p => ({ ...p, __source: 'vehicules' })),
       ];
-      console.log('Properties data:', propertiesData);
+      // console.log('Properties data:', propertiesData);
       setProperties(propertiesData);
       
       // Update stats
@@ -534,7 +534,7 @@ export default function OwnerProperties() {
       } else {
         const endpoint = isVehicleCreate ? 'vehicules' : 'mobilier';
         const response = await axios.post(`${process.env.REACT_APP_BACKEND_APP_URL}/api/${endpoint}`, formData, { headers });
-        console.log('Bien créé avec succès:', response.data);
+        // console.log('Bien créé avec succès:', response.data);
       }
       
       // Recharger la liste des biens et réinitialiser l'état

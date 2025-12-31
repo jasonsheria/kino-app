@@ -13,12 +13,11 @@
 
 /* Fixed card sizing for consistency across grid */
 .property-card.fixed-size {
-  min-height: 420px;
+  /* min-height: 420px; */
   max-height: 520px;
 }
 
 .property-card .card-body {
-  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   padding: 20px;

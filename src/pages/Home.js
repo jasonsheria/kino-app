@@ -446,7 +446,7 @@ const Home = () => {
     React.useEffect(() => {
         setCarouselItems(displayedPromotions.map((p, idx) => ({ ...p, __uid: p.id || `d-${idx}` })));
         lastAppendedRef.current = displayedPromotions.length - 1;
-        console.log('Reset carousel items', displayedPromotions);
+        // console.log('Reset carousel items', displayedPromotions);
 
     }, [displayedPromotions]);
 

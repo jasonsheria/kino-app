@@ -16,25 +16,39 @@ export default function OwnerCalendar({ ownerId, initialDate }){
   const monthStart = startOfMonth(viewDate);
   const monthEnd = endOfMonth(viewDate);
 
-  // map dates (YYYY-MM-DD) -> appointments
   const apptMap = React.useMemo(()=>{
     const m = {};
-    appointments.forEach(a => { m[a.date] = m[a.date] || []; m[a.date].push(a); });
+    if (Array.isArray(appointments)) {
+      appointments.forEach(a => { 
+        if (a.date) {
+            m[a.date] = m[a.date] || []; 
+            m[a.date].push(a); 
+        }
+      });
+    }
     return m;
   }, [appointments]);
 
-  const firstWeekDay = monthStart.getDay(); // 0 (Sun) - 6
+  const firstWeekDay = monthStart.getDay();
   const daysInMonth = monthEnd.getDate();
 
   const prevMonth = () => setViewDate(d => new Date(d.getFullYear(), d.getMonth()-1, 1));
   const nextMonth = () => setViewDate(d => new Date(d.getFullYear(), d.getMonth()+1, 1));
 
+  // FONCTION DE SÉCURITÉ : Pour afficher le nom de la propriété
+  const renderPropertyName = (prop) => {
+    if (!prop) return "N/A";
+    if (typeof prop === 'string') return prop;
+    if (typeof prop === 'object') {
+      return prop.titre || prop.title || prop.name || "Propriété sans nom";
+    }
+    return "N/A";
+  };
+
   const renderGrid = () => {
     const cells = [];
-    // fill blanks before month start
     for(let i=0;i<firstWeekDay;i++) cells.push(null);
     for(let d=1; d<=daysInMonth; d++) cells.push(new Date(viewDate.getFullYear(), viewDate.getMonth(), d));
-    // pad to complete weeks
     while(cells.length % 7 !== 0) cells.push(null);
 
     return cells.map((dt, idx) => {
@@ -59,29 +73,32 @@ export default function OwnerCalendar({ ownerId, initialDate }){
     <div className="owner-calendar">
       <div className="cal-header d-flex align-items-center justify-content-between">
         <div className="cal-nav d-flex flex-row align-items-center" style={{margin : "10px"}}>
-          <button className="btns btn-sm btn-light me-2" onClick={prevMonth} aria-label="previous month">◀</button>
-          <button className="btns btn-sm btn-light" onClick={nextMonth} aria-label="next month">▶</button>
+          <button className="btns btn-sm btn-light me-2" onClick={prevMonth}>◀</button>
+          <button className="btns btn-sm btn-light" onClick={nextMonth}>▶</button>
         </div>
-        <div className="cal-title">{viewDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
+        <div className="cal-title text-capitalize">{viewDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
       </div>
 
       <div className="cal-grid">
         <div className="weekdays">
-          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(w=> <div key={w} className="wk">{w}</div>)}
+          {['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'].map(w=> <div key={w} className="wk">{w}</div>)}
         </div>
         <div className="days-grid">{renderGrid()}</div>
       </div>
 
       <div className="appts mt-3">
-        <h6>Rendez-vous — {selectedDate.toLocaleDateString()}</h6>
+        <h6 className="fw-bold">Rendez-vous — {selectedDate.toLocaleDateString()}</h6>
         {todaysAppts.length === 0 && <div className="small text-muted">Aucun rendez-vous pour cette date.</div>}
         {todaysAppts.map(a => (
-          <div key={a.id} className="appt-item d-flex justify-content-between align-items-center">
+          <div key={a._id || a.id} className="appt-item d-flex justify-content-between align-items-center p-2 mb-2 border-bottom">
             <div>
-              <div className="fw-bold">{a.time} — {a.guestName}</div>
-              <div className="small text-muted">{a.note} • property: {a.propertyId}</div>
+              <div className="fw-bold">{a.time} — {typeof a.guestName === 'object' ? 'Client' : a.guestName}</div>
+              <div className="small text-muted">
+                {/* SÉCURISÉ : On affiche une propriété de l'objet, pas l'objet lui-même */}
+                {typeof a.note === 'object' ? '' : a.note} • Bien : {renderPropertyName(a.propertyId || a.property)}
+              </div>
             </div>
-            <div className="appt-actions small text-muted">#{a.id}</div>
+            <div className="appt-actions small text-muted">#{String(a._id || a.id).slice(-4)}</div>
           </div>
         ))}
       </div>

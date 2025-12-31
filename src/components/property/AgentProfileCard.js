@@ -12,7 +12,7 @@ const AgentProfileCard = ({ setShowBooking, agent, onContactClick = () => { } })
   const title = agent?.titre || agent?.title || 'Agent immobilier';
   const location = agent?.location || agent?.city || '';
   const photo =   agent?.image?.substring(0, 4) === 'blob' ?  img :agent?.photo ;
-  console.log('AgentProfileCard rendering for agent', agent);
+  // console.log('AgentProfileCard rendering for agent', agent);
   const openMessengerForAgent = (agentId) => {
     try {
       window.dispatchEvent(new CustomEvent('ndaku-open-messenger', { detail: { agentId } }));
@@ -84,7 +84,36 @@ const AgentProfileCard = ({ setShowBooking, agent, onContactClick = () => { } })
           <div className="stat-item"><div className="stat-icon"><FaListAlt /></div><div className="stat-value">{agent.listings || agent.annonces || 0} annonces</div></div>
           <div className="stat-item"><div className="stat-icon"><FaUsers /></div><div className="stat-value">{agent.followers || agent.abonnes || 0} abonnés</div></div>
           <div className="stat-item"><div className="stat-icon"><FaClock /></div><div className="stat-value">Actif {agent.lastActive || agent.lastSeenText || 'il y a 1 j'}</div></div>
-        </div>
+        </div>h++
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         {formattedMemberSince && (
           <div className="member-badge"><FaUserPlus style={{ marginRight: 8 }} /> Membre depuis Le {formattedMemberSince}</div>

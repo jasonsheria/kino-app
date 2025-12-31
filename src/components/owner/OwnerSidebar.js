@@ -38,10 +38,12 @@ export default function OwnerSidebar({ collapsed }) {
         <List sx={{ px: 2 }}>
           {[
             { to: '/owner/dashboard', icon: <FaTachometerAlt />, label: 'Tableau de bord' },
-            { to: '/owner/properties', icon: <FaHome />, label: 'Mes biens' },
+            { to: '/owner/properties', icon: <FaHome />, label: 'Publications' },
             { to: '/owner/agents', icon: <FaUsers />, label: 'Agents' },
             { to: '/owner/appointments', icon: <FaCalendarAlt />, label: 'Rendez-vous' },
             // { to: '/owner/messages', icon: <FaEnvelope />, label: 'Messages' },
+            // ajouter une route sunscribe encore
+            {to: '/owner/subscribe', icon: <FaStar />, label: 'Abonnement' },
           ].map(({ to, icon, label }) => (
             <ListItem key={to} disablePadding>
               <ListItemButton

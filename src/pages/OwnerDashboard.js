@@ -9,7 +9,6 @@ import {
     Avatar,
     Box,
     Chip,
-    LinearProgress,
     Stack,
     Alert,
     CircularProgress
@@ -27,23 +26,17 @@ import {
     Filler,
 } from 'chart.js';
 import {
-    FaEye,
-    FaCalendarCheck,
-    FaClock,
-    FaWallet,
-    FaUser,
     FaBell,
-    FaEnvelope,
-    FaSignOutAlt,
-    FaStar,
-    FaCheck,
-    FaCertificate
+    FaWallet
 } from 'react-icons/fa';
 import '../styles/owner.css';
 import { useOwnerProfile } from '../hooks/useOwnerProfile';
 import OwnerCalendar from '../components/owner/OwnerCalendar';
 import { getDashboardMetrics } from '../data/fakeMetrics';
 import OwnerLayout from '../components/owner/OwnerLayout';
+
+// Enregistrement des composants ChartJS
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
 
 const ProfileCard = styled(Card)(({ theme }) => ({
     marginBottom: theme.spacing(3),
@@ -59,39 +52,34 @@ const StyledAvatar = styled(Avatar)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main
 }));
 
-const StatCard = styled(Card)(({ theme }) => ({
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing(2),
-    transition: 'transform 0.2s',
-    '&:hover': {
-        transform: 'translateY(-5px)',
-        boxShadow: theme.shadows[4]
-    }
-}));
-
 export default function OwnerDashboard() {
     const { ownerProfile, loading, error } = useOwnerProfile();
     const [metrics, setMetrics] = React.useState({ visits: 0, bookings: 0, revenue: 0 });
-    const [animateBars, setAnimateBars] = React.useState(false);
     const navigate = useNavigate();
+
+    // Utilitaires de sécurité pour éviter les crashs de rendu
+    const safeStr = (val, fallback = "") => {
+        if (typeof val === 'string') return val;
+        if (typeof val === 'number') return String(val);
+        return fallback;
+    };
+
+    const safeNum = (val) => {
+        const n = Number(val);
+        return isNaN(n) ? 0 : n;
+    };
 
     React.useEffect(() => {
         const m = getDashboardMetrics('owner-123');
-        setMetrics(m);
-        setTimeout(() => setAnimateBars(true), 120);
+        if (m) setMetrics(m);
     }, []);
 
-    // small 7-day revenue dataset for the mini chart
+    // Configuration des données du graphique
     const revenueData = React.useMemo(() => {
-        // if metrics.weeklyRevenue exists use it, otherwise fabricate sample data around metrics.revenue
-        const base = metrics.revenue || 120;
-        const weekly = (metrics.weeklyRevenue && metrics.weeklyRevenue.length === 7)
+        const base = safeNum(metrics.revenue);
+        const weekly = (metrics.weeklyRevenue && Array.isArray(metrics.weeklyRevenue))
             ? metrics.weeklyRevenue
-            : Array.from({ length: 7 }, (_, i) => Math.max(0, Math.round(base * (0.6 + Math.random() * 0.8))));
+            : Array.from({ length: 7 }, () => Math.floor(Math.random() * base));
 
         return {
             labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
@@ -110,29 +98,17 @@ export default function OwnerDashboard() {
         };
     }, [metrics]);
 
-    const revenueOptions = React.useMemo(() => ({
+    const revenueOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-            x: { display: false },
-            y: { display: false }
-        },
-        elements: { point: { radius: 0 } }
-    }), []);
-
-    // register chart components once
-    React.useEffect(() => {
-        ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler);
-    }, []);
+        plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { display: false } }
+    };
 
     if (loading) {
         return (
             <OwnerLayout>
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
                     <CircularProgress />
                 </Box>
             </OwnerLayout>
@@ -143,101 +119,135 @@ export default function OwnerDashboard() {
         return (
             <OwnerLayout>
                 <Alert severity="error" sx={{ mt: 2 }}>
-                    {error}
+                    {typeof error === 'string' ? error : "Une erreur est survenue lors du chargement du profil"}
                 </Alert>
             </OwnerLayout>
         );
     }
 
+    // Extraction sécurisée du prénom
+    const displayUsername = safeStr(ownerProfile?.username, "Propriétaire");
+    const firstName = displayUsername.split(' ')[0];
+
     return (
         <OwnerLayout>
             <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, md: 4 }, mt: 4, mb: 4, width: '100%' }}>
-                <Grid container>
-                    {/* Dashboard Header (mobile/financial) */}
-                    <Grid item xs={12} md={6} sx={{ width: "100%" }}>
-                        <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', color: '#fff', boxShadow: 2 }}>
-                            <CardContent sx={{ width: '100%' }}>
-                                <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} sx={{ width: '100%' }}>
+                <Grid container spacing={3}>
+                    {/* Dashboard Header */}
+                    <Grid item xs={12} md={8}>
+                        <Card sx={{ 
+                            width: '100%', 
+                            minHeight: 180, 
+                            borderRadius: 2, 
+                            background: 'linear-gradient(90deg,#0ea5a4 0%, #3b82f6 100%)', 
+                            color: '#fff', 
+                            boxShadow: 2 
+                        }}>
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" flexDirection={{ xs: 'column', sm: 'row' }}>
                                     <Box>
-                                        <Typography variant="h6">Bonjour {ownerProfile?.username?.split(' ')[0] || 'Propriétaire'}</Typography>
-                                        <Typography variant="body2" sx={{ opacity: 0.9 }}>Voici le tableau de bord de votre activité</Typography>
+                                        <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+                                            Bonjour {firstName}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ opacity: 0.9, color: 'white' }}>
+                                            Voici le résumé de votre activité immobilière
+                                        </Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', gap: 1, mt: { xs: 2, sm: 0 } }}>
-                                        <Chip icon={<FaBell />} label="Notifications" sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
-                                        <Chip icon={<FaWallet />} label={`Solde $${metrics.revenue}`} sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} />
+                                        <Chip 
+                                            icon={<FaBell style={{color: 'white'}}/>} 
+                                            label="Notifications" 
+                                            sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} 
+                                        />
+                                        <Chip 
+                                            icon={<FaWallet style={{color: 'white'}}/>} 
+                                            label={`Solde $${safeNum(metrics.revenue).toLocaleString()}`} 
+                                            sx={{ bgcolor: 'rgba(255,255,255,0.12)', color: '#fff' }} 
+                                        />
                                     </Box>
                                 </Box>
-                                <Grid container spacing={1} sx={{ mt: 2 }}>
-                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.visits}</Typography><Typography variant="caption">Visites</Typography></Box></Grid>
-                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>{metrics.bookings}</Typography><Typography variant="caption">Réservations</Typography></Box></Grid>
-                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>${metrics.revenue}</Typography><Typography variant="caption">Revenu</Typography></Box></Grid>
-                                    <Grid item xs={6} sm={3}><Box sx={{ textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 700 }}>4.5</Typography><Typography variant="caption">Note</Typography></Box></Grid>
-                                </Grid>
-                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                                    <Box sx={{ flex: 1, width: '100%' }}>
-                                        <Typography variant="subtitle2" color="inherit">Revenu - dernière semaine</Typography>
-                                        <Box sx={{ height: 88, mt: 1 }}>
-                                            <Box sx={{ height: '100%', px: 0.5 }}>
-                                                <Line data={revenueData} options={revenueOptions} />
+
+                                <Grid container spacing={2} sx={{ mt: 3 }}>
+                                    {[
+                                        { label: 'Visites', value: safeNum(metrics.visits) },
+                                        { label: 'Réservations', value: safeNum(metrics.bookings) },
+                                        { label: 'Revenu', value: `$${safeNum(metrics.revenue).toLocaleString()}` },
+                                        { label: 'Note', value: '4.5' }
+                                    ].map((stat, index) => (
+                                        <Grid item xs={6} sm={3} key={index}>
+                                            <Box sx={{ textAlign: 'center' }}>
+                                                <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                                                    {stat.value}
+                                                </Typography>
+                                                <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                                    {stat.label}
+                                                </Typography>
                                             </Box>
-                                        </Box>
-                                    </Box>
-                                </Box>
-                                <Box sx={{ display: 'flex', gap: 1, width: '100%', marginBottom: '10px' , marginTop: '10px' }}>
-                                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/properties')}><Typography variant="caption">Mes biens</Typography></Box>
-                                    <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', p: 1, borderRadius: 0, textAlign: 'center', width: '100%' }} onClick={() => navigate('/owner/messages')}><Typography variant="caption">Messages</Typography></Box>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                    {/* <Grid item xs={12} md={6} sx={{ width: "100%" }}>
-                        <Card sx={{ mb: 2, width: '100%', minHeight: 180, borderRadius: 0, background: 'linear-gradient(90deg,#34D399 0%, #60A5FA 100%)', color: '#fff', boxShadow: 2 }}>
-                            <CardContent sx={{ width: '100%' }}>
-                                <Box display="flex" flexDirection="column" alignItems="flex-start" sx={{ width: '100%' }}>
-                                    <Typography variant="h6" sx={{ mb: 1 }}>Financier</Typography>
-                                    <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 , color : 'white'}}>${metrics.revenue}</Typography>
-                                    <Typography variant="body2" sx={{ opacity: 0.9 }}>Solde actuel et historique des revenus</Typography>
-                                </Box>
-                                <Box sx={{ width: '100%', mt: 2 }}>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+
+                                <Box sx={{ mt: 3, height: 80 }}>
                                     <Line data={revenueData} options={revenueOptions} />
                                 </Box>
                             </CardContent>
                         </Card>
-                    </Grid> */}
-                    {/* Calendar Section */}
-                    <Grid item xs={12} md={12} style={{ width: '100%' }}>
-                        <Card>
+                    </Grid>
+
+                    {/* Quick Actions Card */}
+                    <Grid item xs={12} md={4}>
+                        <Card sx={{ height: '100%', borderRadius: 2 }}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    Calendrier & Rendez-vous
-                                </Typography>
-                                <OwnerCalendar ownerId={ownerProfile?.id} />
+                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Actions Rapides</Typography>
+                                <Stack spacing={2} sx={{ mt: 2 }}>
+                                    <Box 
+                                        sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 1, cursor: 'pointer', '&:hover': { bgcolor: '#f1f5f9' }, border: '1px solid #e2e8f0' }}
+                                        onClick={() => navigate('/owner/properties')}
+                                    >
+                                        <Typography variant="body2" fontWeight="600">Gérer mes biens</Typography>
+                                        <Typography variant="caption" color="text.secondary">Voir et éditer vos annonces</Typography>
+                                    </Box>
+                                    <Box 
+                                        sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 1, cursor: 'pointer', '&:hover': { bgcolor: '#f1f5f9' }, border: '1px solid #e2e8f0' }}
+                                        onClick={() => navigate('/owner/messages')}
+                                    >
+                                        <Typography variant="body2" fontWeight="600">Messages</Typography>
+                                        <Typography variant="caption" color="text.secondary">Répondre aux clients</Typography>
+                                    </Box>
+                                </Stack>
                             </CardContent>
                         </Card>
                     </Grid>
-                    {/* Activity Section */}
-                    <Grid item xs={12} md={4} style={{ width: '100%', marginTop : '24px' }}>
-                        <Card>
+
+                    {/* Calendar Section */}
+                    <Grid item xs={12}>
+                        <Card sx={{ borderRadius: 2 }}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    Activités récentes
-                                </Typography>
+                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Calendrier & Rendez-vous</Typography>
+                                {/* Utilisation sécurisée de l'ID */}
+                                <OwnerCalendar ownerId={safeStr(ownerProfile?._id || ownerProfile?.id)} />
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    {/* Activity Section */}
+                    <Grid item xs={12}>
+                        <Card sx={{ borderRadius: 2 }}>
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Notifications système</Typography>
                                 <Stack spacing={2}>
                                     {ownerProfile?.certRequested && (
                                         <Alert severity="info">
-                                            Demande de certification en cours
-                                            {ownerProfile?.certificationNote && (
-                                                <Typography variant="caption" display="block">
-                                                    Note: {ownerProfile.certificationNote}
+                                            Demande de certification en cours. 
+                                            {ownerProfile.certificationNote && (
+                                                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                                    Note de l'admin : {safeStr(ownerProfile.certificationNote)}
                                                 </Typography>
                                             )}
                                         </Alert>
                                     )}
                                     <Alert severity="success">
-                                        Profil mis à jour avec succès
-                                    </Alert>
-                                    <Alert severity="warning">
-                                        3 nouveaux messages non lus
+                                        Votre compte est actif en tant que <strong>{ownerProfile?.isAdmin ? "Administrateur" : "Propriétaire"}</strong>.
                                     </Alert>
                                 </Stack>
                             </CardContent>

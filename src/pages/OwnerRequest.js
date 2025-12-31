@@ -159,7 +159,7 @@ export default function OwnerRequest() {
         types,
         form,
         propTitleFiles: propTitleFiles?.map(file => file.name),
-        subscriptionEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) //7 jours d'essai gratuit
+        subscriptionEndDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) //7 jours d'essai gratuit
       };
       formData.append('meta', JSON.stringify(metaData));
 
@@ -523,10 +523,10 @@ export default function OwnerRequest() {
                     {idFile ? 'Changer le fichier' : 'Télécharger votre pièce d\'identité'}
                     <VisuallyHiddenInput
                       type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
+                      accept="application/pdf, image/jpeg, image/png"
                       onChange={(e) => {
                         const file = e.target.files[0];
-                        if (file && file.size <= 5 * 1024 * 1024) {
+                        if (file && file.size <= 6 * 1024 * 1024) {
                           setIdFile(file);
                         } else {
                           alert('Le fichier doit faire moins de 5MB');
@@ -564,7 +564,7 @@ export default function OwnerRequest() {
                     Ajouter des titres de propriété
                     <VisuallyHiddenInput
                       type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
+                      accept="application/pdf, image/jpeg, image/png"
                       multiple
                       onChange={(e) => {
                         const files = Array.from(e.target.files);

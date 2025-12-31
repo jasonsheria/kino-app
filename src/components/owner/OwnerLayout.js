@@ -162,6 +162,8 @@ export default function OwnerLayout({ children }) {
                 bgcolor: theme.palette.grey[200],
               }
             }}
+            //visible que pour les ecrans mobiles
+            style={{ display: isMobile ? 'flex' : 'none' }} 
           >
             <MenuIcon />
           </IconButton>

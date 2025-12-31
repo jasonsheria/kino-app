@@ -22,7 +22,7 @@ import { alpha } from '@mui/material/styles';
 
 import { saveAppointment, updateAppointment } from '../data/fakeAppointments';
 import { confirmReservation, rejectReservation, fetchAppointments } from '../api/appointments';
-import {tronquerTexte } from '../utils/util'
+import { tronquerTexte } from '../utils/util'
 // Fonctions locales pour manipuler les rendez-vous fakeAppointments
 
 function ownerIdFromDraft() { try { const d = JSON.parse(localStorage.getItem('owner_request_draft') || 'null'); return d && d.id ? String(d.id) : 'owner-123'; } catch (e) { return 'owner-123'; } }
@@ -127,7 +127,43 @@ export default function OwnerAppointments() {
     { label: <Badge color="success" badgeContent={confirmed.length}>Confirmés</Badge> },
     { label: `Bloqués (${blockedDates.length})` }
   ];
+  /**
+   * Formate un numéro de téléphone au format RDC (243 + 9 chiffres)
+   * Élimine les doublons de préfixe 243 et le 0 initial.
+   * @param {string} phone - Le numéro brut saisi
+   * @returns {string} - Le numéro formaté pour WhatsApp
+   */
+  const formatDRCPhoneForWhatsApp = (phone) => {
+    if (!phone) return '243000000000'; // Valeur par défaut si vide
 
+    // 1. Garder uniquement les chiffres
+    let cleaned = phone.replace(/\D/g, '');
+
+    // 2. Gestion du préfixe 243 redondant (ex: 243 243 812...)
+    // Si ça commence par 243, on regarde ce qui suit
+    if (cleaned.startsWith('243')) {
+      const reste = cleaned.substring(3);
+      // Si le reste commence aussi par 243, c'est un doublon, on l'enlève
+      if (reste.startsWith('243')) {
+        cleaned = reste;
+      }
+    }
+
+    // 3. Enlever le 0 initial s'il existe (ex: 081...)
+    if (cleaned.startsWith('0')) {
+      cleaned = cleaned.substring(1);
+    }
+    // 4. Si après avoir enlevé le 0, ça commence encore par 243 (cas rare 0243...)
+    else if (cleaned.startsWith('243') && cleaned.length > 3) {
+      cleaned = cleaned.substring(3);
+    }
+
+    // 5. Reconstruction : s'assurer que ça commence par 243 + les 9 derniers chiffres
+    // On prend les 9 derniers chiffres pour éviter les erreurs de saisie trop longues
+    const nineDigits = cleaned.slice(-9);
+
+    return `243${nineDigits}`;
+  };
   // Fonction pour actualiser les rendez-vous (fetch direct depuis l'API / simulation)
   const [lastFetchSource, setLastFetchSource] = useState(null);
   const refreshAppointments = React.useCallback(async () => {
@@ -155,7 +191,8 @@ export default function OwnerAppointments() {
         status: a.status || 'pending',
         ownerId: a.ownerId || a.owner || a.owner_id || null,
         note: a.note || a.notes || '',
-        name: a.name || a.guestName || 'Visiteur'
+        name: a.name || a.guestName || 'Visiteur',
+        phone: formatDRCPhoneForWhatsApp(a.phone) || formatDRCPhoneForWhatsApp(a.telephone) || formatDRCPhoneForWhatsApp(a.phoneNumber) || null
       }));
 
       // If remote returned empty but local store has entries, prefer local
@@ -172,7 +209,9 @@ export default function OwnerAppointments() {
             status: a.status || 'pending',
             ownerId: a.ownerId || a.owner || a.owner_id || null,
             note: a.note || a.notes || '',
-            name: a.name || a.guestName || 'Visiteur'
+            name: a.name || a.guestName || 'Visiteur',
+            phone: formatDRCPhoneForWhatsApp(a.phone) || formatDRCPhoneForWhatsApp(a.telephone) || formatDRCPhoneForWhatsApp(a.phoneNumber) || null
+
           }));
           usedSource = 'local-fallback';
         } else {
@@ -203,7 +242,21 @@ export default function OwnerAppointments() {
       setLoading(false);
     }
   }, [ownerId]);
+  const formatageDateLongue = (dateString) => {
+    if (!dateString) return "Date non définie";
 
+    const date = new Date(dateString);
+
+    // Vérification si la date est valide
+    if (isNaN(date.getTime())) return dateString;
+
+    return new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  };
   // Actualiser les rendez-vous au chargement de la page
   useEffect(() => {
     refreshAppointments();
@@ -270,9 +323,9 @@ export default function OwnerAppointments() {
             }, {
               label: 'Confirmés', value: stats.confirmed, color: theme.palette.success.dark
             }, {
-              label: 'En attente', value: stats.pending, color: theme.palette.warning.dark, 
+              label: 'En attente', value: stats.pending, color: theme.palette.warning.dark,
             }, {
-              label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary, 
+              label: 'Jours bloqués', value: stats.blocked, color: theme.palette.text.primary,
             }].map((c, i) => (
               <Grid item xs={12} sm={6} md={3} key={c.label} sx={{ display: 'flex', width: '47.5%', justifyContent: 'center' }}>
                 <Paper elevation={2} sx={{ p: 2.5, minHeight: 120, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: c.bg, boxShadow: 2 }}>
@@ -386,7 +439,7 @@ export default function OwnerAppointments() {
         {/* Main content */}
         <Grid container spacing={3} sx={{ width: '100%' }}>
           <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 2,  width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper, boxShadow: 0}}>
+            <Paper elevation={3} sx={{ p: 2, width: '100%', minHeight: 520, bgcolor: theme.palette.background.paper, boxShadow: 0 }}>
               {/* Custom toolbar above calendar for precise layout */}
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, width: '100%' }}>
                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ gap: 1 }}>
@@ -454,24 +507,25 @@ export default function OwnerAppointments() {
                       <Skeleton variant="rectangular" height={64} />
                     </Stack>
                   )}
-                  { !loading && unconfirmed.length + confirmed.length + blockedDates.length === 0 && (
+                  {!loading && unconfirmed.length + confirmed.length + blockedDates.length === 0 && (
                     <Typography variant="body2" color="text.secondary">Aucun rendez-vous à afficher</Typography>
                   )}
                   {/* Confirmés */}
-                  {rightTab===1 && !loading && confirmed.length > 0 && (
+                  {rightTab === 1 && !loading && confirmed.length > 0 && (
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.success.dark, mb: 1 }}>Confirmés</Typography>
                       {confirmed.map(a => (
-                        <Paper key={a.id} sx={{ gap:12 ,p: 1.5, mb: 1.5,  bgcolor: "linear-gradient(135deg, #5a97ef 0%, #3d7fd5 100%)", boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px'}}>
+                        <Paper key={a.id} sx={{ gap: 12, p: 1.5, mb: 1.5, bgcolor: "linear-gradient(135deg, #5a97ef 0%, #3d7fd5 100%)", boxShadow: 'rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px' }}>
                           <Stack direction="column" spacing={1}>
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                               <Box>
-                                <Typography sx={{ fontWeight: 700, color: '#4a4d4c' }}>{a.date} {a.time}</Typography>
                                 <Typography variant="body2" sx={{ color: '#4a4d4c' }}>{a.name || a.guestName || 'Visiteur'} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                                <Typography sx={{ fontWeight: 700, color: '#4a4d4c' }}>Réservation : le {formatageDateLongue(a.date)} à {a.time}</Typography>
+
                               </Box>
                               <Stack direction="row" spacing={0.5} sx={{ minWidth: 40 }}>
                                 <Tooltip title="Annuler" arrow>
-                                  <IconButton size="small" sx={{ border :'1px solid' ,bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
+                                  <IconButton size="small" sx={{ border: '1px solid', bgcolor: 'rgba(255,255,255,0.15)', color: '#4a4d4c', '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' } }} onClick={() => cancel(a.id)}>
                                     <DeleteIcon sx={{ fontSize: 18 }} />
                                   </IconButton>
                                 </Tooltip>
@@ -480,10 +534,10 @@ export default function OwnerAppointments() {
                             {/* Contact Buttons - Premium Style */}
                             <Stack direction="row" spacing={0.75} sx={{ width: '100%', pt: 0.5 }}>
                               <Tooltip title="Appel vidéo (WebRTC)" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
-                                    border : "1px solid",
+                                <IconButton
+                                  size="small"
+                                  sx={{
+                                    border: "1px solid",
                                     flex: 1,
                                     bgcolor: 'rgba(255,255,255,0.15)',
                                     color: '#fff',
@@ -493,13 +547,13 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: 'rgba(255,255,255,0.25)',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
                                     setSelectedContactForCall(a);
                                     setWebrtcModalOpen(true);
@@ -509,9 +563,9 @@ export default function OwnerAppointments() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Envoyer un message" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
+                                <IconButton
+                                  size="small"
+                                  sx={{
                                     flex: 1,
                                     bgcolor: 'rgba(255,255,255,0.15)',
                                     color: '#fff',
@@ -521,13 +575,13 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: 'rgba(255,255,255,0.25)',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
                                     setSelectedContactForMessenger(a);
                                     setMessengerOpen(true);
@@ -537,9 +591,9 @@ export default function OwnerAppointments() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="WhatsApp" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
+                                <IconButton
+                                  size="small"
+                                  sx={{
                                     flex: 1,
                                     bgcolor: '#25D366',
                                     color: '#fff',
@@ -549,16 +603,22 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: '#20BA58',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
-                                    const phoneNumber = a.phone || '250788000000';
-                                    window.open(`https://wa.me/${phoneNumber}?text=Bonjour ${a.name}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`, '_blank');
+                                    console.log('Opening WhatsApp chat for appointment', a);
+                                    const rawPhone = a.phone || '243880000000';
+                                    const formattedPhone = rawPhone.replace(/\D/g, '');
+
+                                    window.open(
+                                      `https://wa.me/${formattedPhone}?text=Bonjour ${encodeURIComponent(a.name || a.guestName)}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`,
+                                      '_blank'
+                                    );
                                   }}
                                 >
                                   <FaWhatsapp style={{ fontSize: 14 }} />
@@ -571,7 +631,7 @@ export default function OwnerAppointments() {
                     </>
                   )}
                   {/* En attente */}
-                  {rightTab===0 && !loading && unconfirmed.length > 0 && (
+                  {rightTab === 0 && !loading && unconfirmed.length > 0 && (
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.dark, mb: 1 }}>En attente</Typography>
                       {unconfirmed.map(a => (
@@ -579,8 +639,9 @@ export default function OwnerAppointments() {
                           <Stack direction="column" spacing={1}>
                             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                               <Box>
-                                <Typography sx={{ fontWeight: 700, color: '#fff' }}>{a.date} {a.time}</Typography>
                                 <Typography variant="body2" sx={{ color: '#4a4d4c' }}>{a.name || a.guestName || 'Visiteur'} • {a.propertyId && typeof a.propertyId === 'object' ? a.propertyId.titre || a.propertyId._id || '—' : a.propertyId || '—'}</Typography>
+                                <Typography sx={{ fontWeight: 700, color: '#4a4d4c' }}>Réservation : le {formatageDateLongue(a.date)} à {a.time}</Typography>
+
                               </Box>
                               <Stack direction="row" spacing={0.5} sx={{ minWidth: 90 }}>
                                 <Tooltip title="Confirmer" arrow>
@@ -598,9 +659,9 @@ export default function OwnerAppointments() {
                             {/* Contact Buttons - Premium Style */}
                             <Stack direction="row" spacing={0.75} sx={{ width: '100%', pt: 0.5 }}>
                               <Tooltip title="Appel vidéo (WebRTC)" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
+                                <IconButton
+                                  size="small"
+                                  sx={{
                                     flex: 1,
                                     bgcolor: 'rgba(255,255,255,0.15)',
                                     color: '#fff',
@@ -610,13 +671,13 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: 'rgba(255,255,255,0.25)',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
                                     setSelectedContactForCall(a);
                                     setWebrtcModalOpen(true);
@@ -626,9 +687,9 @@ export default function OwnerAppointments() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Envoyer un message" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
+                                <IconButton
+                                  size="small"
+                                  sx={{
                                     flex: 1,
                                     bgcolor: 'rgba(255,255,255,0.15)',
                                     color: '#fff',
@@ -638,13 +699,13 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: 'rgba(255,255,255,0.25)',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
                                     setSelectedContactForMessenger(a);
                                     setMessengerOpen(true);
@@ -654,9 +715,9 @@ export default function OwnerAppointments() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="WhatsApp" arrow placement="top">
-                                <IconButton 
-                                  size="small" 
-                                  sx={{ 
+                                <IconButton
+                                  size="small"
+                                  sx={{
                                     flex: 1,
                                     bgcolor: '#25D366',
                                     color: '#fff',
@@ -666,16 +727,22 @@ export default function OwnerAppointments() {
                                     gap: 0.5,
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
-                                    '&:hover': { 
+                                    '&:hover': {
                                       bgcolor: '#20BA58',
                                       transform: 'translateY(-2px)',
                                       boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
                                     },
                                     '&:active': { transform: 'translateY(0)' }
-                                  }} 
+                                  }}
                                   onClick={() => {
-                                    const phoneNumber = a.phone || '250788000000';
-                                    window.open(`https://wa.me/${phoneNumber}?text=Bonjour ${a.name}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`, '_blank');
+                                    console.log('WhatsApp click for', a);
+                                    const rawPhone = a.phone || '243880000000';
+                                    const formattedPhone = rawPhone.replace(/\D/g, '');
+
+                                    window.open(
+                                      `https://wa.me/${formattedPhone}?text=Bonjour ${encodeURIComponent(a.name || a.guestName)}, j'ai un rendez-vous le ${a.date} à ${a.time}. Pouvez-vous confirmer votre présence ?`,
+                                      '_blank'
+                                    );
                                   }}
                                 >
                                   <FaWhatsapp style={{ fontSize: 14 }} />
@@ -688,7 +755,7 @@ export default function OwnerAppointments() {
                     </>
                   )}
                   {/* Bloqués */}
-                  {rightTab===2 && blockedDates.length > 0 && (
+                  {rightTab === 2 && blockedDates.length > 0 && (
                     <>
                       <Typography variant="subtitle2" sx={{ fontWeight: 700, color: theme.palette.warning.main, mb: 1 }}>Jours bloqués</Typography>
                       {blockedDates.map(b => (
@@ -696,7 +763,7 @@ export default function OwnerAppointments() {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.18) }}><BlockIcon /></Avatar>
                             <Box>
-                              <Typography sx={{ fontWeight: 800, color: theme.palette.warning.dark }}>{b.date}{b.propertyId ? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}` : ''}</Typography>
+                              <Typography sx={{ fontWeight: 800, color: theme.palette.warning.dark }}>{formatageDateLongue( b.date)}{b.propertyId ? ` — ${typeof b.propertyId === 'object' ? b.propertyId.titre || b.propertyId._id || '—' : b.propertyId}` : ''}</Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{b.note}</Typography>
                             </Box>
                           </Box>
@@ -706,7 +773,7 @@ export default function OwnerAppointments() {
                     </>
                   )}
                 </Box>
-                
+
               </Box>
             </Paper>
           </Grid>
@@ -783,7 +850,7 @@ export default function OwnerAppointments() {
 
         {/* Messenger Modal */}
         {messengerOpen && selectedContactForMessenger && (
-          <MessengerWidget 
+          <MessengerWidget
             open={messengerOpen}
             onClose={() => {
               setMessengerOpen(false);
@@ -795,13 +862,13 @@ export default function OwnerAppointments() {
         )}
 
         {/* WebRTC Call Modal - Placeholder */}
-        <Dialog 
-          open={webrtcModalOpen} 
+        <Dialog
+          open={webrtcModalOpen}
           onClose={() => {
             setWebrtcModalOpen(false);
             setSelectedContactForCall(null);
-          }} 
-          fullWidth 
+          }}
+          fullWidth
           maxWidth="md"
           PaperProps={{
             sx: {
@@ -828,28 +895,28 @@ export default function OwnerAppointments() {
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2, gap: 1 }}>
-            <Button 
+            <Button
               onClick={() => {
                 setWebrtcModalOpen(false);
                 setSelectedContactForCall(null);
-              }} 
+              }}
               sx={{ borderRadius: 1 }}
             >
               Annuler
             </Button>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="success"
               sx={{ borderRadius: 1, fontWeight: 700 }}
               onClick={() => {
                 // Déclencher l'événement pour ouvrir le vrai modal WebRTC
-                window.dispatchEvent(new CustomEvent('startWebRTCCall', { 
-                  detail: { 
-                    contactId: selectedContactForCall?.id, 
+                window.dispatchEvent(new CustomEvent('startWebRTCCall', {
+                  detail: {
+                    contactId: selectedContactForCall?.id,
                     contactName: selectedContactForCall?.name,
                     appointmentDate: selectedContactForCall?.date,
                     appointmentTime: selectedContactForCall?.time
-                  } 
+                  }
                 }));
                 setWebrtcModalOpen(false);
                 setSelectedContactForCall(null);

@@ -282,7 +282,7 @@ export default function OwnerPropertyForm({onSave, initial={}}){
     const rejected = [];
     for (const f of allowed) {
       if (!f.type || !f.type.startsWith('video/')) { rejected.push({file: f, reason: 'type'}); continue; }
-      if (f.size > 10 * 1024 * 1024) { rejected.push({file: f, reason: 'size'}); continue; }
+      if (f.size > 20 * 1024 * 1024) { rejected.push({file: f, reason: 'size'}); continue; }
       accepted.push(f);
     }
     if (rejected.length) {
@@ -629,7 +629,7 @@ export default function OwnerPropertyForm({onSave, initial={}}){
               
                 {/* Videos section */}
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Vidéos (max 5, mp4/mov)</Typography>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Vidéos (maximun 5 de taille inferieur à 20 Megabites) , mp4/mov)</Typography>
                   <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
                     {videos.map((v, idx) => (
                       <Paper key={idx} sx={{ position: 'relative', height: 90, overflow: 'hidden', borderRadius: 0, border: `1px solid ${theme.palette.divider}` }}>
